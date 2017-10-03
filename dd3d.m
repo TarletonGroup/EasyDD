@@ -14,15 +14,15 @@
 % 
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
- mex SegSegForcesMex.c
- mex StressDueToSegs.c
- mex UtildaMex.c
- mex mindistcalcmex.c
- mex  CollisionCheckerMex.c
- mex mobbcc1mex.c
- mex displacementmex_et.c
- mex CreateInputMex.c %CollisionMarielle
- mex CollisionCheckerMexMarielle.c %CollisionMarielle 
+%  mex SegSegForcesMex.c
+%  mex StressDueToSegs.c
+%  mex UtildaMex.c
+%  mex mindistcalcmex.c
+%  mex  CollisionCheckerMex.c
+%  mex mobbcc1mex.c
+%  mex displacementmex_et.c
+%  mex CreateInputMex.c %CollisionMarielle
+%  mex CollisionCheckerMexMarielle.c %CollisionMarielle 
   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
