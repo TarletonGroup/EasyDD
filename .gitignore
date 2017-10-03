@@ -1,0 +1,35 @@
+# Figures
+*.fig
+*.pdf
+*.eps
+*.png
+*.gif
+*.tif
+
+# Videos
+*.mov
+*.avi
+*.mp4
+
+# Mex
+*.mexa64
+*.mexw64
+*.mexmaci64
+
+# Data
+*.mat
+*.pdb
+
+# Object files
+*.o
+
+# Linkers
+*.ptx
+
+# WinEdt
+*.prj
+
+# Codegen
+/codegen/
+/nodalForce/codegen/
+/collision_test_coder/codegen/
