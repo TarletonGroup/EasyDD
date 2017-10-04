@@ -29,6 +29,7 @@
 
 # WinEdt
 *.prj
+*.prj.bak
 
 # Codegen
 /codegen/

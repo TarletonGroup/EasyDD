@@ -13,50 +13,49 @@ for i=1:100
     mu=rand(1,1);
     a=rand(1,1);
     
-    disp('Running Matlab version (Queyreau)...');
+    fprintf('Running Matlab version (Queyreau)...\n');
     tic;
     [fx3,fx4,fx5,fx6,ftot] = NodalSurfForceLinearRectangle2(x1,x2,x3,x4,x5,x6,b,mu,nu,a);
     time1=toc;
     
-    disp('Running C version (Ferroni)...');
+    fprintf('Running C version (Ferroni)...\n');
     tic;
     [fx3mex,fx4mex,fx5mex,fx6mex,ftotmex] = NodalSurfForceLinearRectangleMex(x1,x2,x3,x4,x5,x6,b,mu,nu,a);
     time2=toc;
   
     speedup = time1/time2;
-    disp('Speed-up of manually-written MEX function');
-    disp(speedup);
+    fprintf('Speed-up of manually-written MEX function\n');
+    fprintf('%d\n',speedup);
     
-%     tic;
-%     disp('Running C version (Matlab CODER 2.7)...');
-%     [fx3mex2,fx4mex2,fx5mex2,fx6mex2,ftotmex2] = NodalSurfForceLinearRectangleMex(x1,x2,x3,x4,x5,x6,b,mu,nu,a);
-%     time3=toc;
+     tic;
+     fprintf('Running C version (Matlab CODER 2.7)...\n');
+     [fx3mex2,fx4mex2,fx5mex2,fx6mex2,ftotmex2] = NodalSurfForceLinearRectangleMex(x1,x2,x3,x4,x5,x6,b,mu,nu,a);
+     time3=toc;
     
-    disp('Speed-up of automatic MEX function');
-    disp(time1/time3);
+    fprintf('Speed-up of automatic MEX function\n');
+    fprintf('%d\n',time1/time3);
     isequalAbs = @(x,y,tol) ( abs(x-y) <= tol );
     
-    test1 = all(isequalAbs(fx3,fx3mex',10e-14));
-    test2 = all(isequalAbs(fx4,fx4mex',10e-14));
-    test3 = all(isequalAbs(fx5,fx5mex',10e-14));
-    test4 = all(isequalAbs(fx6,fx6mex',10e-14));
+%     test1 = all(isequalAbs(fx3,fx3mex',10e-14));
+%     test2 = all(isequalAbs(fx4,fx4mex',10e-14));
+%     test3 = all(isequalAbs(fx5,fx5mex',10e-14));
+%     test4 = all(isequalAbs(fx6,fx6mex',10e-14));
     
-%     test1b = all(isequalAbs(fx3,fx3mex2',10e-14));
-%     test2b = all(isequalAbs(fx4,fx4mex2',10e-14));
-%     test3b = all(isequalAbs(fx5,fx5mex2',10e-14));
-%     test4b = all(isequalAbs(fx6,fx6mex2',10e-14));
-    
-    if (test1 && test2 && test3 && test4 == 1)
-        disp('Results between Matlab and C (Ferroni) match! :) ');
-    else
-        disp('Results dont match! :( ');
-    end
-    
+    test1b = all(isequalAbs(fx3,fx3mex2',10e-14));
+    test2b = all(isequalAbs(fx4,fx4mex2',10e-14));
+    test3b = all(isequalAbs(fx5,fx5mex2',10e-14));
+    test4b = all(isequalAbs(fx6,fx6mex2',10e-14));
+   
 %     if (test1 && test2 && test3 && test4 == 1)
-%         disp('Results between Matlab and C (Coder 2.7) match! :) ');
+%         fprintf('Results between Matlab and C (Ferroni) match! :)\n\n');
 %     else
-%         disp('Results dont match! :( ');
+%         fprintf('Results dont match! :(\n\n');
 %     end
+     
+    if (test1b && test2b && test3b && test4b == 1)
+        fprintf('Results between Matlab and C (Coder 2.7) match! :)\n\n');
+    else
+        fprintf('Results dont match! :(\n\n');
+    end
+
 end
-    
-    
