@@ -2385,7 +2385,7 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr,
 // deviceProp.maxThreadsDim[0], deviceProp.maxThreadsDim[1], deviceProp.maxThreadsDim[2]
 */
 
-void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
+void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
   double *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
@@ -2406,6 +2406,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  int blocks_per_grid;
   int idx1, idx2;
 
   // Memory allocation
@@ -2423,6 +2424,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
     printf("File does not exist.\n");
   }
   // Skip two lines.
+  fscanf(ptr_file, "%*[^\n]\n");
   fscanf(ptr_file, "%*[^\n]\n");
   fscanf(ptr_file, "%*[^\n]\n");
   for (int i = 0; i < n_dln*3; i+=3){
@@ -2449,7 +2451,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   x_b_arr   = b_host_device_map(b_arr[0], n_dln);
   x_dln_arr = dln_host_device_map(dln_node_arr[0], dln_node_arr[1], n_dln);
   x_se_arr  = element_host_device_map(se_node_arr, n_se, n_nodes);
-  #ifdef debug
+  #ifdef debug2
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -2477,14 +2479,13 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   checkCudaErrors( cudaMemcpyToSymbol(d_a_sq    , &a_sq    , sizeof(a_sq)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_factor  , &factor  , sizeof(factor)) );
-  // CUDA
-  //nodal_surface_force_linear_rectangle<<<1,n_se>>>(d_x_se_arr);
-  //nodal_surface_force_linear_rectangle<<<n_se,1>>>(d_x_se_arr);
-  #ifdef debug
+
+  blocks_per_grid = (n_se + threads_per_block - 1)/threads_per_block;
+  #ifdef debug2
     cudaEventRecord(start);
   #endif
-  se_cuda_nodal_surface_force_linear_rectangle<<<6,6>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
-  #ifdef debug
+  se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
+  #ifdef debug2
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     float milliseconds = 0;
@@ -2575,7 +2576,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
 
 
 // main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln)
-void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
+void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block){
 //mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
   double *dln_node_arr[2], *se_node_arr[n_nodes];
@@ -2597,7 +2598,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
-  int threads_per_block, blocks_per_grid;
+  int blocks_per_grid;
   //int n_se, n_dln;
   int idx1, idx2;
   /*
@@ -2689,6 +2690,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   // Skip two lines.
   fscanf(ptr_file, "%*[^\n]\n");
   fscanf(ptr_file, "%*[^\n]\n");
+  fscanf(ptr_file, "%*[^\n]\n");
   for (int i = 0; i < n_dln*3; i+=3){
     fscanf(ptr_file, "%lf %lf %lf", &dln_node_arr[0][i], &dln_node_arr[0][i+1], &dln_node_arr[0][i+2] );
     fscanf(ptr_file, "%lf %lf %lf", &dln_node_arr[1][i], &dln_node_arr[1][i+1], &dln_node_arr[1][i+2] );
@@ -2713,7 +2715,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   x_b_arr   = element_host_device_map(b_arr, n_dln, 1);
   x_dln_arr = element_host_device_map(dln_node_arr, n_dln, 2);
   x_se_arr  = se_host_device_map(se_node_arr[0], se_node_arr[1], se_node_arr[2], se_node_arr[3], n_se);
-  #ifdef debug
+  #ifdef debug2
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
@@ -2741,15 +2743,14 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   checkCudaErrors( cudaMemcpyToSymbol(d_a_sq    , &a_sq    , sizeof(a_sq)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_factor  , &factor  , sizeof(factor)) );
-  blocks_per_grid = 6;
-  threads_per_block = 6;
 
-  #ifdef debug
+  blocks_per_grid = (n_dln + threads_per_block - 1)/threads_per_block;
+  #ifdef debug2
     cudaEventRecord(start);
   #endif
   // CUDA
   dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
-  #ifdef debug
+  #ifdef debug2
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     float milliseconds = 0;
@@ -2832,19 +2833,21 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
 // Testing purposes
 
 int main(void){
-  int n_se, n_dln;
+  int n_se, n_dln, threads_per_block;
   FILE * ptr_file;
   printf("Reading input.txt... \n");
   ptr_file = fopen("cuda_input.txt", "r");
-  fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &n_dln);
+  fscanf(ptr_file, "%i", &n_se);
+  fscanf(ptr_file, "%i", &threads_per_block);
   fclose(ptr_file);
-  main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln);
+  main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block);
   printf("Reading input.txt... \n");
   ptr_file = fopen("cuda_input.txt", "r");
-  fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &n_dln);
-  main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln);
+  fscanf(ptr_file, "%i", &n_se);
+  fscanf(ptr_file, "%i", &threads_per_block);
+  main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block);
   fclose(ptr_file);
   return 0;
 }

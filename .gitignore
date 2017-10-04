@@ -16,13 +16,16 @@
 *.mexw64
 *.mexmaci64
 
-
 # Data
 *.mat
 *.pdb
+*.txt
 
 # Object files
 *.o
+
+# Executables
+*.out
 
 # Linkers
 *.ptx
