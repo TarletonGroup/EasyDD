@@ -81,7 +81,7 @@ for n=1:L1
                 Lni = norm(rt);
                 if Lni>0
                     rt = rt/Lni;
-                elseif Lni<=0;
+                elseif Lni<=0
                     disp('Zero length segment on the surface during remesh!');
                     pause;
                 end
@@ -162,7 +162,7 @@ end
 function out = logicswap(in)
 if in==1
     out=2;
-elseif in==2;
+elseif in==2
     out=1;
 else
     disp('Incorrect use of logicswap function');
@@ -211,35 +211,82 @@ function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
     %slip plane normal taken from input file!!! must be correct.
     %could calculate as vector orthogonal to b vec and line vec
     %but will be ill-defined for screw segments.
-    slip_plane = linksnew(linksnew(:,1)==rn_id,6:8);
-    if isempty(slip_plane)
-        slip_plane = linksnew(linksnew(:,2)==rn_id,6:8);
+%     slip_plane = linksnew(linksnew(:,1)==rn_id,6:8);
+%     if isempty(slip_plane)
+%         slip_plane = linksnew(linksnew(:,2)==rn_id,6:8);
+%     end
+%     slip_plane = sum(slip_plane,1)/norm(slip_plane);
+%     
+%     %surface normal
+%     surf_plane = fn(plane_id,1:3);
+%     %surf_plane = surf_plane/norm(surf_plane);
+%     
+%     proj_matrix = slip_plane' * slip_plane;
+%     proj_vec = surf_plane * ( eye(3) - proj_matrix );
+%     
+%     %Check (1) - make sure projection is pointing outwards of body
+%     if sum(surf_plane.*proj_vec)<0 
+%          proj_vec = -proj_vec;
+%     end
+% 
+%     %Check (2) - make sure slip plane and surface normal do no coincide.
+%     %scenario unlikely to happen if climb drag is very high...
+%     normprojvec = norm(proj_vec);
+%     if normprojvec < eps
+%          disp('Climb?');
+%          proj_vec = surf_plane/norm(surf_plane);
+%     end
+%     
+%     proj_vec = proj_vec/normprojvec;
+%     
+%     rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + 10^5*proj_vec;
+%     rnnew(rn_id,end) = 67;
+    
+    %% Option (4) extend based on projection of surface normal on to slip plane calculated from burgers vector or nodal velocity
+   
+    p_inf=10^5;   %large number used to desegnate pseudo-infinity. Should be updated to releated to simulated volume size
+    vel_vec=rnnew(rn_id,4:6);   %nodal velocity vector
+    vel_vec=vel_vec/norm(vel_vec);   %normalise velocity
+    b_vec=linksnew(linksnew(:,1)==rn_id,3:5);   %find burgers vector of first connected link
+    if isempty(b_vec)
+        b_vec=linksnew(linksnew(:,2)==rn_id,3:5);
     end
-    slip_plane = sum(slip_plane,1)/norm(slip_plane);
+    b_vec=b_vec/norm(b_vec);   %normalise burgers vector
+    
+    [n,~]=size(linksnew);   %find line direction
+    for i=1:n
+        if linksnew(i,1)==rn_id
+            lin_vec=rnnew(linksnew(i,2),1:3)-rnnew(rn_id,1:3);
+            break
+        elseif linksnew(i,2)==rn_id
+             lin_vec=rnnew(linksnew(i,1),1:3)-rnnew(rn_id,1:3);
+            break
+        end
+    end
+    
+    lin_vec=lin_vec/norm(lin_vec);   %normalise line direction
+    slip_plane=cross(b_vec,lin_vec);   %calculate slip plane normal for non-screw type
+    check=dot(b_vec,lin_vec);   %check if dislocation is screw type
+    check=sqrt(check*check);
+    if 1-check<eps
+    slip_plane=cross(vel_vec,lin_vec);   %calculate slip plane normal if screw type
+    end
+    slip_plane=slip_plane/norm(slip_plane);   %normalise slip plane
     
     %surface normal
     surf_plane = fn(plane_id,1:3);
-    %surf_plane = surf_plane/norm(surf_plane);
+    surf_plane = surf_plane/norm(surf_plane);   %normalise surface normal
     
-    proj_matrix = slip_plane' * slip_plane;
-    proj_vec = surf_plane * ( eye(3) - proj_matrix );
+    proj_matrix = slip_plane' * slip_plane;   %calculate projection matrix
+    proj_vec = surf_plane * ( eye(3) - proj_matrix );   %calculate extension direction
     
-    %Check (1) - make sure projection is pointing outwards of body
+    %Check (1) - make sure extension is pointing outwards of body
     if sum(surf_plane.*proj_vec)<0 
          proj_vec = -proj_vec;
     end
-
-    %Check (2) - make sure slip plane and surface normal do no coincide.
-    %scenario unlikely to happen if climb drag is very high...
-    normprojvec = norm(proj_vec);
-    if normprojvec < eps
-         disp('Climb?');
-         proj_vec = surf_plane/norm(surf_plane);
-    end
     
-    proj_vec = proj_vec/normprojvec;
+    proj_vec = proj_vec/norm(proj_vec);   %normalise extension vector
     
-    rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + 10^5*proj_vec;
-    rnnew(rn_id,end) = 67;
-    
+    rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + p_inf*proj_vec;   %extend node to pseudo-infinity in extension direction
+    rnnew(rn_id,end) = 67;   %flag node as virtual
 end

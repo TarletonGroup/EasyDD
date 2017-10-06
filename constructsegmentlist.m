@@ -4,7 +4,7 @@ function segments=constructsegmentlist(rn,links)
 
 segments=zeros(LINKMAX,14);
 nseg=0;
-for i=1:LINKMAX,
+for i=1:LINKMAX
     n0=links(i,1);
     n1=links(i,2);
     if((n0~=0)&&(n1~=0))
