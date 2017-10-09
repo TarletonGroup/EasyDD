@@ -1,3 +1,15 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Designed to calculate the displacement vectors on a cuboid convex hull due to the
+% presence of a dislocation structure where any virtual nodes have been projected
+% away from the surface along the line of the Burgers vector 
+% 
+% Bruce Bromage
+% Michromechanical Testing Group
+% Department of Materials, University of Oxford
+% bruce.bromage@materials.ox.ac.uk
+% October 2017
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 function [Ux, Uy, Uz] = Utilda_bb2(rn,links,gnl,nu,xnodes,dx,dy,dz,mx,my,mz)
 
 %This function finds the displacement caused by all dislocation segements
@@ -50,9 +62,9 @@ for i=1:segnum
           pyramid=[A;B;C;Aprime;Bprime];                    %Designates original virtual nodes, closure point and projected nodes as vertices
           tess=convhulln(pyramid);                          %Finds the convex hull of the designated vertices
           tol=1e-10;
-          checker=inhull(xnodes(:,1:3),pyramid,tess,tol);   %Flags nodes inside the convex hull
+          checker=inhull(xnodes(:,1:3),pyramid,tess,tol);   %Flags FE nodes inside the convex hull
       else
-          flag=0;                                           %flags non-virtual segments
+          flag=0;                                           %Flags non-virtual segments
       end
    
       for j=1:nodenum
@@ -142,6 +154,9 @@ end
 
 function [u] = displacement_et_el(p,A,B,b,nu)
 
+%Calculates only elastic components of displacement for segment AB using
+%code from displacem_et
+
 con1 = (1-2*nu)/(8*pi*(1-nu));
 con2 = 1/(8*pi*(1-nu));
 
@@ -168,60 +183,6 @@ g = gab(b, lamA, lamB);
 
 % update displacement inc. solid angle
 u = - con1.*f + con2.*g;
-
-u = u';
-
-end
-
-function [u] = solang_correction(p,A,B,Bprime,Aprime,C,b)
-
-segs=[Aprime,A,; A,B; B,Bprime; Bprime,Aprime];
-num=size(segs,1);
-omega_big=[];
-
-for i=1:num
-  
-RA = segs(i,1) - p;
-RB = segs(i,2) - p;
-RC = C - p;
-
-lamA = safenorm(RA);
-lamB = safenorm(RB);
-lamC = safenorm(RC);
-
-vecAB = B - A;
-vecBC = C - B;
-
-tAB = safenorm(vecAB);
-tBC = safenorm(vecBC);
-
-n = cross(tAB,tBC);
-
-omega_big  = omega_big + solang(lamA, lamB, lamC,n);
-    
-end
-
-RA = segs(num,2) - p;
-RB = segs(num,1) - p;
-RC = C - p;
-
-lamA = safenorm(RA);
-lamB = safenorm(RB);
-lamC = safenorm(RC);
-
-vecAB = B - A;
-vecBC = C - B;
-
-tAB = safenorm(vecAB);
-tBC = safenorm(vecBC);
-
-n = cross(tAB,tBC);
-
-omega_small  = solang(lamA, lamB, lamC,n);
-
-omega_corr = sign(omega_big)*4*pi + omega_big + omega_small;
-
-u =  - b*omega_corr/(4*pi);
 
 u = u';
 
@@ -305,7 +266,63 @@ omega = -sgn*omega;
 
 end
 
+function [u] = solang_correction(p,A,B,Bprime,Aprime,C,b)
 
+%Calculates the solid angle contribution dor the special case where the
+%field point is inside the pyramid created when the loop connects to the
+%closure point. Uses code from displacement_et
+
+segs=[Aprime,A,; A,B; B,Bprime; Bprime,Aprime];
+num=size(segs,1);
+omega_big=[];
+
+for i=1:num
+  
+RA = segs(i,1) - p;
+RB = segs(i,2) - p;
+RC = C - p;
+
+lamA = safenorm(RA);
+lamB = safenorm(RB);
+lamC = safenorm(RC);
+
+vecAB = B - A;
+vecBC = C - B;
+
+tAB = safenorm(vecAB);
+tBC = safenorm(vecBC);
+
+n = cross(tAB,tBC);
+
+omega_big  = omega_big + solang(lamA, lamB, lamC,n);
+    
+end
+
+RA = segs(num,2) - p;
+RB = segs(num,1) - p;
+RC = C - p;
+
+lamA = safenorm(RA);
+lamB = safenorm(RB);
+lamC = safenorm(RC);
+
+vecAB = B - A;
+vecBC = C - B;
+
+tAB = safenorm(vecAB);
+tBC = safenorm(vecBC);
+
+n = cross(tAB,tBC);
+
+omega_small  = solang(lamA, lamB, lamC,n);
+
+omega_corr = sign(omega_big)*4*pi + omega_big + omega_small;
+
+u =  - b*omega_corr/(4*pi);
+
+u = u';
+
+end
 
 function unitR = safenorm(R)
 
