@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <cuda.h>
 #include "helper_cuda.h"
-// double precision atomicAdd
+// double precision atomicAdd_dbl
 #if __CUDA_ARCH__ < 600
-  __device__ double atomicAdd(double* address, double val)
+  __device__ double atomicAdd_dbl(double* address, double val)
   {
       unsigned long long int* address_as_ull =
                                 (unsigned long long int*)address;
@@ -1324,7 +1324,7 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
     // Loop over coordinates.
     for (int j = 0; j < 3; j++){
       // Displace the output index to point at the j'th coordinate of the i'th node of the idx'th surface element.
-      atomicAdd(&o_g_fx_arr[idxf + j*n_se_n_nodes], i_nodal_force[i][j]);
+      atomicAdd_dbl(&o_g_fx_arr[idxf + j*n_se_n_nodes], i_nodal_force[i][j]);
     }
     // Advance the output index to point at the (i+1)'th node of the first coordinate of the idx'th surface element.
     idxf += i_n_se;
@@ -1333,7 +1333,7 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
   // Loop over coordinates.
   idxf = idx;
   for (int i = 0; i < 3; i++){
-    atomicAdd(&o_g_ftot_arr[idxf], i_total_force[i]);
+    atomicAdd_dbl(&o_g_ftot_arr[idxf], i_total_force[i]);
     // Advance the output index to point at the (i+1)'th coordinate of the idx'th surface element.
     idxf += i_n_se;
   }
@@ -1372,7 +1372,7 @@ __device__ void dln_add_force_thread_device(double i_nodal_force[][3], double *i
     // Loop over coordinates.
     for (int j = 0; j < 3; j++){
       // Displace the output index to point at the j'th coordinate of the i'th node of the idx'th surface element.
-      atomicAdd(&o_g_fx_arr[idxf + idxa + j], i_nodal_force[i][j]);
+      atomicAdd_dbl(&o_g_fx_arr[idxf + idxa + j], i_nodal_force[i][j]);
     }
     idxa += 3;
   }
@@ -1380,7 +1380,7 @@ __device__ void dln_add_force_thread_device(double i_nodal_force[][3], double *i
   // Loop over coordinates.
   idxa = 3*idx;
   for (int i= 0; i < 3; i++){
-    atomicAdd(&o_g_ftot_arr[idxa + i], i_total_force[i]);
+    atomicAdd_dbl(&o_g_ftot_arr[idxa + i], i_total_force[i]);
   }
 }
 
