@@ -1,0 +1,39 @@
+\renewcommand{\vec}{\vectorsym}
+\newcommand{\tns}{\tensorsym}
+\newcommand{\mtx}{\mathbf}
+\newcommand{\mtb}{\textsc{Matlab}}
+% Host, device, thread, roman variables.
+\newcommand{\hvar}[1]{\ensuremath{^{\textrm{h}}#1}}
+\newcommand{\dvar}[1]{\ensuremath{^{\textrm{d}}#1}}
+\newcommand{\tvar}[1]{\ensuremath{^{\textrm{t}}#1}}
+\newcommand{\rvar}[1]{\ensuremath{\textrm{#1}}}
+\newcommand{\kwdmc}[2]{\gls{#1}\index{\ensuremath{#2}}} % Keyword math command.
+\newcommand{\kwdm}[1]{\gls{#1}\index{\ensuremath{#1}}}  % Keyword math.
+\newcommand{\kwd}[1]{\gls{#1}\index{\gls{#1}}}			% Keyword.
+\newcommand{\kwdp}[1]{\glspl{#1}\index{\gls{#1}}}		% Keyword plural.
+\newcommand{\Kwd}[1]{\Gls{#1}\index{\gls{#1}}}			% Keyword upper case.
+\newcommand{\Kwdp}[1]{\Glspl{#1}\index{\gls{#1}}}		% Keyword plural upper case.
+\newcommand{\kwds}[1]{\glssymbol{#1}\index{\gls{#1}}}	% Keyword symbol.
+\newcommand{\nn}{\nonumber\\}							% No number skip line.
+\newcommand{\datasepmap}[5]{%
+	The data for different #1s of corresponding #2 is separated by \ensuremath{#3} entries. Every time we change #1 we have to skip blocks of size \ensuremath{#4} from \ensuremath{#5}.
+}
+% \algblockdefx[<block>]{<start>}{<end>}[<startparamcount>][<default value>]{<start text>}[<endparamcount>][<default value>]{<end text>}
+\algblockdefx[gpufunction]{GPUFunction}{EndGPUFunction}%
+[2][]{\textbf{GPU function} \textsc{#1}(#2)}%
+{\textbf{end GPU function}}
+% Saves arabic numbering before using the romanpages environment. 
+% Add at the end of included chapter so the correct page is recorded.
+\newcommand{\savearabiccounter}{
+	\setcounter{arabiccounter}{\value{page}}
+	%
+	\if@twocolumn
+	\addtocounter{arabiccounter}{1}
+	\else
+	\if@openright
+	\addtocounter{arabiccounter}{2}
+	\else
+	\addtocounter{arabiccounter}{1}
+	\fi
+	\fi
+}

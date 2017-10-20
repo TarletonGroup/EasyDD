@@ -1,0 +1,112 @@
+% Entries without acronyms
+\newglossaryentry{bv}
+{
+	name={Burgers vector},
+	description={Denoted as $\vec{b}$, it represents the lattice distortion caused by a \kwd{dl} in a crystal lattice. In \emph{edge} \kwdp{dl} the Burgers vector is perpendicular to the line direction ($ \vec{b} \perp t $); in \emph{screw} \kwdp{dl} it is parallel to the line direction ($ \vec{b} \parallel t $); in \emph{mixed} \kwdp{dl}, Burgers vector and line direction are neither perpendicular nor parallel to each other},
+	symbol = {\ensuremath{\vec{b}}}
+}
+
+\newglossaryentry{dl}
+{
+	name={dislocation},
+	description={Crystallographic defect which strongly influences many of a material's properties. It can consist of additional or missing partial crystallographic planes, and may come in three varieties: edge, screw and mixed. Mathematically it is a type of topological defect/soliton because it is a distinct, out of equillibrium---but stable---solution of the \kwd{pde} which in the trivial case yields the crystallographic structure of a material. Like any other soliton, it will not spontaneously decay to the ``trivial'' solution, which in this case would be a perfect crystal. Thus a dislocation preserves its identity by preserving its \kwd{bv}. Like other solitons, it can annihilate with another of opposite phase, which in this case would be an opposite \kwd{bv}}
+}
+
+\newglossaryentry{devmem}
+{
+	name = {device memory},
+	description = {Graphics card memory visible only within GPU functions}
+}
+
+\newglossaryentry{atop}
+{
+	name = {atomic operation},
+	description = {An operation on shared or global \kwd{devmem} which is guaranteed to be performed without interference from other threads. However, atomic operations don't act as memory fences and do not imply \kwd{thrsync} \cite{nvidia_atomics}}
+}
+
+\newglossaryentry{thrsync}
+{
+	name = {thread syncronisation},
+	description = {Ensures all threads catch up to each other in some way or another. The function \mintinline{c}{__syncthreads()} ensures all threads in a \kwd{wrp} reach the same point. The function \mintinline{c}{__threadfence()} flushes all global memory and shared memory writes by a thread so the updated values are visible to other threads before continuing}
+}
+
+\newglossaryentry{cma}
+{
+	name = {coalesced memory access},
+	description = {When all active threads in a \kwd{wrp} access contiguous global memory. Therefore cache lines can be very efficiently utilised}
+}
+
+\newglossaryentry{wrp}
+{
+	name = {warp},
+	description = {Collection of threads with a maximum of 32 which execute concurrently on the same \kwd{sm} resources}
+}
+
+\newglossaryentry{wrpd}
+{
+	name = {warp divergence},
+	description = {Due to the fact that all threads in a \kwd{wrp} must execute the same instruction concurrently, all program branches are executed regardless of branching condition. However, only those instructions for which a branching condition is met have an effect on the state of the thread's program. As a consequence, different threads in a \kwd{wrp} may meet different branching conditions, wasting all other branched instructions}
+}
+
+\newglossaryentry{tensor}
+{
+	name = {tensor},
+	description = {Geometric object that represents linear relations between matrices, vectors, scalars and other tensors}
+}
+
+\newglossaryentry{dls}
+{
+	name = {dislocation line segment},
+	description = {Discretisation of dislocations as straight line segments between two tracked nodes},
+	plural={dislocation line segments}
+}
+
+% Entries with acronyms
+% Syntax: \newdualentry[glossary options][acronym options]{label}{abbrv}{long}{description}
+\newdualentry
+{sm}
+{SM}
+{Streaming Multiprocessor}
+{A differential equation which contains unkown multivariate functions and their partial derivatives. Solutions require knowledge of the boundary conditions the unkown functions are subject to. The types of PDEs and their boundary conditions can make it difficult or impossible to find well-behaved, analytical solutions. As a result, numerical methods such as \kwd{fem} are often used to solve them}
+
+\newdualentry
+{pde}
+{PDE}
+{Partial Differential Equation}
+{A differential equation which contains unkown multivariate functions and their partial derivatives. Solutions require knowledge of the boundary conditions the unkown functions are subject to. The types of PDEs and their boundary conditions can make it difficult or impossible to find well-behaved, analytical solutions. As a result, numerical methods such as \kwd{fem} are often used to solve them}
+
+\newdualentry
+{fem}
+{FEM}
+{Finite Element Method}
+{Also known as finite element analysis (FEA), they are a class of numerical methods for solving boundary value problems for \kwdp{pde} whose analytical solution might not meet the necessary uniqueness and existence requirements of a physical problem. These methods divide the domain of interest into smaller, simpler subdomains that can be described by a system of algebraic equations. These are then assembled into a larger system of coupled algebraic equations that approximately model the whole domain. Variational methods are then used to find an approximate solution by minimising an associated error function}
+
+\newdualentry
+{bem}
+{BEM}
+{Boundary Element Method}
+{The 2D analogue of an \kwd{fem}, where only the domain boundaries are of interest}
+
+\newdualentry
+{fe}
+{FE}
+{Finite Element}
+{One of the subdomains of a problem solved via \kwd{fem}}
+
+\newdualentry
+{be}
+{BE}
+{Boundary Element}
+{One of the subdomains of a problem solved via \kwd{bem}}
+
+\newdualentry
+{se}
+{SE}
+{Surface Element}
+{Special case of a \kwd{be}, where the boundary is a surface}
+
+\newdualentry
+{ddd}
+{DDD}
+{Discrete Dislocation Dynamics}
+{The study of the dynamics of \kwdp{dl} as discrete entities made up of discrete nodes connected by line segments. They assume an infinite medium in which dislocations exist, evolve and interact. Due to their intermediate nature between atomistic and continuum models, they can explore time and length scales which are either too big for more fundamental approaches, and too small for \kwd{fem}}

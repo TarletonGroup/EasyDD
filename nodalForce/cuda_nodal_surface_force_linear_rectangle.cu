@@ -1332,7 +1332,7 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
   // Total force per surface element.
   // Loop over coordinates.
   idxf = idx;
-  for (int i= 0; i < 3; i++){
+  for (int i = 0; i < 3; i++){
     atomicAdd(&o_g_ftot_arr[idxf], i_total_force[i]);
     // Advance the output index to point at the (i+1)'th coordinate of the idx'th surface element.
     idxf += i_n_se;
@@ -1417,7 +1417,7 @@ void dln_fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, 
     }
     // Advance the input index to point at the first coordinate of the (i+1)'th node of the first element.
     idxi += 3;
-    idxf = 0;
+    idxf  = 0;
   }
 }
 

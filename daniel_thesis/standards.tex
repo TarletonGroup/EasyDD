@@ -1,0 +1,82 @@
+\chapter{Best Practices}\label{c:best_practices}
+	This chapter defines the best practices that will make improve the development and testing pipeline by defining rules and standards that facilitate collaboration.
+	\section{Filesystem}\label{c:best_practices:s:filesystem}
+		All files must be within \texttt{/project\_name}. 
+		\begin{enumerate}
+			\item All files must be within \texttt{/project\_name},\\
+				  \texttt{\textasciitilde/} = \texttt{project\_name/}, \\
+				  \texttt{\textasciitilde/\textasciitilde/} = \texttt{project\_name/src/} or \texttt{project\_name/dev/}.
+			\item Release code must be within \texttt{\textasciitilde/src/}.
+			\item Development code must be within \texttt{\textasciitilde/dev/}.
+			\item Test data must be within \texttt{\textasciitilde/tests/}.
+			\item Documentation must be within \texttt{\textasciitilde/\textasciitilde/doc/}.
+			\item Examples must be within \texttt{\textasciitilde/\textasciitilde/exmp/}.
+			\item External libraries must be within \texttt{\textasciitilde/lib/}.
+			\item Generated images must be within \texttt{\textasciitilde/\textasciitilde/images/}.
+			\item Old versions recordkeeping must be within \texttt{\textasciitilde/prv/va.b.c/}.
+		\end{enumerate}
+	%
+	\section{Versioning}\label{c:best_practices:s:versioning}
+		\begin{enumerate}
+			\item Use a version control system like \href{https://github.com/}{GitHub} or \href{https://pastebin.com/}{PasteBin}.
+			\item There must be a master branch that is only changed when the code is stable and bug free.
+			\item Development branches should be exploited as seen fit without making things overly convoluted.
+			\item Commits must be as bug free and regular as possible. When to commit is left to the developer's discresion.
+			\item Commit messages should be as descriptive as possible.
+			\item Versions should be specified as \texttt{va.b.c} where \texttt{a}, \texttt{b}, \texttt{c} = integers. The three levels are \texttt{a} = release version (usable, bug free code), \texttt{b} = beta version (code that is undergoing testing), \texttt{c} = alpha version (code that is under active development).
+		\end{enumerate}
+	%	 
+	\section{Documentation}\label{c:best_practices:s:documentation}
+		\subsection{Commenting}\label{c:best_practices:s:documentation:ss:commenting}
+			Every codefile must be appropriately commented by meeting the following guidelines.
+			\begin{enumerate}
+				\item The start of each codefile must have a heading detailing the creator, date of creation and edit history (date and name of editor).
+				\item Below the heading there must be a general explanation of the code. It must state any procedures, structures, objects and how they are to be utilised. Any backward or forward dependencies must be stated.
+				\item Below the description and edit history any relevant literature must be mentioned (dois are preferred). Must be as detailed as possible, include equation numbers/ranges if necessary.
+				\item The start of every procedure has an explanation of its purpose, inputs, outputs and inputs-outputs.
+				\item Particularly complicated code blocks must have an in-depth explanation of what it does. Comment each line if necessary.
+				\item Corrections or additions must be explicitly bounded by comments at the start and end of the change. Both bounding comments must have the author's name and the date. Below the starting comment, there should be an explanation of the change. Any punctual comments can be made as normal.
+			\end{enumerate}
+		\subsection{README}\label{c:best_practices:s:documentation:ss:readme}
+			Every codefile must have an associated \textsc{readme} \texttt{.tex} document that documents the codefile's contents. It must meet the following guidelines as appropriate.
+			\begin{enumerate}
+				\item The name must be that of the file it documents (minus the extension of course).
+				\item Description and overall explanation of the codefile's purpose.
+				\item Overall flow chart or pseudo code describing the file's purpose.
+				\item Document the codefile's procedures. This means describing and explaining their corresponding inputs, outputs, inputs-outputs, forwards and backwards dependencies, and flow charts or pseudo codes.
+				\item Unit test designs and results for each procedure. If appropriate also include those of integral tests.
+			\end{enumerate}
+			The codefile may also be appended at the end of documentation if desired (the \texttt{minted} package is highly recommended).
+	%
+	\section{Modularisation}\label{c:best_practices:s:modularisation}
+		\begin{enumerate}
+			\item Code repetition must be kept to a \emph{strict} minimum. Any piece of code that will be reused must be modularised.
+			\item Procedures must be as self-sufficient as possible \emph{without} repeating code. If repeating code is necessary, replace it with a procedure that is to be repeatedly called instead. Minimising repeated code $\ggg$ procedure self-sufficiency.
+		\end{enumerate}
+	%
+	\section{Coding Style}\label{c:best_practices:s:naming_conventions}
+		All names must meet the following guidelines.
+		\begin{enumerate}
+			\item Indent appropriately. Four space tabs are a good compromise between code necking and readability.
+			\item Minimise the use of nested code blocks, use intrisics, libraries or create procedures instead.
+			\item Break up lines that are uncomfortably long, typically anything over 80--100 characters.
+			\item Names should be appropriately descriptive and human readable.
+			\item All code and names must be systematic and logical.
+			\item the use of upper cases should be reserved for parameters (\texttt{const} variables in C).
+			\item Delimit words with ``\texttt{\_}'' \emph{not} case changes.
+			\item Long and descriptive $\ggg$ short and cryptic.
+		\end{enumerate}
+		\subsection{Filenames}\label{c:best_practices:s:naming_conventions:ss:filenames}
+			\begin{enumerate}
+				\item If old versions are to be kept, the old \emph{stable} versions of file must have the date of last modification appended \emph{suffixed} after the file extension in the \texttt{\_yyyymmdd} format. For example, if the stable version of the release code \texttt{hello\_world\_parallel.c} was last modified on April 25, 2017 it should be archived as\\ \texttt{hello\_world\_parallel.c\_20170425}.
+			\end{enumerate}
+		\subsection{Variables, Structures and Objects}\label{c:best_practices:s:naming_conventions:ss:variables_structures_objects}
+			\begin{enumerate}
+				\item Only counters and indices can be single letter variables.
+				\item Structure and object \emph{definitions} are \emph{suffixed} with \texttt{\_s} and \texttt{\_o} respectively.
+				\item Inputs, outputs and input-outputs to procedures must be \emph{prefixed} with \texttt{i\_}, \texttt{o\_} and \texttt{io\_} respectively.
+			\end{enumerate}
+		\subsection{Procedures}\label{c:best_practices:s:naming_conventions:ss:procedures}
+			\begin{enumerate}
+				\item Functions and subroutines must be \emph{prefixed} with \texttt{f\_} and \texttt{s\_} respectively.
+			\end{enumerate}
