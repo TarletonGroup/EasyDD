@@ -1,4 +1,5 @@
-function varargout=AxelRot(varargin)
+function varargout=AxelRot(varargin) 
+% this is a test comment 
 %Generate roto-translation matrix for the rotation around an arbitrary line in 3D.
 %The line need not pass through the origin. Optionally, also, apply this
 %transformation to a list of 3D coordinates.
