@@ -1243,6 +1243,17 @@ __device__ void element_device_thread_map(double *i_g_elem_arr, double o_x[][3],
   int n_elem_n_nodes = i_n_nodes*i_n_elem_scope;
   int idx  = threadIdx.x + blockIdx.x * blockDim.x;
   int idxi = idx;
+  // The lhs of this loop is not ideal due to the row-order of C but the rhs allows fully coalesced memory access of global memory.
+  // Loop over nodes.
+  for (int i = 0; i < 3; i++){
+    // Loop over coordinates.
+    for (int j = 0; j < i_n_nodes j++){
+      o_x[j][i] = i_g_elem_arr[idxi + i_n_elem_scope];
+    }
+    // Advance the global array index to point at the i'th coordinate of the first node of the idx'th element.
+    idxi += n_elem_n_nodes;
+  }
+  /*
   // Loop over nodes.
   for (int i = 0; i < i_n_nodes; i++){
     // Loop over coordinates.
@@ -1253,6 +1264,7 @@ __device__ void element_device_thread_map(double *i_g_elem_arr, double o_x[][3],
     // Advance the input index to point at the first coordinate of the (i+1)'th node of the idx'th element.
     idxi += i_n_elem_scope;
   }
+  */
 }
 
 __device__ void se_device_thread_map(double *i_g_se_arr,
