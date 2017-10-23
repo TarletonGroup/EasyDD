@@ -44,19 +44,19 @@
 */
 const int n_nodes = 4;
 const int n_limits = 8;
-const double pi = 4.0 * atan(1.0);
+const float pi = 4.0 * atan(1.0);
 
-double dot_product(double *i_vec1, double *i_vec2, int i_vec_size){
+float dot_product(float *i_vec1, float *i_vec2, int i_vec_size){
   // Returns the dot product of i_vec1, i_vec2.
-  double result = 0.0;
+  float result = 0.0;
   for (int i = 0; i < i_vec_size; i++){
     result += i_vec1[i]*i_vec2[i];
   }
   return result;
 }
 
-double *cross_product(double *i_vec1, double *i_vec2,
-                      double *o_vec){
+float *cross_product(float *i_vec1, float *i_vec2,
+                      float *o_vec){
   // Returns the cross product of i_vec1 x i_vec2.
   o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
   o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
@@ -64,8 +64,8 @@ double *cross_product(double *i_vec1, double *i_vec2,
   return o_vec;
 }
 
-double *cross_product2(double *i_vec1, double *i_vec2){
-  double *o_vec = (double *) malloc(3*sizeof(double));
+float *cross_product2(float *i_vec1, float *i_vec2){
+  float *o_vec = (float *) malloc(3*sizeof(float));
   // Returns the cross product of i_vec1 x i_vec2.
   o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
   o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
@@ -73,10 +73,10 @@ double *cross_product2(double *i_vec1, double *i_vec2){
   return o_vec;
 }
 
-double *normalise_vector(double *i_vec, int i_vec_size,
-                         double *o_vec){
+float *normalise_vector(float *i_vec, int i_vec_size,
+                         float *o_vec){
   // Returns a normalised i_vec to o_vec.
-  double mag_vec = 0.0;
+  float mag_vec = 0.0;
   mag_vec = dot_product(i_vec, i_vec, i_vec_size);
   // Check magnitude is not zero.
   if (mag_vec == 0.0){
@@ -90,13 +90,13 @@ double *normalise_vector(double *i_vec, int i_vec_size,
   return o_vec;
 }
 
-void normalise_vector2(double *i_vec, int i_vec_size,
-                       double *o_vec, double *o_mag_vec){
+void normalise_vector2(float *i_vec, int i_vec_size,
+                       float *o_vec, float *o_mag_vec){
   // Returns a normalised i_vec to o_vec, and the magnitude of the vector in o_mag_vec.
   // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
   /*
     int    size = 3;
-    double i_vec[size], o_vec[size], magnitude;
+    float i_vec[size], o_vec[size], magnitude;
     normalise_vector2(i_vec, size, o_vec, &magnitude);
   */
   *o_mag_vec = dot_product(i_vec, i_vec, i_vec_size);
@@ -111,10 +111,10 @@ void normalise_vector2(double *i_vec, int i_vec_size,
   }
 }
 
-double *arbitrary_rotation_matrix_3d(double i_theta, double *i_rot_centre, double *i_rot_axis, double *i_point, double *o_result){
+float *arbitrary_rotation_matrix_3d(float i_theta, float *i_rot_centre, float *i_rot_axis, float *i_point, float *o_result){
   // Rotates i_point an angle of i_theta about the unit vector i_rot_axis passing through the point i_rot_centre..
-  double u_sq, v_sq, w_sq, au, bv, cw, m_ux_m_vy_m_wz, costheta, one_m_costheta, sintheta;
-  double mag_rot_axis;
+  float u_sq, v_sq, w_sq, au, bv, cw, m_ux_m_vy_m_wz, costheta, one_m_costheta, sintheta;
+  float mag_rot_axis;
   // Always assume the user is stupid and check whether i_rot_axis is normalised, if it's not normalise it.
   mag_rot_axis = dot_product(i_rot_axis, i_rot_axis, 3);
   if(mag_rot_axis != 1.0){
@@ -149,8 +149,8 @@ double *arbitrary_rotation_matrix_3d(double i_theta, double *i_rot_centre, doubl
   return o_result;
 }
 
-double *build_vector(double *i_x1, double *i_x2, int i_vec_size,
-                     double *o_vec){
+float *build_vector(float *i_x1, float *i_x2, int i_vec_size,
+                     float *o_vec){
   // Returns a vector o_vec which translates the point i_x1 to i_x2.
   for (int i = 0; i < i_vec_size; i++){
     o_vec[i] = i_x2[i] - i_x1[i];
@@ -158,33 +158,33 @@ double *build_vector(double *i_x1, double *i_x2, int i_vec_size,
   return o_vec;
 }
 
-double *init_vector(double *i_x1, double *i_x2, int i_vec_size,
-                    double *io_vec){
+float *init_vector(float *i_x1, float *i_x2, int i_vec_size,
+                    float *io_vec){
   // Builds and returns a normalised vector io_vect.
   build_vector(i_x1, i_x2, i_vec_size, io_vec);
   normalise_vector(io_vec, i_vec_size, io_vec);
   return io_vec;
 }
 
-void init_vector2(double *i_x1  , double *i_x2, int i_vec_size,
-                  double *io_vec, double *o_mag_vec){
+void init_vector2(float *i_x1  , float *i_x2, int i_vec_size,
+                  float *io_vec, float *o_mag_vec){
   // Builds and returns a normalised vector io_vect, and the magnitude of the vector in o_mag_vec.
   // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
   /*
     int    size = 3;
-    double i_x1[size], i_x2[size], o_vec[size], magnitude;
+    float i_x1[size], i_x2[size], o_vec[size], magnitude;
     init_vector2(i_x1, i_x2, size, o_vec, &magnitude);
   */
   build_vector(i_x1, i_x2, i_vec_size, io_vec);
   normalise_vector2(io_vec, i_vec_size, io_vec, o_mag_vec);
 }
 
-double init_point(double *i_vec1, double *i_vec2,
-                  double *i_vec3, double *i_vec4,
+float init_point(float *i_vec1, float *i_vec2,
+                  float *i_vec3, float *i_vec4,
                   int     i_vec_size){
   // Initialises points on the surface element given four vectors.
-  double result = 0.0;
-  double denom = 0.0;
+  float result = 0.0;
+  float denom = 0.0;
   denom = dot_product(i_vec3, i_vec4, i_vec_size);
   if (denom == 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: init_point: division by zero, dot_product(i_vec3, i_vec4) = %2.14f\n", denom);
@@ -194,10 +194,10 @@ double init_point(double *i_vec1, double *i_vec2,
   return result;
 }
 
-double seed_single_integral(double a, double b){
+float seed_single_integral(float a, float b){
   // Single integral seed.
-  double result = 0.0;
-  double arg;
+  float result = 0.0;
+  float arg;
   arg = a+b;
   if (arg <= 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: seed_single_integral: log(%2.14f) = %2.14f\n", arg, log(arg));
@@ -207,27 +207,27 @@ double seed_single_integral(double a, double b){
   return result;
 }
 
-double integral_type_1(double a, double b,
-                       double c, double d,
-                       double e){
-  double result = 0.0;
+float integral_type_1(float a, float b,
+                       float c, float d,
+                       float e){
+  float result = 0.0;
   result = 0.5*(a*b + (c-d)*e);
   return result;
 }
 
-double numer_seed_double_integral(double a,
-                                  double b, double c, double d,
-                                  double e){
-  // Returns the argument of the numerator of the seed integral for double integrals.
-  double result = 0.0;
+float numer_seed_double_integral(float a,
+                                  float b, float c, float d,
+                                  float e){
+  // Returns the argument of the numerator of the seed integral for float integrals.
+  float result = 0.0;
   result = a*(b - c + d) + e;
   return result;
 }
 
-double denom_seed_double_integral(double a, double b,
-                                  double c, double d){
-  // Returns the argument of the denominator of the seed integral for double integrals.
-  double result = 0.0;
+float denom_seed_double_integral(float a, float b,
+                                  float c, float d){
+  // Returns the argument of the denominator of the seed integral for float integrals.
+  float result = 0.0;
   result = a*b + c*d;
   if(result == 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: denom_seed_integral_00m3: division by 0, result = %2.14f\n", result);
@@ -236,12 +236,12 @@ double denom_seed_double_integral(double a, double b,
   return result;
 }
 
-double seed_double_integral(double a, double b, double c, double d, double e,
-                            double f, double g, double h, double i){
-  // Returns the seed integral for double integrals.
-  double result      = 0.0;
-  double numerator   = 0.0;
-  double denominator = 0.0;
+float seed_double_integral(float a, float b, float c, float d, float e,
+                            float f, float g, float h, float i){
+  // Returns the seed integral for float integrals.
+  float result      = 0.0;
+  float numerator   = 0.0;
+  float denominator = 0.0;
   numerator   = numer_seed_double_integral(a, b, c, d, e);
   denominator = denom_seed_double_integral(f, g, h, i);
   if(denominator > 0.){
@@ -255,114 +255,114 @@ double seed_double_integral(double a, double b, double c, double d, double e,
   return result;
 }
 
-double integral_type_2(double a,
-                       double b, double c){
-  double result = 0.0;
+float integral_type_2(float a,
+                       float b, float c){
+  float result = 0.0;
   result = a + b*c;
   return result;
 }
 
-double integral_type_3(double a,
-                       double b, double c,
-                       double d, double e){
-  double result = 0.0;
+float integral_type_3(float a,
+                       float b, float c,
+                       float d, float e){
+  float result = 0.0;
   result = a + b*c + d*e;
   return result;
 }
 
-double integral_type_4(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g){
-  double result = 0.0;
+float integral_type_4(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g){
+  float result = 0.0;
   result = a + b*c + d*e + f*g;
   return result;
 }
 
-double integral_type_5(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g,
-                       double h, double i){
-  double result = 0.0;
+float integral_type_5(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g,
+                       float h, float i){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i;
   return result;
 }
 
-double integral_type_6(double a, double b,
-                       double c, double d,
-                       double e, double f, double g,
-                       double h, double i,
-                       double j, double k){
-  double result = 0.0;
+float integral_type_6(float a, float b,
+                       float c, float d,
+                       float e, float f, float g,
+                       float h, float i,
+                       float j, float k){
+  float result = 0.0;
   result = a*b + c*d + (e+f)*g + h*i + j*k;
   return result;
 }
 
-double integral_type_7(double a, double b,
-                       double c, double d,
-                       double e, double f, double g,
-                       double h, double i){
-  double result = 0.0;
+float integral_type_7(float a, float b,
+                       float c, float d,
+                       float e, float f, float g,
+                       float h, float i){
+  float result = 0.0;
   result = a*b + c*d + (e+f)*g + h*i;
   return result;
 }
 
-double integral_type_8(double a, double b,
-                       double c, double d,
-                       double e, double f,
-                       double g, double h){
-  double result = 0.0;
+float integral_type_8(float a, float b,
+                       float c, float d,
+                       float e, float f,
+                       float g, float h){
+  float result = 0.0;
   result = a*b + c*d + e*f + g*h;
   return result;
 }
 
-double integral_type_9(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g,
-                       double h, double i,
-                       double j, double k){
-  double result = 0.0;
+float integral_type_9(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g,
+                       float h, float i,
+                       float j, float k){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i + j*k;
   return result;
 }
 
-double integral_type_10(double a,
-                        double b, double c,
-                        double d, double e,
-                        double f, double g,
-                        double h, double i,
-                        double j, double k){
-  double result = 0.0;
+float integral_type_10(float a,
+                        float b, float c,
+                        float d, float e,
+                        float f, float g,
+                        float h, float i,
+                        float j, float k){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i + j*k;
   return result;
 }
 
-double integral_type_11(double a,
-                        double b, double c,
-                        double d, double e,
-                        double f, double g,
-                        double h, double i){
-  double result = 0.0;
+float integral_type_11(float a,
+                        float b, float c,
+                        float d, float e,
+                        float f, float g,
+                        float h, float i){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i;
   return result;
 }
 
-double integral_type_12(double a, double b,
-                        double c, double d,
-                        double e, double f,
-                        double g, double h,
-                        double i, double j,
-                        double k, double l, double m){
-  double result = 0.0;
+float integral_type_12(float a, float b,
+                        float c, float d,
+                        float e, float f,
+                        float g, float h,
+                        float i, float j,
+                        float k, float l, float m){
+  float result = 0.0;
   result = a*b + c*d + e*f + g*h + i*j + k*l*m;
   return result;
 }
 
-void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double *i_n,
-                     double i_one_m_nu, double i_a_sq,
-                     double o_vec_int[][3]){
+void integral_vector(float *i_p, float *i_q, float *i_b, float *i_t, float *i_n,
+                     float i_one_m_nu, float i_a_sq,
+                     float o_vec_int[][3]){
   // Calculates the vectors that are multiplied by the integrals.
   // Has to be void in order to return a 2D array, otherwise we'd have to use dynamic memory allocation and therefore pointers. We don't need such flexibility as this is quite specific.
   /*
@@ -374,7 +374,7 @@ void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double 
     (t dot n) * (t x b)
     n * ((p x b) dot t), n * ((q x b) dot t)
   */
-  double t_x_b[3], p_x_b[3],
+  float t_x_b[3], p_x_b[3],
          q_x_b[3], b_x_t[3],
          t_p_x_b_dot_n[3], t_q_x_b_dot_n[3],
          t_t_x_b_dot_n[3], t_b_x_t_dot_n[3],
@@ -390,7 +390,7 @@ void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double 
     3*(t dot n) * ((p x b) dot t), 3*(t dot n) * ((q x b) dot t)
     1.5 * (1-nu) * a^2, a^3
   */
-  double t_dot_n,
+  float t_dot_n,
          p_x_b_dot_n, q_x_b_dot_n,
          t_x_b_dot_n, b_x_t_dot_n,
          p_x_b_dot_t, q_x_b_dot_t,
@@ -444,12 +444,12 @@ void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double 
   }
 }
 
-double *vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
-                                      double i_r, double i_s, double i_rs,
-                                      double i_factor,
-                                      double *o_force){
+float *vertex_force_linear_rectangle(float *i_sch, float i_vec_int[][3],
+                                      float i_r, float i_s, float i_rs,
+                                      float i_factor,
+                                      float *o_force){
   // Calculates the force on a vertex.
-  double f[11];
+  float f[11];
   f [0] = i_sch [3] - i_s*i_sch [6] - i_r*i_sch [8] + i_rs*i_sch [0];
   f [1] = i_sch [5] - i_s*i_sch [7] - i_r*i_sch[10] + i_rs*i_sch [2];
   f [2] = i_sch [4] - i_s*i_sch [9] - i_r*i_sch [7] + i_rs*i_sch [1];
@@ -472,19 +472,19 @@ double *vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
   return o_force;
 }
 
-double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
-                                   double *i_p, double *i_q, double *i_t,
-                                   double i_p_dot_t, double i_q_dot_t, double i_a_sq,
-                                   double *o_sch, int i_num_integrals){
+float *integrals_linear_rectangle(float *i_r, float *i_s, float *i_y,
+                                   float *i_p, float *i_q, float *i_t,
+                                   float i_p_dot_t, float i_q_dot_t, float i_a_sq,
+                                   float *o_sch, int i_num_integrals){
   // Sign vector for quick evaluation of integrals via the dot product.
-  static double signv[8] = {1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0};
-  static const double third = 1.0/3.0;
-  static const double two_third = 2.0/3.0;
+  static float signv[8] = {1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0};
+  static const float third = 1.0/3.0;
+  static const float two_third = 2.0/3.0;
   // Integrals.
-  double // Single integrals.
+  float // Single integrals.
          a0m1[n_limits], b0m1[n_limits], c0m1[n_limits], a1m1[n_limits], b1m1[n_limits], c1m1[n_limits],
          a01 [n_limits], b01 [n_limits], c01 [n_limits], a11 [n_limits], b11 [n_limits],
-         // Double integrals.
+         // float integrals.
          d00m3[n_limits], e00m3[n_limits], f00m3[n_limits], d01m3[n_limits], d10m3[n_limits], d11m3[n_limits], e01m3[n_limits], e10m3[n_limits],
          e11m3[n_limits], f01m3[n_limits], f10m3[n_limits], f11m3[n_limits], d00m1[n_limits], e00m1[n_limits], f00m1[n_limits], d01m1[n_limits],
          e01m1[n_limits], f01m1[n_limits], d10m1[n_limits], e10m1[n_limits], f10m1[n_limits], d11m1[n_limits], e11m1[n_limits], f11m1[n_limits],
@@ -498,7 +498,7 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     r dot p   ,  r dot q   ,  r dot t
    (r dot p)^2, (r dot q)^2, (r dot t)^2
  */
- double y_sq[n_limits], r_sq[n_limits], s_sq[n_limits],
+ float y_sq[n_limits], r_sq[n_limits], s_sq[n_limits],
         y_p_dot_t[n_limits], y_q_dot_t[n_limits], r_p_dot_t[n_limits], s_q_dot_t[n_limits],
         r_dot_p[n_limits], r_dot_q[n_limits], r_dot_t[n_limits],
         r_dot_p_sq[n_limits], r_dot_q_sq[n_limits], r_dot_t_sq[n_limits];
@@ -507,9 +507,9 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
    ra_sq = ra^2 (element-wise squaring)
    ra_c_o_3 = 1/3 * ra^3 (element-wise cubing and division)
   */
-  double ra[n_limits], ra_sq[n_limits], ra_c_o_3[n_limits];
+  float ra[n_limits], ra_sq[n_limits], ra_c_o_3[n_limits];
   // Vector R from x1 to x3, x4, x5, x6 and x2 to x3, x4, x5, x6. 8 vectors with 3 components each.
-  double r_vec[8][3];
+  float r_vec[8][3];
   /*
    Auxiliary constants to reduce computational cost.
    2*(p dot t)
@@ -525,7 +525,7 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
    1/3 * 1/(1-(p dot t)^2-(q dot t)^2)
    (p dot t)*(q dot t)
   */
-  double                         two_p_dot_t,
+  float                         two_p_dot_t,
                                  two_q_dot_t,
                                one_m_p_dot_t,
                                one_m_q_dot_t,
@@ -592,14 +592,14 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     c1m1[i] = integral_type_2(ra[i]      , r_p_dot_t[i]+s_q_dot_t[i], -c0m1[i]); // checked
     a11 [i] = integral_type_2(ra_c_o_3[i], y_p_dot_t[i]             , -a01 [i]); // checked
     b11 [i] = integral_type_2(ra_c_o_3[i], y_q_dot_t[i]             , -b01 [i]); // checked
-    // Double seed integrals.
+    // float seed integrals.
     d00m3[i] = seed_double_integral(1.0, ra[i], r_dot_p[i], r_dot_q[i], 0.0,
                                     1.0             , i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, y_sq[i]); // checked
     e00m3[i] = seed_double_integral(one_m_p_dot_t, ra[i], i_r[i], i_y[i], s_q_dot_t[i],
                                     one_m_p_dot_t_sq, i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, s_sq[i]); // checked
     f00m3[i] = seed_double_integral(one_m_q_dot_t, ra[i], i_s[i], i_y[i], r_p_dot_t[i],
                                     one_m_q_dot_t_sq, i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, r_sq[i]); // checked
-    // Double integrals.
+    // float integrals.
     // type_2 = a + b*c
     d01m3[i] = integral_type_2(-a0m1[i], -y_q_dot_t[i], d00m3[i]); // checked
     d10m3[i] = integral_type_2(-b0m1[i], -y_p_dot_t[i], d00m3[i]); // checked
@@ -735,9 +735,9 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
   return o_sch;
 }
 
-void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
-                                     double *i_rp, double *i_sp, double i_factor,
-                                     double *o_nodal_force[n_nodes], double *o_total_force){
+void compute_forces_linear_rectangle(float *i_sch, float i_vec_int[][3],
+                                     float *i_rp, float *i_sp, float i_factor,
+                                     float *o_nodal_force[n_nodes], float *o_total_force){
   // Calculating nodal forces
   // x3.
   vertex_force_linear_rectangle(i_sch, i_vec_int, i_rp[1], i_sp[1], i_rp[1]*i_sp[1],  i_factor, o_nodal_force[0]);
@@ -754,7 +754,7 @@ void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
   }
 }
 
-void init_force(double *nodal_force[n_nodes], double *total_force){
+void init_force(float *nodal_force[n_nodes], float *total_force){
   // Sets forces to zero.
   for (int i = 0; i < n_nodes; i++){
     for (int j = 0; j < 3; j++){
@@ -766,7 +766,7 @@ void init_force(double *nodal_force[n_nodes], double *total_force){
   }
 }
 
-void add_force(double *p_nodal_force[n_nodes], double *p_total_force, double *nodal_force[n_nodes], double *total_force){
+void add_force(float *p_nodal_force[n_nodes], float *p_total_force, float *nodal_force[n_nodes], float *total_force){
   // Adds forces for averaging purposes later on.
   for (int i = 0; i < n_nodes; i++){
     for (int j = 0; j < 3; j++){
@@ -778,7 +778,7 @@ void add_force(double *p_nodal_force[n_nodes], double *p_total_force, double *no
   }
 }
 
-void mean_force(double *nodal_force[n_nodes], double *total_force, int n_samples){
+void mean_force(float *nodal_force[n_nodes], float *total_force, int n_samples){
   // Sets forces to zero.
   for (int i = 0; i < n_nodes; i++){
     for (int j = 0; j < 3; j++){
@@ -790,7 +790,7 @@ void mean_force(double *nodal_force[n_nodes], double *total_force, int n_samples
   }
 }
 
-void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
+void nodal_surface_force_linear_rectangle(float *x1, float *x2, float *x3, float *x4, float *x5, float *x6, float *b, float *p, float *q, float *n, float p_norm, float q_norm, float mu, float nu, float a, float a_sq, float one_m_nu, float factor, float *nodal_force[n_nodes], float *total_force){
   // Vertices of the dislocation segment and a linear rectangular surface.
   /*
           x5 -------------------- x6
@@ -806,23 +806,23 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
             p
   */
   // Characteristic vectors.
-  double t[3];
+  float t[3];
   // Basis vectors (unitary).
-  double p_x_t[3], q_x_t[3];
+  float p_x_t[3], q_x_t[3];
   // Limits of the distance vector from the plane to dislocation line segment.
   // r_lim[0][] = vector from x1 to x3, r_lim[1][] = vector from x2 to x6.
-  double r_lim[2][3];
+  float r_lim[2][3];
   // r, s limits
-  double rp[2], sp[2];
+  float rp[2], sp[2];
   //  y, r, s coordinates
-  double y[n_limits], r[n_limits], s[n_limits];
+  float y[n_limits], r[n_limits], s[n_limits];
   // Vectors for the integrals.
-  double vec_int[11][3];
+  float vec_int[11][3];
   // Scalar value of the integrals.
-  double sch[38];
+  float sch[38];
   //  Auxiliary constants to reduce computational cost.
   //  p dot t, q dot t
-  double p_dot_t, q_dot_t;
+  float p_dot_t, q_dot_t;
   // Set forces to zero.
   init_force(nodal_force, total_force);
   // Build unit vectors t.
@@ -861,7 +861,7 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   //printf("total_force[x, y, z] = [%2.14f, %2.14f, %2.14f]\n", total_force[0], total_force[1], total_force[2]);
 }
 
-void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *t, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
+void nodal_surface_force_linear_rectangle_special(float *x1, float *x2, float *x3, float *x4, float *x5, float *x6, float *b, float *t, float *p, float *q, float *n, float p_norm, float q_norm, float mu, float nu, float a, float a_sq, float one_m_nu, float factor, float *nodal_force[n_nodes], float *total_force){
   /*
     Forces
     nodal_force[0][] = F_x3[x, y, z], nodal_force[1][] = F_x4[x, y, z],
@@ -869,17 +869,17 @@ void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double
     total_force[x, y, z] = F_x3[x, y, z] + F_x4[x, y, z] + F_x5[x, y, z] + F_x6[x, y, z]
   */
   // Modulus of p and q.
-  double rot_centre[3], rot_x1[3], rot_x2[3];
-  double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
+  float rot_centre[3], rot_x1[3], rot_x2[3];
+  float t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
   int rotation;
   rotation = 3;
   // Initialise force to zero.
   init_force(nodal_force, total_force);
 
   for (int i = 0; i < n_nodes; i++){
-    p_nodal_force[i] = (double *) malloc(3 * sizeof(double));
+    p_nodal_force[i] = (float *) malloc(3 * sizeof(float));
   }
-  double angle = 0.01*pi/180.;
+  float angle = 0.01*pi/180.;
   int j;
   cross_product(t, n, t_x_n);
   mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
@@ -914,7 +914,7 @@ void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double
 }
 
 // Parallel functions.
-double *element_host_device_map(double *i_node_arr[], int i_n_elem_scope, int i_n_nodes){
+float *element_host_device_map(float *i_node_arr[], int i_n_elem_scope, int i_n_nodes){
   /*
     Maps E elements with N nodes from the host to the global device array.
     This ensures coalesced memory accesses when parallelising over elements (be it dislocations or surface elements or both via dynamic parallelism).
@@ -934,10 +934,10 @@ double *element_host_device_map(double *i_node_arr[], int i_n_elem_scope, int i_
     idxf = output (final) index
   */
   int const n_elem_n_nodes = i_n_elem_scope*i_n_nodes;
-  double *o_g_elem_arr;
+  float *o_g_elem_arr;
   int idxt = 0, idxf = 0, idxi = 0;
   // Allocate a 1D output array of length 3*E*N.
-  o_g_elem_arr = (double *) malloc(3 * n_elem_n_nodes * sizeof(double));
+  o_g_elem_arr = (float *) malloc(3 * n_elem_n_nodes * sizeof(float));
   // Loop over the nodes of the element.
   for (int i = 0; i < i_n_nodes; i++){
     // Reset the output index to point at the i'th node of the first coordinate of the first element.
@@ -961,7 +961,7 @@ double *element_host_device_map(double *i_node_arr[], int i_n_elem_scope, int i_
   return o_g_elem_arr;
 }
 
-double *se_host_device_map(double *i_x3_arr, double *i_x4_arr, double *i_x5_arr, double *i_x6_arr, int i_n_se){
+float *se_host_device_map(float *i_x3_arr, float *i_x4_arr, float *i_x5_arr, float *i_x6_arr, int i_n_se){
   /*
     Maps E surface elements with 4 nodes.
     This ensures coalesced memory accesses when parallelising over surface elements.
@@ -980,10 +980,10 @@ double *se_host_device_map(double *i_x3_arr, double *i_x4_arr, double *i_x5_arr,
   */
   /*
   int const n_se_n_nodes = i_n_se*4;
-  double *o_g_se_arr;
+  float *o_g_se_arr;
   int idxi = 0, idxf = 0;
   // Allocate a 1D output array of length 3*4*E.
-  o_g_se_arr = (double *) malloc(3 * n_se_n_nodes * sizeof(double));
+  o_g_se_arr = (float *) malloc(3 * n_se_n_nodes * sizeof(float));
   // Loop over coordinates.
   for (int i = 0; i < 3; i++){
     // Reset the input index to point at the i'th coordinate of the first node of the j'th element.
@@ -1020,10 +1020,10 @@ double *se_host_device_map(double *i_x3_arr, double *i_x4_arr, double *i_x5_arr,
     idxf = output (final) index
   */
   int const n_se_nodes = i_n_se*4;
-  double *o_g_se_arr;
+  float *o_g_se_arr;
   int idxi = 0, idxf = 0;
   // Allocate a 1D output array of length 3*2*E.
-  o_g_se_arr = (double *) malloc(3 * n_se_nodes * sizeof(double));
+  o_g_se_arr = (float *) malloc(3 * n_se_nodes * sizeof(float));
   // Loop over dislocation line segments.
   for (int i = 0; i < i_n_se; i++){
     // Loop over coordinates.
@@ -1043,7 +1043,7 @@ double *se_host_device_map(double *i_x3_arr, double *i_x4_arr, double *i_x5_arr,
   return o_g_se_arr;
 }
 
-void fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int i_n_nodes){
+void fx_device_host_map(float *i_g_fx_arr, float *o_fx_arr[], int i_n_se, int i_n_nodes){
   /*
     Maps the 1D nodal force array for E surface elements of N nodes each to a 2D array usable by MATLAB.
     i_g_fx_arr =
@@ -1082,7 +1082,7 @@ void fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int 
   }
 }
 
-void ftot_device_host_map(double *i_g_ftot_arr, double *o_ftot_arr, int i_n_se){
+void ftot_device_host_map(float *i_g_ftot_arr, float *o_ftot_arr, int i_n_se){
   /*
     Maps the 1D total force array for E surface elements to a 1D array usable by MATLAB.
     i_g_ftot_arr =
@@ -1110,7 +1110,7 @@ void ftot_device_host_map(double *i_g_ftot_arr, double *o_ftot_arr, int i_n_se){
   }
 }
 
-double *dln_host_device_map(double *i_x1_arr, double *i_x2_arr, int i_n_dln){
+float *dln_host_device_map(float *i_x1_arr, float *i_x2_arr, int i_n_dln){
   /*
     Maps E dislocation line segments with 2 nodes.
     This is for looping through in a parallelisation over surface elements.
@@ -1127,10 +1127,10 @@ double *dln_host_device_map(double *i_x1_arr, double *i_x2_arr, int i_n_dln){
     idxf = output (final) index
   */
   int const n_dln_nodes = i_n_dln*2;
-  double *o_g_dln_arr;
+  float *o_g_dln_arr;
   int idxi = 0, idxf = 0;
   // Allocate a 1D output array of length 3*2*E.
-  o_g_dln_arr = (double *) malloc(3 * n_dln_nodes * sizeof(double));
+  o_g_dln_arr = (float *) malloc(3 * n_dln_nodes * sizeof(float));
   // Loop over dislocation line segments.
   for (int i = 0; i < i_n_dln; i++){
     // Loop over coordinates.
@@ -1148,7 +1148,7 @@ double *dln_host_device_map(double *i_x1_arr, double *i_x2_arr, int i_n_dln){
   return o_g_dln_arr;
 }
 
-double *b_host_device_map(double *i_b_arr, int i_n_b){
+float *b_host_device_map(float *i_b_arr, int i_n_b){
   /*
     Maps E Burgers vectors.
     This is for looping through in a parallelisation over surface elements.
@@ -1161,10 +1161,10 @@ double *b_host_device_map(double *i_b_arr, int i_n_b){
     i_n_b = E
     idx = index
   */
-  double *o_g_b_arr;
+  float *o_g_b_arr;
   int idx = 0;
   // Allocate return array.
-  o_g_b_arr = (double *) malloc(i_n_b * 3 * sizeof(double));
+  o_g_b_arr = (float *) malloc(i_n_b * 3 * sizeof(float));
   // Loop over dislocation line segments.
   for (int i = 0; i < i_n_b; i++){
     // Loop over coordinates.
@@ -1178,7 +1178,7 @@ double *b_host_device_map(double *i_b_arr, int i_n_b){
 }
 
 #if debug
-  void print_fmap(double *i_x_arr, int i_n_elements,
+  void print_fmap(float *i_x_arr, int i_n_elements,
                   int i_n_nodes, int i_node_label){
     // Print nodes for forward map.
     int const n_elements_n_nodes = i_n_elements * i_n_nodes;
@@ -1206,7 +1206,7 @@ double *b_host_device_map(double *i_b_arr, int i_n_b){
   }
 #endif
 
-__device__ void cuda_init_force(double nodal_force[][3], double *total_force){
+__device__ void cuda_init_force(float nodal_force[][3], float *total_force){
   // Sets forces to zero.
   for (int i = 0; i < n_nodes; i++){
     for (int j = 0; j < 3; j++){
@@ -1240,6 +1240,17 @@ __device__ void element_device_thread_map(double *i_g_elem_arr, double o_x[][3],
   int n_elem_n_nodes = i_n_nodes*i_n_elem_scope;
   int idx  = threadIdx.x + blockIdx.x * blockDim.x;
   int idxi = idx;
+  // The lhs of this loop is not ideal due to the row-order of C but the rhs allows fully coalesced memory access of global memory.
+  // Loop over coordinates.
+  for (int i = 0; i < 3; i++){
+    // Loop over nodes.
+    for (int j = 0; j < i_n_nodes; j++){
+      o_x[j][i] = i_g_elem_arr[idxi + j*i_n_elem_scope];
+    }
+    // Advance the global array index to point at the i'th coordinate of the first node of the idx'th element.
+    idxi += n_elem_n_nodes;
+  }
+  /*
   // Loop over nodes.
   for (int i = 0; i < i_n_nodes; i++){
     // Loop over coordinates.
@@ -1250,10 +1261,11 @@ __device__ void element_device_thread_map(double *i_g_elem_arr, double o_x[][3],
     // Advance the input index to point at the first coordinate of the (i+1)'th node of the idx'th element.
     idxi += i_n_elem_scope;
   }
+  */
 }
 
-__device__ void se_device_thread_map(double *i_g_se_arr,
-                                     double *o_x3, double *o_x4, double *o_x5, double *o_x6,
+__device__ void se_device_thread_map(float *i_g_se_arr,
+                                     float *o_x3, float *o_x4, float *o_x5, float *o_x6,
                                      int i_n_se, int i_idx){
   /*
     Maps E elements with 4 nodes from the global device array to the local node arrays.
@@ -1286,7 +1298,7 @@ __device__ void se_device_thread_map(double *i_g_se_arr,
   }
 }
 
-__device__ void add_force_thread_device(double i_nodal_force[][3], double *i_total_force, double *o_g_fx_arr, double *o_g_ftot_arr, int i_n_se, int i_n_nodes, int idx){
+__device__ void add_force_thread_device(float i_nodal_force[][3], float *i_total_force, float *o_g_fx_arr, float *o_g_ftot_arr, int i_n_se, int i_n_nodes, int idx){
   /*
     Performs atomic addition of nodal and total forces for E surface elements with N nodes from local thread memory to global device memory.
     i_fx_arr[n][3e + 0:2] = [x_en, y_en, z_en]
@@ -1336,8 +1348,8 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
   }
 }
 
-__device__ void dln_device_thread_map(double *i_g_dln_arr,
-                                      double *o_x1, double *o_x2,
+__device__ void dln_device_thread_map(float *i_g_dln_arr,
+                                      float *o_x1, float *o_x2,
                                       int i_dln, int idx){
   /*
     Maps E dislocation line segments with 2 nodes.
@@ -1367,8 +1379,8 @@ __device__ void dln_device_thread_map(double *i_g_dln_arr,
   }
 }
 
-__device__ void b_device_thread_map(double *i_g_b_arr,
-                                    double *o_b,
+__device__ void b_device_thread_map(float *i_g_b_arr,
+                                    float *o_b,
                                     int i_n_b, int idx){
   /*
     Maps E Burgers vectors.
@@ -1392,17 +1404,17 @@ __device__ void b_device_thread_map(double *i_g_b_arr,
   }
 }
 
-__device__ double cuda_dot_product(double *i_vec1, double *i_vec2, int i_vec_size){
+__device__ float cuda_dot_product(float *i_vec1, float *i_vec2, int i_vec_size){
   // Returns the dot product of i_vec1, i_vec2.
-  double result = 0.0;
+  float result = 0.0;
   for (int i = 0; i < i_vec_size; i++){
     result += i_vec1[i]*i_vec2[i];
   }
   return result;
 }
 
-__device__ double *cuda_cross_product(double *i_vec1, double *i_vec2,
-                      double *o_vec){
+__device__ float *cuda_cross_product(float *i_vec1, float *i_vec2,
+                      float *o_vec){
   // Returns the cross product of i_vec1 x i_vec2.
   o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
   o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
@@ -1410,9 +1422,9 @@ __device__ double *cuda_cross_product(double *i_vec1, double *i_vec2,
   return o_vec;
 }
 
-__device__ double *cuda_cross_product2(double *i_vec1, double *i_vec2){
-  double *o_vec;
-  o_vec = (double *) malloc(3*sizeof(double));
+__device__ float *cuda_cross_product2(float *i_vec1, float *i_vec2){
+  float *o_vec;
+  o_vec = (float *) malloc(3*sizeof(float));
   // Returns the cross product of i_vec1 x i_vec2.
   o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
   o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
@@ -1420,10 +1432,10 @@ __device__ double *cuda_cross_product2(double *i_vec1, double *i_vec2){
   return o_vec;
 }
 
-__device__ double *cuda_normalise_vector(double *i_vec, int i_vec_size,
-                         double *o_vec){
+__device__ float *cuda_normalise_vector(float *i_vec, int i_vec_size,
+                         float *o_vec){
   // Returns a normalised i_vec to o_vec.
-  double mag_vec = 0.0;
+  float mag_vec = 0.0;
   mag_vec = cuda_dot_product(i_vec, i_vec, i_vec_size);
   // Check magnitude is not zero.
   if (mag_vec == 0.0){
@@ -1437,13 +1449,13 @@ __device__ double *cuda_normalise_vector(double *i_vec, int i_vec_size,
   return o_vec;
 }
 
-__device__ void cuda_normalise_vector2(double *i_vec, int i_vec_size,
-                       double *o_vec, double *o_mag_vec){
+__device__ void cuda_normalise_vector2(float *i_vec, int i_vec_size,
+                       float *o_vec, float *o_mag_vec){
   // Returns a normalised i_vec to o_vec, and the magnitude of the vector in o_mag_vec.
   // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
   /*
     int    size = 3;
-    double i_vec[size], o_vec[size], magnitude;
+    float i_vec[size], o_vec[size], magnitude;
     normalise_vector2(i_vec, size, o_vec, &magnitude);
   */
   *o_mag_vec = cuda_dot_product(i_vec, i_vec, i_vec_size);
@@ -1458,8 +1470,8 @@ __device__ void cuda_normalise_vector2(double *i_vec, int i_vec_size,
   }
 }
 
-__device__ double *cuda_build_vector(double *i_x1, double *i_x2, int i_vec_size,
-                     double *o_vec){
+__device__ float *cuda_build_vector(float *i_x1, float *i_x2, int i_vec_size,
+                     float *o_vec){
   // Returns a vector o_vec which translates the point i_x1 to i_x2.
   for (int i = 0; i < i_vec_size; i++){
     o_vec[i] = i_x2[i] - i_x1[i];
@@ -1467,33 +1479,33 @@ __device__ double *cuda_build_vector(double *i_x1, double *i_x2, int i_vec_size,
   return o_vec;
 }
 
-__device__ double *cuda_init_vector(double *i_x1, double *i_x2, int i_vec_size,
-                    double *io_vec){
+__device__ float *cuda_init_vector(float *i_x1, float *i_x2, int i_vec_size,
+                    float *io_vec){
   // Builds and returns a normalised vector io_vect.
   cuda_build_vector(i_x1, i_x2, i_vec_size, io_vec);
   cuda_normalise_vector(io_vec, i_vec_size, io_vec);
   return io_vec;
 }
 
-__device__ void cuda_init_vector2(double *i_x1  , double *i_x2, int i_vec_size,
-                  double *io_vec, double *o_mag_vec){
+__device__ void cuda_init_vector2(float *i_x1  , float *i_x2, int i_vec_size,
+                  float *io_vec, float *o_mag_vec){
   // Builds and returns a normalised vector io_vect, and the magnitude of the vector in o_mag_vec.
   // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
   /*
     int    size = 3;
-    double i_x1[size], i_x2[size], o_vec[size], magnitude;
+    float i_x1[size], i_x2[size], o_vec[size], magnitude;
     init_vector2(i_x1, i_x2, size, o_vec, &magnitude);
   */
   cuda_build_vector(i_x1, i_x2, i_vec_size, io_vec);
   cuda_normalise_vector2(io_vec, i_vec_size, io_vec, o_mag_vec);
 }
 
-__device__ double cuda_init_point(double *i_vec1, double *i_vec2,
-                  double *i_vec3, double *i_vec4,
+__device__ float cuda_init_point(float *i_vec1, float *i_vec2,
+                  float *i_vec3, float *i_vec4,
                   int     i_vec_size){
   // Initialises points on the surface element given four vectors.
-  double result = 0.0;
-  double denom = 0.0;
+  float result = 0.0;
+  float denom = 0.0;
   denom = cuda_dot_product(i_vec3, i_vec4, i_vec_size);
   if (denom == 0.0){
     //printf("nodal_surface_force_linear_rectangle: init_point: division by zero, dot_product(i_vec3, i_vec4) = %2.14f\n", denom);
@@ -1503,9 +1515,9 @@ __device__ double cuda_init_point(double *i_vec1, double *i_vec2,
   return result;
 }
 
-__device__ void cuda_integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double *i_n,
-                     double i_one_m_nu, double i_a_sq,
-                     double o_vec_int[][3]){
+__device__ void cuda_integral_vector(float *i_p, float *i_q, float *i_b, float *i_t, float *i_n,
+                     float i_one_m_nu, float i_a_sq,
+                     float o_vec_int[][3]){
   // Calculates the vectors that are multiplied by the integrals.
   // Has to be void in order to return a 2D array, otherwise we'd have to use dynamic memory allocation and therefore pointers. We don't need such flexibility as this is quite specific.
   /*
@@ -1517,7 +1529,7 @@ __device__ void cuda_integral_vector(double *i_p, double *i_q, double *i_b, doub
     (t dot n) * (t x b)
     n * ((p x b) dot t), n * ((q x b) dot t)
   */
-  double t_x_b[3], p_x_b[3],
+  float t_x_b[3], p_x_b[3],
          q_x_b[3], b_x_t[3],
          t_p_x_b_dot_n[3], t_q_x_b_dot_n[3],
          t_t_x_b_dot_n[3], t_b_x_t_dot_n[3],
@@ -1533,7 +1545,7 @@ __device__ void cuda_integral_vector(double *i_p, double *i_q, double *i_b, doub
     3*(t dot n) * ((p x b) dot t), 3*(t dot n) * ((q x b) dot t)
     1.5 * (1-nu) * a^2, a^3
   */
-  double t_dot_n,
+  float t_dot_n,
          p_x_b_dot_n, q_x_b_dot_n,
          t_x_b_dot_n, b_x_t_dot_n,
          p_x_b_dot_t, q_x_b_dot_t,
@@ -1586,10 +1598,10 @@ __device__ void cuda_integral_vector(double *i_p, double *i_q, double *i_b, doub
   }
 }
 
-__device__ double cuda_seed_single_integral(double a, double b){
+__device__ float cuda_seed_single_integral(float a, float b){
   // Single integral seed.
-  double result = 0.0;
-  double arg;
+  float result = 0.0;
+  float arg;
   arg = a+b;
   if (arg <= 0.0){
     //printf("nodal_surface_force_linear_rectangle: seed_single_integral: log(%2.14f) = %2.14f\n", arg, log(arg));
@@ -1599,27 +1611,27 @@ __device__ double cuda_seed_single_integral(double a, double b){
   return result;
 }
 
-__device__ double cuda_integral_type_1(double a, double b,
-                       double c, double d,
-                       double e){
-  double result = 0.0;
+__device__ float cuda_integral_type_1(float a, float b,
+                       float c, float d,
+                       float e){
+  float result = 0.0;
   result = 0.5*(a*b + (c-d)*e);
   return result;
 }
 
-__device__ double cuda_numer_seed_double_integral(double a,
-                                  double b, double c, double d,
-                                  double e){
-  // Returns the argument of the numerator of the seed integral for double integrals.
-  double result = 0.0;
+__device__ float cuda_numer_seed_double_integral(float a,
+                                  float b, float c, float d,
+                                  float e){
+  // Returns the argument of the numerator of the seed integral for float integrals.
+  float result = 0.0;
   result = a*(b - c + d) + e;
   return result;
 }
 
-__device__ double cuda_denom_seed_double_integral(double a, double b,
-                                  double c, double d){
-  // Returns the argument of the denominator of the seed integral for double integrals.
-  double result = 0.0;
+__device__ float cuda_denom_seed_double_integral(float a, float b,
+                                  float c, float d){
+  // Returns the argument of the denominator of the seed integral for float integrals.
+  float result = 0.0;
   result = a*b + c*d;
   if(result == 0.0){
     //printf("nodal_surface_force_linear_rectangle: denom_seed_integral_00m3: division by 0, result = %2.14f\n", result);
@@ -1628,12 +1640,12 @@ __device__ double cuda_denom_seed_double_integral(double a, double b,
   return result;
 }
 
-__device__ double cuda_seed_double_integral(double a, double b, double c, double d, double e,
-                            double f, double g, double h, double i){
-  // Returns the seed integral for double integrals.
-  double result      = 0.0;
-  double numerator   = 0.0;
-  double denominator = 0.0;
+__device__ float cuda_seed_double_integral(float a, float b, float c, float d, float e,
+                            float f, float g, float h, float i){
+  // Returns the seed integral for float integrals.
+  float result      = 0.0;
+  float numerator   = 0.0;
+  float denominator = 0.0;
   numerator   = cuda_numer_seed_double_integral(a, b, c, d, e);
   denominator = cuda_denom_seed_double_integral(f, g, h, i);
   if(denominator > 0.){
@@ -1647,124 +1659,124 @@ __device__ double cuda_seed_double_integral(double a, double b, double c, double
   return result;
 }
 
-__device__ double cuda_integral_type_2(double a,
-                       double b, double c){
-  double result = 0.0;
+__device__ float cuda_integral_type_2(float a,
+                       float b, float c){
+  float result = 0.0;
   result = a + b*c;
   return result;
 }
 
-__device__ double cuda_integral_type_3(double a,
-                       double b, double c,
-                       double d, double e){
-  double result = 0.0;
+__device__ float cuda_integral_type_3(float a,
+                       float b, float c,
+                       float d, float e){
+  float result = 0.0;
   result = a + b*c + d*e;
   return result;
 }
 
-__device__ double cuda_integral_type_4(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g){
-  double result = 0.0;
+__device__ float cuda_integral_type_4(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g){
+  float result = 0.0;
   result = a + b*c + d*e + f*g;
   return result;
 }
 
-__device__ double cuda_integral_type_5(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g,
-                       double h, double i){
-  double result = 0.0;
+__device__ float cuda_integral_type_5(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g,
+                       float h, float i){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i;
   return result;
 }
 
-__device__ double cuda_integral_type_6(double a, double b,
-                       double c, double d,
-                       double e, double f, double g,
-                       double h, double i,
-                       double j, double k){
-  double result = 0.0;
+__device__ float cuda_integral_type_6(float a, float b,
+                       float c, float d,
+                       float e, float f, float g,
+                       float h, float i,
+                       float j, float k){
+  float result = 0.0;
   result = a*b + c*d + (e+f)*g + h*i + j*k;
   return result;
 }
 
-__device__ double cuda_integral_type_7(double a, double b,
-                       double c, double d,
-                       double e, double f, double g,
-                       double h, double i){
-  double result = 0.0;
+__device__ float cuda_integral_type_7(float a, float b,
+                       float c, float d,
+                       float e, float f, float g,
+                       float h, float i){
+  float result = 0.0;
   result = a*b + c*d + (e+f)*g + h*i;
   return result;
 }
 
-__device__ double cuda_integral_type_8(double a, double b,
-                       double c, double d,
-                       double e, double f,
-                       double g, double h){
-  double result = 0.0;
+__device__ float cuda_integral_type_8(float a, float b,
+                       float c, float d,
+                       float e, float f,
+                       float g, float h){
+  float result = 0.0;
   result = a*b + c*d + e*f + g*h;
   return result;
 }
 
-__device__ double cuda_integral_type_9(double a,
-                       double b, double c,
-                       double d, double e,
-                       double f, double g,
-                       double h, double i,
-                       double j, double k){
-  double result = 0.0;
+__device__ float cuda_integral_type_9(float a,
+                       float b, float c,
+                       float d, float e,
+                       float f, float g,
+                       float h, float i,
+                       float j, float k){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i + j*k;
   return result;
 }
 
-__device__ double cuda_integral_type_10(double a,
-                        double b, double c,
-                        double d, double e,
-                        double f, double g,
-                        double h, double i,
-                        double j, double k){
-  double result = 0.0;
+__device__ float cuda_integral_type_10(float a,
+                        float b, float c,
+                        float d, float e,
+                        float f, float g,
+                        float h, float i,
+                        float j, float k){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i + j*k;
   return result;
 }
 
-__device__ double cuda_integral_type_11(double a,
-                        double b, double c,
-                        double d, double e,
-                        double f, double g,
-                        double h, double i){
-  double result = 0.0;
+__device__ float cuda_integral_type_11(float a,
+                        float b, float c,
+                        float d, float e,
+                        float f, float g,
+                        float h, float i){
+  float result = 0.0;
   result = a + b*c + d*e + f*g + h*i;
   return result;
 }
 
-__device__ double cuda_integral_type_12(double a, double b,
-                        double c, double d,
-                        double e, double f,
-                        double g, double h,
-                        double i, double j,
-                        double k, double l, double m){
-  double result = 0.0;
+__device__ float cuda_integral_type_12(float a, float b,
+                        float c, float d,
+                        float e, float f,
+                        float g, float h,
+                        float i, float j,
+                        float k, float l, float m){
+  float result = 0.0;
   result = a*b + c*d + e*f + g*h + i*j + k*l*m;
   return result;
 }
 
-__device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
-                                   double *i_p, double *i_q, double *i_t,
-                                   double i_p_dot_t, double i_q_dot_t, double i_a_sq,
-                                   double *o_sch){
+__device__ float *cuda_integrals_linear_rectangle(float *i_r, float *i_s, float *i_y,
+                                   float *i_p, float *i_q, float *i_t,
+                                   float i_p_dot_t, float i_q_dot_t, float i_a_sq,
+                                   float *o_sch){
   // Sign vector for quick evaluation of integrals via the dot product.
-  double signv[8] = {1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0};
-  const double third = 1.0/3.0;
-  const double two_third = 2.0/3.0;
+  float signv[8] = {1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0};
+  const float third = 1.0/3.0;
+  const float two_third = 2.0/3.0;
   // Integrals.
-  double // Single integrals.
+  float // Single integrals.
          a0m1[n_limits], b0m1[n_limits], c0m1[n_limits], a1m1[n_limits], b1m1[n_limits], c1m1[n_limits],
          a01 [n_limits], b01 [n_limits], c01 [n_limits], a11 [n_limits], b11 [n_limits],
-         // Double integrals.
+         // float integrals.
          d00m3[n_limits], e00m3[n_limits], f00m3[n_limits], d01m3[n_limits], d10m3[n_limits], d11m3[n_limits], e01m3[n_limits], e10m3[n_limits],
          e11m3[n_limits], f01m3[n_limits], f10m3[n_limits], f11m3[n_limits], d00m1[n_limits], e00m1[n_limits], f00m1[n_limits], d01m1[n_limits],
          e01m1[n_limits], f01m1[n_limits], d10m1[n_limits], e10m1[n_limits], f10m1[n_limits], d11m1[n_limits], e11m1[n_limits], f11m1[n_limits],
@@ -1778,7 +1790,7 @@ __device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, dou
     r dot p   ,  r dot q   ,  r dot t
    (r dot p)^2, (r dot q)^2, (r dot t)^2
  */
- double y_sq[n_limits], r_sq[n_limits], s_sq[n_limits],
+ float y_sq[n_limits], r_sq[n_limits], s_sq[n_limits],
         y_p_dot_t[n_limits], y_q_dot_t[n_limits], r_p_dot_t[n_limits], s_q_dot_t[n_limits],
         r_dot_p[n_limits], r_dot_q[n_limits], r_dot_t[n_limits],
         r_dot_p_sq[n_limits], r_dot_q_sq[n_limits], r_dot_t_sq[n_limits];
@@ -1787,9 +1799,9 @@ __device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, dou
    ra_sq = ra^2 (element-wise squaring)
    ra_c_o_3 = 1/3 * ra^3 (element-wise cubing and division)
   */
-  double ra[n_limits], ra_sq[n_limits], ra_c_o_3[n_limits];
+  float ra[n_limits], ra_sq[n_limits], ra_c_o_3[n_limits];
   // Vector R from x1 to x3, x4, x5, x6 and x2 to x3, x4, x5, x6. 8 vectors with 3 components each.
-  double r_vec[n_limits][3];
+  float r_vec[n_limits][3];
   /*
    Auxiliary constants to reduce computational cost.
    2*(p dot t)
@@ -1805,7 +1817,7 @@ __device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, dou
    1/3 * 1/(1-(p dot t)^2-(q dot t)^2)
    (p dot t)*(q dot t)
   */
-  double                         two_p_dot_t,
+  float                         two_p_dot_t,
                                  two_q_dot_t,
                                one_m_p_dot_t,
                                one_m_q_dot_t,
@@ -1872,14 +1884,14 @@ __device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, dou
     c1m1[i] = cuda_integral_type_2(ra[i]      , r_p_dot_t[i]+s_q_dot_t[i], -c0m1[i]); // checked
     a11 [i] = cuda_integral_type_2(ra_c_o_3[i], y_p_dot_t[i]             , -a01 [i]); // checked
     b11 [i] = cuda_integral_type_2(ra_c_o_3[i], y_q_dot_t[i]             , -b01 [i]); // checked
-    // Double seed integrals.
+    // float seed integrals.
     d00m3[i] = cuda_seed_double_integral(1.0, ra[i], r_dot_p[i], r_dot_q[i], 0.0,
                                     1.0             , i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, y_sq[i]); // checked
     e00m3[i] = cuda_seed_double_integral(one_m_p_dot_t, ra[i], i_r[i], i_y[i], s_q_dot_t[i],
                                     one_m_p_dot_t_sq, i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, s_sq[i]); // checked
     f00m3[i] = cuda_seed_double_integral(one_m_q_dot_t, ra[i], i_s[i], i_y[i], r_p_dot_t[i],
                                     one_m_q_dot_t_sq, i_a_sq, one_m_p_dot_t_sq_m_q_dot_t_sq, r_sq[i]); // checked
-    // Double integrals.
+    // float integrals.
     // type_2 = a + b*c
     d01m3[i] = cuda_integral_type_2(-a0m1[i], -y_q_dot_t[i], d00m3[i]); // checked
     d10m3[i] = cuda_integral_type_2(-b0m1[i], -y_p_dot_t[i], d00m3[i]); // checked
@@ -2015,12 +2027,12 @@ __device__ double *cuda_integrals_linear_rectangle(double *i_r, double *i_s, dou
   return o_sch;
 }
 
-__device__ double *cuda_vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
-                                      double i_r, double i_s, double i_rs,
-                                      double i_factor,
-                                      double *o_force){
+__device__ float *cuda_vertex_force_linear_rectangle(float *i_sch, float i_vec_int[][3],
+                                      float i_r, float i_s, float i_rs,
+                                      float i_factor,
+                                      float *o_force){
   // Calculate the force on a vertex.
-  double f[11];
+  float f[11];
   f [0] = i_sch [3] - i_s*i_sch [6] - i_r*i_sch [8] + i_rs*i_sch [0];
   f [1] = i_sch [5] - i_s*i_sch [7] - i_r*i_sch[10] + i_rs*i_sch [2];
   f [2] = i_sch [4] - i_s*i_sch [9] - i_r*i_sch [7] + i_rs*i_sch [1];
@@ -2043,9 +2055,9 @@ __device__ double *cuda_vertex_force_linear_rectangle(double *i_sch, double i_ve
   return o_force;
 }
 
-__device__ void cuda_compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
-                                     double *i_rp, double *i_sp, double i_factor,
-                                     double o_nodal_force[][3], double *o_total_force){
+__device__ void cuda_compute_forces_linear_rectangle(float *i_sch, float i_vec_int[][3],
+                                     float *i_rp, float *i_sp, float i_factor,
+                                     float o_nodal_force[][3], float *o_total_force){
   // Calculating nodal forces
   // x3.
   cuda_vertex_force_linear_rectangle(i_sch, i_vec_int, i_rp[1], i_sp[1], i_rp[1]*i_sp[1],  i_factor, o_nodal_force[0]);
@@ -2063,32 +2075,32 @@ __device__ void cuda_compute_forces_linear_rectangle(double *i_sch, double i_vec
 }
 
 // Device constants.
-__constant__ double d_mu, d_nu, d_a, d_a_sq, d_one_m_nu, d_factor;
+__constant__ float d_mu, d_nu, d_a, d_a_sq, d_one_m_nu, d_factor;
 
-__global__ void se_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, double *g_se_arr, double *g_b_arr, double *g_fx_arr, double *g_ftot_arr, int n_se, int n_dln){
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3];
+__global__ void se_cuda_nodal_surface_force_linear_rectangle(float *g_dln_arr, float *g_se_arr, float *g_b_arr, float *g_fx_arr, float *g_ftot_arr, int n_se, int n_dln){
+  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3];
   // Characteristic vectors.
-  double t[3], p[3], q[3], n[3];
+  float t[3], p[3], q[3], n[3];
   // Basis vectors (unitary).
-  double p_x_t[3], q_x_t[3];
+  float p_x_t[3], q_x_t[3];
   // Limits of the distance vector from the plane to dislocation line segment.
   // r_lim[0][] = vector from x1 to x3, r_lim[1][] = vector from x2 to x6.
-  double r_lim[2][3];
+  float r_lim[2][3];
   //r, s limits
-  double rp[2], sp[2];
+  float rp[2], sp[2];
   //  y, r, s coordinates
-  double y[n_limits], r[n_limits], s[n_limits];
+  float y[n_limits], r[n_limits], s[n_limits];
   // Vectors for the integrals.
-  double vec_int[11][3];
+  float vec_int[11][3];
   // Scalar value of the integrals.
-  double sch[38];
+  float sch[38];
   //  Auxiliary constants to reduce computational cost.
   //  p dot t, q dot t
-  double p_dot_t, q_dot_t;
+  float p_dot_t, q_dot_t;
   // Auxiliary variables for nodal force calculation.
-  double l_factor;
-  double p_norm, q_norm;
-  double nodal_force[n_nodes][3], total_force[3];
+  float l_factor;
+  float p_norm, q_norm;
+  float nodal_force[n_nodes][3], total_force[3];
   int idx  = threadIdx.x + blockIdx.x * blockDim.x;
   int idxd = 0;
   int idxb = 0;
@@ -2175,30 +2187,30 @@ __global__ void se_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, 
   }
 }
 
-__global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, double *g_se_arr, double *g_b_arr, double *g_fx_arr, double *g_ftot_arr, int n_se, int n_dln){
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3];
+__global__ void dln_cuda_nodal_surface_force_linear_rectangle(float *g_dln_arr, float *g_se_arr, float *g_b_arr, float *g_fx_arr, float *g_ftot_arr, int n_se, int n_dln){
+  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3];
   // Characteristic vectors.
-  double t[3], p[3], q[3], n[3];
+  float t[3], p[3], q[3], n[3];
   // Basis vectors (unitary).
-  double p_x_t[3], q_x_t[3];
+  float p_x_t[3], q_x_t[3];
   // Limits of the distance vector from the plane to dislocation line segment.
   // r_lim[0][] = vector from x1 to x3, r_lim[1][] = vector from x2 to x6.
-  double r_lim[2][3];
+  float r_lim[2][3];
   //r, s limits
-  double rp[2], sp[2];
+  float rp[2], sp[2];
   //  y, r, s coordinates
-  double y[n_limits], r[n_limits], s[n_limits];
+  float y[n_limits], r[n_limits], s[n_limits];
   // Vectors for the integrals.
-  double vec_int[11][3];
+  float vec_int[11][3];
   // Scalar value of the integrals.
-  double sch[38];
+  float sch[38];
   //  Auxiliary constants to reduce computational cost.
   //  p dot t, q dot t
-  double p_dot_t, q_dot_t;
+  float p_dot_t, q_dot_t;
   // Auxiliary variables for nodal force calculation.
-  double l_factor;
-  double p_norm, q_norm;
-  double nodal_force[n_nodes][3], total_force[3];
+  float l_factor;
+  float p_norm, q_norm;
+  float nodal_force[n_nodes][3], total_force[3];
   int idx   = threadIdx.x + blockIdx.x * blockDim.x;
   int idxse = 0;
   // Because each index corresponds to a dislocation line segment, we have to make sure that even if we have more threads than surface elements we won't go out of bounds in our arrays.
@@ -2300,34 +2312,34 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr,
 /*
 void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
-  double *dln_node_arr[2], *se_node_arr[n_nodes];
+  float *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
-  double *fx[n_nodes];
-  double ftot[3];
+  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
+  float *fx[n_nodes];
+  float ftot[3];
   // Burger's vectors array from MATLAB. To be passed straight into d_b_arr.
-  double *b_arr[1];
+  float *b_arr[1];
   // Material properties from MATLAB to be placed into shared memory in device.
-  double mu, nu, a, a_sq, one_m_nu, factor;
+  float mu, nu, a, a_sq, one_m_nu, factor;
   // Nodal force array (3 coordinates per node per SE, 3*n_nodes*n_se). To be inversely mapped to *fx_arr[n_nodes].
-  double *x_fx_arr;
+  float *x_fx_arr;
   // Nodal force array to be sent back to MATLAB.
-  double *fx_arr[n_nodes];
+  float *fx_arr[n_nodes];
   // Total force array on SE (3 coordinates per SE, 3*n_se) to be sent back to MATLAB.
-  double *ftot_arr, *x_ftot_arr;
+  float *ftot_arr, *x_ftot_arr;
   // Maps of SE and DLN node arrays.
-  double *x_se_arr, *x_dln_arr, *x_b_arr;
+  float *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
-  double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  float *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
   int idx1, idx2;
 
   // Memory allocation
-  b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
-  dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
-  dln_node_arr[1] = (double *) malloc(3 * n_dln * sizeof(double));
+  b_arr[0] = (float *) malloc(3 * n_dln * sizeof(float));
+  dln_node_arr[0] = (float *) malloc(3 * n_dln * sizeof(float));
+  dln_node_arr[1] = (float *) malloc(3 * n_dln * sizeof(float));
   for (int i = 0; i < n_nodes; i++){
-    se_node_arr[i] = (double *) malloc(3 * n_se  * sizeof(double));
-    fx[i] = (double *) malloc(3 * sizeof(double));
+    se_node_arr[i] = (float *) malloc(3 * n_se  * sizeof(float));
+    fx[i] = (float *) malloc(3 * sizeof(float));
   }
   // Read input.
   FILE * ptr_file;
@@ -2368,22 +2380,22 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
     cudaEventCreate(&stop);
   #endif
   // Allocate device memory.
-  checkCudaErrors( cudaMalloc( (void **) &d_x_dln_arr, 3 * n_dln * 2       * sizeof(double) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_x_b_arr  , 3 * n_dln           * sizeof(double) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_x_se_arr , 3 * n_se  * n_nodes * sizeof(double) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr   , 3 * n_se  * n_nodes * sizeof(double) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr , 3 * n_se            * sizeof(double) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_x_dln_arr, 3 * n_dln * 2       * sizeof(float) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_x_b_arr  , 3 * n_dln           * sizeof(float) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_x_se_arr , 3 * n_se  * n_nodes * sizeof(float) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr   , 3 * n_se  * n_nodes * sizeof(float) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr , 3 * n_se            * sizeof(float) ) );
   // Copy host to device.
   // Only pass node coordinates to device.
-  checkCudaErrors( cudaMemcpy(d_x_se_arr , x_se_arr , 3*n_se *n_nodes*sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMemcpy(d_x_se_arr , x_se_arr , 3*n_se *n_nodes*sizeof(float), cudaMemcpyHostToDevice) );
   free(x_se_arr);
-  checkCudaErrors( cudaMemcpy(d_x_dln_arr, x_dln_arr, 3*n_dln*2      *sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMemcpy(d_x_dln_arr, x_dln_arr, 3*n_dln*2      *sizeof(float), cudaMemcpyHostToDevice) );
   free(x_dln_arr);
-  checkCudaErrors( cudaMemcpy(d_x_b_arr  , x_b_arr, 3*n_dln        *sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMemcpy(d_x_b_arr  , x_b_arr, 3*n_dln        *sizeof(float), cudaMemcpyHostToDevice) );
   free(x_b_arr);
   // Initialising force arrays to zero.
-  checkCudaErrors( cudaMemset(d_fx_arr  , 0.0, 3*n_se *n_nodes*sizeof(double)) );
-  checkCudaErrors( cudaMemset(d_ftot_arr, 0.0, 3*n_se         *sizeof(double)) );
+  checkCudaErrors( cudaMemset(d_fx_arr  , 0.0, 3*n_se *n_nodes*sizeof(float)) );
+  checkCudaErrors( cudaMemset(d_ftot_arr, 0.0, 3*n_se         *sizeof(float)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_mu      , &mu      , sizeof(mu)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_nu      , &nu      , sizeof(nu)) );
   checkCudaErrors( cudaMemcpyToSymbol(d_a       , &a       , sizeof(a)) );
@@ -2407,15 +2419,15 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
   // Copy device to host
   // Only pass forces to host.
   // x_fx_arr treated the same way as x_se_arr.
-  x_fx_arr   = (double *) malloc(3 * n_se * n_nodes * sizeof(double));
-  x_ftot_arr = (double *) malloc(3 * n_se           * sizeof(double));
-  checkCudaErrors( cudaMemcpy(x_fx_arr  , d_fx_arr  , 3 * n_se * n_nodes * sizeof(double), cudaMemcpyDeviceToHost) );
-  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se           * sizeof(double), cudaMemcpyDeviceToHost) );
-  ftot_arr = (double *) malloc(3 * n_se * sizeof(double));
+  x_fx_arr   = (float *) malloc(3 * n_se * n_nodes * sizeof(float));
+  x_ftot_arr = (float *) malloc(3 * n_se           * sizeof(float));
+  checkCudaErrors( cudaMemcpy(x_fx_arr  , d_fx_arr  , 3 * n_se * n_nodes * sizeof(float), cudaMemcpyDeviceToHost) );
+  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se           * sizeof(float), cudaMemcpyDeviceToHost) );
+  ftot_arr = (float *) malloc(3 * n_se * sizeof(float));
   ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
   free(x_ftot_arr);
   for (int i = 0; i < n_nodes; i++){
-    fx_arr[i] = (double *) malloc(3 * n_se * sizeof(double));
+    fx_arr[i] = (float *) malloc(3 * n_se * sizeof(float));
   }
   fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
   free(x_fx_arr);
@@ -2492,25 +2504,25 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
-  double *dln_node_arr[2], *se_node_arr[n_nodes];
+  float *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
-  double *fx[n_nodes];
-  double ftot[3];
+  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
+  float *fx[n_nodes];
+  float ftot[3];
   // Burger's vectors array from MATLAB. To be passed straight into d_b_arr.
-  double *b_arr[1];
+  float *b_arr[1];
   // Material properties from MATLAB to be placed into shared memory in device.
-  double mu, nu, a, a_sq, one_m_nu, factor;
+  float mu, nu, a, a_sq, one_m_nu, factor;
   // Nodal force array (3 coordinates per node per SE, 3*n_nodes*n_se). To be inversely mapped to *fx_arr[n_nodes].
-  double *x_fx_arr;
+  float *x_fx_arr;
   // Nodal force array to be sent back to MATLAB.
-  double *fx_arr[n_nodes];
+  float *fx_arr[n_nodes];
   // Total force array on SE (3 coordinates per SE, 3*n_se) to be sent back to MATLAB.
-  double *ftot_arr, *x_ftot_arr;
+  float *ftot_arr, *x_ftot_arr;
   // Maps of SE and DLN node arrays.
-  double *x_se_arr, *x_dln_arr, *x_b_arr;
+  float *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
-  double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  float *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
   int threads_per_block, blocks_per_grid, n_se, n_dln;
   int idx1, idx2;
   //int debug = 1;
@@ -2519,36 +2531,36 @@ void mexFunction(int nlhs, mxArray *plhs[],
   // If memory becomes an issue, make copying x_dln_arr, x_se_arr and x_b_arr to the device a synchronous operation and free the pointers straight after.
   n_se = (int) mxGetScalar(prhs[10]);
   // Allocate and set forces to 0 in device.
-  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr  , 3 * n_se  * n_nodes * sizeof(double) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr, 3 * n_se            * sizeof(double) ) );
-  checkCudaErrors( cudaMemsetAsync(d_fx_arr  , 0.0, 3 * n_se * n_nodes * sizeof(double)) );
-  checkCudaErrors( cudaMemsetAsync(d_ftot_arr, 0.0, 3 * n_se           * sizeof(double)) );
+  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr  , 3 * n_se  * n_nodes * sizeof(float) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr, 3 * n_se            * sizeof(float) ) );
+  checkCudaErrors( cudaMemsetAsync(d_fx_arr  , 0.0, 3 * n_se * n_nodes * sizeof(float)) );
+  checkCudaErrors( cudaMemsetAsync(d_ftot_arr, 0.0, 3 * n_se           * sizeof(float)) );
   // Execute host code while device sets force arrays to zero.
   n_dln = (int) mxGetScalar(prhs[11]);
-  dln_node_arr[0] = (double *) mxGetPr(prhs[0]);
-  dln_node_arr[1] = (double *) mxGetPr(prhs[1]);
+  dln_node_arr[0] = (float *) mxGetPr(prhs[0]);
+  dln_node_arr[1] = (float *) mxGetPr(prhs[1]);
   // Map dislocation node arrays to 1D array for parallelisation.
   x_dln_arr       = element_host_device_map(dln_node_arr, n_dln, 2);
   // Allocate and copy values of dislocation nodes to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(double) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
+  checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
   // Execute host code while copying values from host to device.
-  se_node_arr[0] = (double *) mxGetPr(prhs[2]);
-  se_node_arr[1] = (double *) mxGetPr(prhs[3]);
-  se_node_arr[2] = (double *) mxGetPr(prhs[4]);
-  se_node_arr[3] = (double *) mxGetPr(prhs[5]);
+  se_node_arr[0] = (float *) mxGetPr(prhs[2]);
+  se_node_arr[1] = (float *) mxGetPr(prhs[3]);
+  se_node_arr[2] = (float *) mxGetPr(prhs[4]);
+  se_node_arr[3] = (float *) mxGetPr(prhs[5]);
   // Map surface element node arrays to 1D array for parallelisation.
   x_se_arr       = se_host_device_map(se_node_arr[0], se_node_arr[1], se_node_arr[2], se_node_arr[3], n_se);
   // Allocate and copy values of surface element nodes to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(double) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
+  checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
   // Execute host code while copying values from host to device.
-  b_arr[0] = (double *) mxGetPr(prhs[6]);
+  b_arr[0] = (float *) mxGetPr(prhs[6]);
   // Map Burger's vector array to 1D array for parallelisation.
   x_b_arr  = element_host_device_map(b_arr, n_dln, 1);
   // Allocate and copy values of Burger's vectors to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(double) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(double), cudaMemcpyHostToDevice) );
+  checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
+  checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
   // Execute host code while copying values from host to device.
   // Copy constant values to device.
   mu = mxGetScalar(prhs[7]);
@@ -2569,97 +2581,29 @@ void mexFunction(int nlhs, mxArray *plhs[],
   plhs[2] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[3] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[4] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
-  fx_arr[0] = (double *) mxGetPr(plhs[0]);
-  fx_arr[1] = (double *) mxGetPr(plhs[1]);
-  fx_arr[2] = (double *) mxGetPr(plhs[2]);
-  fx_arr[3] = (double *) mxGetPr(plhs[3]);
-  ftot_arr  = (double *) mxGetPr(plhs[4]);
+  fx_arr[0] = (float *) mxGetPr(plhs[0]);
+  fx_arr[1] = (float *) mxGetPr(plhs[1]);
+  fx_arr[2] = (float *) mxGetPr(plhs[2]);
+  fx_arr[3] = (float *) mxGetPr(plhs[3]);
+  ftot_arr  = (float *) mxGetPr(plhs[4]);
   threads_per_block = (int) mxGetScalar(prhs[12]);
   blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
-  // Make sure all memory copy operations are completed before executing the kernel.
-  cudaDeviceSynchronize();
   // CUDA
   dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   // Host code is executed asynchronously from the kernel execution.
   // Free all 1D arrays used to copy data to device.
   free(x_se_arr); free(x_dln_arr); free(x_b_arr);
-  x_fx_arr   = (double *) malloc(3 * n_se * n_nodes * sizeof(double));
-  x_ftot_arr = (double *) malloc(3 * n_se           * sizeof(double));
+  x_fx_arr   = (float *) malloc(3 * n_se * n_nodes * sizeof(float));
+  x_ftot_arr = (float *) malloc(3 * n_se           * sizeof(float));
   // Synchronously copy forces from device to host.
-  checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyDeviceToHost) );
+  checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyDeviceToHost) );
   // Map 1D device array to 2D array for MATLAB.
   fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
   free(x_fx_arr);
-  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se           * sizeof(double), cudaMemcpyDeviceToHost) );
+  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se * sizeof(float), cudaMemcpyDeviceToHost) );
   // Map 1D device array to 1D array for MATLAB.
   ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
   free(x_ftot_arr);
   // CUDA exit.
   cudaDeviceReset();
-  // Allocate force array for the case where dislocation and surface element are parallel.
-  for (int i = 0; i < n_nodes; i++){
-    fx[i] = (double *) malloc(3 * sizeof(double));
-  }
-  idx1 = 0;
-  for (int i = 0; i < n_se; i++){
-    idx2 = 0;
-    // Transfer rectangular element i's coordinates into x3--x6.
-    for (int k = 0; k < 3; k++){
-      x3[k] = se_node_arr[0][idx1+k];
-      x4[k] = se_node_arr[1][idx1+k];
-      x5[k] = se_node_arr[2][idx1+k];
-      x6[k] = se_node_arr[3][idx1+k];
-    }
-    // Loop through the dislocation segments.
-    for (int j = 0; j < n_dln; j++){
-      // Transfer dislocation segment j's coordinates and burger's vector into x1--x2 and b
-      for (int k = 0; k < 3; k++){
-        x1[k] = dln_node_arr[0][idx2+k];
-        x2[k] = dln_node_arr[1][idx2+k];
-        b [k] = b_arr[0][idx2+k];
-      }
-      init_vector(x1, x2, 3, t);
-      init_vector2(x3, x4, 3, p, &p_norm);
-      init_vector2(x3, x5, 3, q, &q_norm);
-      cross_product(p, q, n);
-      normalise_vector(n, 3, n);
-      if (dot_product(t, n, 3) == 0.0){
-        nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
-        // Add the force contributions for segment j to the surface element i.
-        for (int k = 0; k < 3; k++){
-          fx_arr[0][idx1+k] += fx[0][k];
-          fx_arr[1][idx1+k] += fx[1][k];
-          fx_arr[2][idx1+k] += fx[2][k];
-          fx_arr[3][idx1+k] += fx[3][k];
-          ftot_arr [idx1+k] += ftot[k];
-        }
-      }
-      idx2 += 3;
-    }
-    idx1 += 3;
-  }
-  for(int i = 0; i < n_nodes; i++){
-    free(fx[i]);
-  }
 }
-
-// Testing purposes
-/*
-int main(void){
-  int n_se, n_dln;
-  FILE * ptr_file;
-  printf("Reading input.txt... \n");
-  ptr_file = fopen("cuda_input.txt", "r");
-  fscanf(ptr_file, "%i", &n_se);
-  fscanf(ptr_file, "%i", &n_dln);
-  fclose(ptr_file);
-  main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln);
-  printf("Reading input.txt... \n");
-  ptr_file = fopen("cuda_input.txt", "r");
-  fscanf(ptr_file, "%i", &n_se);
-  fscanf(ptr_file, "%i", &n_dln);
-  main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln);
-  fclose(ptr_file);
-  return 0;
-}
-*/
