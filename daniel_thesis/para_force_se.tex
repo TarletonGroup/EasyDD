@@ -57,11 +57,11 @@
 						\GPUFunction[element\_device\_thread\_map]{\dvar{\vec{X}[3\times E\times N]}, \tvar{\vec{X}[N][3]}}
 						\State{\Comment{Thread, input indices.}}
 						\State{$ \rvar{idx},\, i \gets \rvar{threadIdx}.x + \rvar{blockIdx}.x\times \rvar{blockDim}.x $}
-						\For{$ (n = 0;\, n < N;\, n++) $}\Comment{Loop over nodes in element.}
-							\For{$ (c = 0;\, c < 3;\, c++) $}\Comment{Loop over elements.}
-								\State{$ \tvar{\vec{X}[n][c]} \gets \dvar{\vec{X}[i + c\times E\times N]}$}
+						\For{$ (c = 0;\, c < 3;\, c++) $}\Comment{Loop over elements.}
+							\For{$ (n = 0;\, n < N;\, n++) $}\Comment{Loop over nodes in element.}
+								\State{$ \tvar{\vec{X}[n][c]} \gets \dvar{\vec{X}[i + n\times E]}$}
 							\EndFor
-							\State{$ i \gets i + E $}
+							\State{$ i \gets i + E\times N $}
 							\Comment{Advance input index to the $(n+1)\textsuperscript{th}$ node of element $i$.}
 						\EndFor
 						\State{\Return{\tvar{\vec{X}[n][c]}}}
