@@ -1,4 +1,5 @@
 function [ep_inc,wp_inc]=calcplasticstrainincrement(rnnew,rn,links,Volume);
+% this needs commenting
 seg=      rn(links(:,2),1:3)   - rn(links(:,1),1:3);
 segnew=rnnew(links(:,2),1:3)- rnnew(links(:,1),1:3);
 dx1=rnnew(links(:,2),1:3)-rn(links(:,1),1:3);
