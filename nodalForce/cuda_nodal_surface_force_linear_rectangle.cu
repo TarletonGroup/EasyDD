@@ -1187,8 +1187,6 @@ void add_ftot_device_host_map(double *i_g_ftot_arr, double *o_ftot_arr, int i_n_
   }
 }
 
-
-
 double *dln_host_device_map(double *i_x1_arr, double *i_x2_arr, int i_n_dln){
   /*
     Maps E dislocation line segments with 2 nodes.
@@ -2582,7 +2580,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   // Host code is executed asynchronously from the kernel execution.
   // Free all 1D arrays used to copy data to device.
   free(x_se_arr); free(x_dln_arr); free(x_b_arr);
-  // Special case.
+  // Special case, where dislocation line is parallel with surface element.
   // Initialise forces.
   ftot_arr = (double *) malloc(3 * n_se * sizeof(double));
   for (int i = 0; i < n_nodes; i++){
@@ -2620,9 +2618,6 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
         nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
         // Add the force contributions for segment j to the surface element i.
         for (int k = 0; k < 3; k++){
-          //printf("dln = %d, se = %d, ftot[%d] = %f\n", j, i, k, ftot[k]);
-          //printf("x1 = %f %f %f\n", x1[0], x1[1], x1[2]);
-          //printf("x2 = %f %f %f\n", x2[0], x2[1], x2[2]);
           fx_arr[0][idx1+k] += fx[0][k];
           fx_arr[1][idx1+k] += fx[1][k];
           fx_arr[2][idx1+k] += fx[2][k];
@@ -2668,9 +2663,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   free(ftot_arr);
 }
 
-// main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln)
 void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block){
-//mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
   double *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
@@ -2786,7 +2779,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   // Host code is executed asynchronously from the kernel execution.
   // Free all 1D arrays used to copy data to device.
   free(x_se_arr); free(x_dln_arr); free(x_b_arr);
-  // Special case.
+  // Special case, where dislocation line is parallel with surface element.
   // Initialise forces.
   ftot_arr = (double *) malloc(3 * n_se * sizeof(double));
   for (int i = 0; i < n_nodes; i++){
@@ -2872,7 +2865,6 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
 }
 
 // Testing purposes
-
 int main(void){
   int n_se, n_dln, threads_per_block;
   FILE * ptr_file;

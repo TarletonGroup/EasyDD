@@ -1043,13 +1043,14 @@ float *se_host_device_map(float *i_x3_arr, float *i_x4_arr, float *i_x5_arr, flo
   return o_g_se_arr;
 }
 
-void fx_device_host_map(float *i_g_fx_arr, float *o_fx_arr[], int i_n_se, int i_n_nodes){
+#ifndef sc
+void dln_fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int i_n_nodes){
   /*
     Maps the 1D nodal force array for E surface elements of N nodes each to a 2D array usable by MATLAB.
     i_g_fx_arr =
-      [x_00, x_10, ..., x_(E-1)0, x_01, x_11, ..., x_(E-1)1, ..., x_0N, x_1(N-1), ..., x_(E-1)3,
-       y_00, y_10, ..., y_(E-1)0, y_01, y_11, ..., y_(E-1)1, ..., y_0N, y_1(N-1), ..., y_(E-1)3,
-       z_00, z_10, ..., z_(E-1)0, z_01, z_11, ..., z_(E-1)1, ..., z_0N, z_1(N-1), ..., z_(E-1)3]
+      [x_00    , y_00    , z_00    , x_01    , y_01    , z_01    , ..., x_0(N-1)    , y_0(N-1)    , z_0(N-1),
+       x_10    , y_10    , z_10    , x_11    , y_11    , z_11    , ..., x_1(N-1)    , y_1(N-1)    , z_1(N-1), ...
+       x_(E-1)0, y_(E-1)0, z_(E-1)0, x_(E-1)1, y_(E-1)1, z_(E-1)1, ..., x_(E-1)(N-1), y_(E-1)(N-1), z_(E-1)(N-1)]
 
        to
 
@@ -1060,55 +1061,209 @@ void fx_device_host_map(float *i_g_fx_arr, float *o_fx_arr[], int i_n_se, int i_
     idxi = input (initial) index
     idxf = output (final) index
   */
-  int n_se_n_nodes = i_n_se*i_n_nodes;
   int idxi = 0, idxf = 0;
   // Loop over nodes in element.
   for (int i = 0; i < i_n_nodes; i++){
-    // Reset the output index to point at the first element.
-    idxf = 0;
     // Loop over elements.
     for (int j = 0; j < i_n_se; j++){
       // Loop over coordinates.
       for (int k = 0; k < 3; k++){
         // Displace the input index to point at the k'th coordinate of the i'th node of the j'th element.
         // Displace the output index to point at the k'th coordinate of the i'th node of the j'th element.
-        o_fx_arr[i][idxf + k] = i_g_fx_arr[idxi + j + k*n_se_n_nodes];
+        o_fx_arr[i][idxf + k] = i_g_fx_arr[idxi + idxf*i_n_nodes + k];
       }
       // Advance the output index to point at the first coordinate of the (j+1)'th element.
       idxf += 3;
     }
     // Advance the input index to point at the first coordinate of the (i+1)'th node of the first element.
-    idxi += i_n_se;
+    idxi += 3;
+    idxf  = 0;
   }
 }
 
-void ftot_device_host_map(float *i_g_ftot_arr, float *o_ftot_arr, int i_n_se){
-  /*
-    Maps the 1D total force array for E surface elements to a 1D array usable by MATLAB.
-    i_g_ftot_arr =
-      [x_0, x_1, ..., x_(E-1)
-       y_0, y_1, ..., y_(E-1)
-       z_0, z_1, ..., z_(E-1)]
+  void fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int i_n_nodes){
+    /*
+      Maps the 1D nodal force array for E surface elements of N nodes each to a 2D array usable by MATLAB.
+      i_g_fx_arr =
+        [x_00, x_10, ..., x_(E-1)0, x_01, x_11, ..., x_(E-1)1, ..., x_0N, x_1(N-1), ..., x_(E-1)3,
+         y_00, y_10, ..., y_(E-1)0, y_01, y_11, ..., y_(E-1)1, ..., y_0N, y_1(N-1), ..., y_(E-1)3,
+         z_00, z_10, ..., z_(E-1)0, z_01, z_11, ..., z_(E-1)1, ..., z_0N, z_1(N-1), ..., z_(E-1)3]
 
-       to
+         to
 
-     i_g_ftot_arr =
-       [x_0, y_0, z_0, x_1, y_1, z_1, ..., x_(E-1), y_(E-1), z_(E-1)]
-    i_n_se = E
-    idxf = output (final) index
-  */
-  int idxf = 0;
-  // Loop over surface elements.
-  for (int i = 0; i < i_n_se; i++){
-    // Loop over coordinates.
-    for (int j = 0; j < 3; j++){
-      // Displace the input and output indices to point at the j'th coordinate of the i'th surface element.
-      o_ftot_arr[idxf + j] = i_g_ftot_arr[i + j*i_n_se];
+      o_fx_arr[n][3e + 0:2] = [x_en, y_en, z_en]
+      i_n_se = E
+      i_n_nodes    = N
+      n_se_n_nodes = N*E
+      idxi = input (initial) index
+      idxf = output (final) index
+    */
+    int n_se_n_nodes = i_n_se*i_n_nodes;
+    int idxi = 0, idxf = 0;
+    // Loop over nodes in element.
+    for (int i = 0; i < i_n_nodes; i++){
+      // Reset the output index to point at the first element.
+      idxf = 0;
+      // Loop over elements.
+      for (int j = 0; j < i_n_se; j++){
+        // Loop over coordinates.
+        for (int k = 0; k < 3; k++){
+          // Displace the input index to point at the k'th coordinate of the i'th node of the j'th element.
+          // Displace the output index to point at the k'th coordinate of the i'th node of the j'th element.
+          o_fx_arr[i][idxf + k] = i_g_fx_arr[idxi + j + k*n_se_n_nodes];
+          //if(i == 0){
+          //  o_ftot_arr[idxf + k] = i_g_ftot_arr[j + k*i_n_se];
+          //}
+          //
+        }
+        // Advance the output index to point at the first coordinate of the (j+1)'th element.
+        idxf += 3;
+      }
+      // Advance the input index to point at the first coordinate of the (i+1)'th node of the first element.
+      idxi += i_n_se;
     }
-    // Advance the output index to point at the first coordinate of the (i+1)'th surface element.
-    idxf += 3;
   }
-}
+
+  void ftot_device_host_map(float *i_g_ftot_arr, float *o_ftot_arr, int i_n_se){
+    /*
+      Maps the 1D total force array for E surface elements to a 1D array usable by MATLAB.
+      i_g_ftot_arr =
+        [x_0, x_1, ..., x_(E-1)
+         y_0, y_1, ..., y_(E-1)
+         z_0, z_1, ..., z_(E-1)]
+
+         to
+
+       i_g_ftot_arr =
+         [x_0, y_0, z_0, x_1, y_1, z_1, ..., x_(E-1), y_(E-1), z_(E-1)]
+      i_n_se = E
+      idxf = output (final) index
+    */
+    int idxf = 0;
+    // Loop over surface elements.
+    for (int i = 0; i < i_n_se; i++){
+      // Loop over coordinates.
+      for (int j = 0; j < 3; j++){
+        // Displace the input and output indices to point at the j'th coordinate of the i'th surface element.
+        o_ftot_arr[idxf + j] = i_g_ftot_arr[i + j*i_n_se];
+      }
+      // Advance the output index to point at the first coordinate of the (i+1)'th surface element.
+      idxf += 3;
+    }
+  }
+#endif
+
+#ifdef sc
+  // Special case, where dislocation line is parallel with surface element.
+  // Add compiler glag -Dsc when wanting to deal with the special case.
+  void dln_add_fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int i_n_nodes){
+    /*
+      Maps the 1D nodal force array for E surface elements of N nodes each to a 2D array usable by MATLAB.
+      i_g_fx_arr =
+        [x_00    , y_00    , z_00    , x_01    , y_01    , z_01    , ..., x_0(N-1)    , y_0(N-1)    , z_0(N-1),
+         x_10    , y_10    , z_10    , x_11    , y_11    , z_11    , ..., x_1(N-1)    , y_1(N-1)    , z_1(N-1), ...
+         x_(E-1)0, y_(E-1)0, z_(E-1)0, x_(E-1)1, y_(E-1)1, z_(E-1)1, ..., x_(E-1)(N-1), y_(E-1)(N-1), z_(E-1)(N-1)]
+
+         to
+
+      o_fx_arr[n][3e + 0:2] = [x_en, y_en, z_en]
+      i_n_se = E
+      i_n_nodes    = N
+      n_se_n_nodes = N*E
+      idxi = input (initial) index
+      idxf = output (final) index
+    */
+    int idxi = 0, idxf = 0;
+    // Loop over nodes in element.
+    for (int i = 0; i < i_n_nodes; i++){
+      // Loop over elements.
+      for (int j = 0; j < i_n_se; j++){
+        // Loop over coordinates.
+        for (int k = 0; k < 3; k++){
+          // Displace the input index to point at the k'th coordinate of the i'th node of the j'th element.
+          // Displace the output index to point at the k'th coordinate of the i'th node of the j'th element.
+          o_fx_arr[i][idxf + k] += i_g_fx_arr[idxi + idxf*i_n_nodes + k];
+        }
+        // Advance the output index to point at the first coordinate of the (j+1)'th element.
+        idxf += 3;
+      }
+      // Advance the input index to point at the first coordinate of the (i+1)'th node of the first element.
+      idxi += 3;
+      idxf  = 0;
+    }
+  }
+
+  void add_fx_device_host_map(double *i_g_fx_arr, double *o_fx_arr[], int i_n_se, int i_n_nodes){
+    /*
+      Maps the 1D nodal force array for E surface elements of N nodes each to a 2D array usable by MATLAB.
+      i_g_fx_arr =
+        [x_00, x_10, ..., x_(E-1)0, x_01, x_11, ..., x_(E-1)1, ..., x_0N, x_1(N-1), ..., x_(E-1)3,
+         y_00, y_10, ..., y_(E-1)0, y_01, y_11, ..., y_(E-1)1, ..., y_0N, y_1(N-1), ..., y_(E-1)3,
+         z_00, z_10, ..., z_(E-1)0, z_01, z_11, ..., z_(E-1)1, ..., z_0N, z_1(N-1), ..., z_(E-1)3]
+
+         to
+
+      o_fx_arr[n][3e + 0:2] = [x_en, y_en, z_en]
+      i_n_se = E
+      i_n_nodes    = N
+      n_se_n_nodes = N*E
+      idxi = input (initial) index
+      idxf = output (final) index
+    */
+    int n_se_n_nodes = i_n_se*i_n_nodes;
+    int idxi = 0, idxf = 0;
+    // Loop over nodes in element.
+    for (int i = 0; i < i_n_nodes; i++){
+      // Reset the output index to point at the first element.
+      idxf = 0;
+      // Loop over elements.
+      for (int j = 0; j < i_n_se; j++){
+        // Loop over coordinates.
+        for (int k = 0; k < 3; k++){
+          // Displace the input index to point at the k'th coordinate of the i'th node of the j'th element.
+          // Displace the output index to point at the k'th coordinate of the i'th node of the j'th element.
+          o_fx_arr[i][idxf + k] += i_g_fx_arr[idxi + j + k*n_se_n_nodes];
+          //if(i == 0){
+          //  o_ftot_arr[idxf + k] = i_g_ftot_arr[j + k*i_n_se];
+          //}
+          //
+        }
+        // Advance the output index to point at the first coordinate of the (j+1)'th element.
+        idxf += 3;
+      }
+      // Advance the input index to point at the first coordinate of the (i+1)'th node of the first element.
+      idxi += i_n_se;
+    }
+  }
+
+  void add_ftot_device_host_map(double *i_g_ftot_arr, double *o_ftot_arr, int i_n_se){
+    /*
+      Maps the 1D total force array for E surface elements to a 1D array usable by MATLAB.
+      i_g_ftot_arr =
+        [x_0, x_1, ..., x_(E-1)
+         y_0, y_1, ..., y_(E-1)
+         z_0, z_1, ..., z_(E-1)]
+
+         to
+
+       i_g_ftot_arr =
+         [x_0, y_0, z_0, x_1, y_1, z_1, ..., x_(E-1), y_(E-1), z_(E-1)]
+      i_n_se = E
+      idxf = output (final) index
+    */
+    int idxf = 0;
+    // Loop over surface elements.
+    for (int i = 0; i < i_n_se; i++){
+      // Loop over coordinates.
+      for (int j = 0; j < 3; j++){
+        // Displace the input and output indices to point at the j'th coordinate of the i'th surface element.
+        o_ftot_arr[idxf + j] += i_g_ftot_arr[i + j*i_n_se];
+      }
+      // Advance the output index to point at the first coordinate of the (i+1)'th surface element.
+      idxf += 3;
+    }
+  }
+#endif
 
 float *dln_host_device_map(float *i_x1_arr, float *i_x2_arr, int i_n_dln){
   /*
@@ -2163,25 +2318,6 @@ __global__ void se_cuda_nodal_surface_force_linear_rectangle(float *g_dln_arr, f
         cuda_compute_forces_linear_rectangle(sch, vec_int, rp, sp, l_factor, nodal_force,
            total_force);
         add_force_thread_device(nodal_force, total_force, g_fx_arr, g_ftot_arr, n_se, n_nodes, idx);
-        #ifdef debug
-        /*
-          printf("SE = %d\n", (threadIdx.x + blockIdx.x * blockDim.x)%n_se+1);
-          printf("t = %f %f %f\n", t[0], t[1], t[2]);
-          printf("x1 = %f %f %f\n", x1[0], x1[1], x1[2]);
-          printf("p = %f %f %f\n", p[0], p[1], p[2]);
-          printf("q = %f %f %f\n", q[0], q[1], q[2]);
-          printf("n = %f %f %f\n", n[0], n[1], n[2]);
-          printf("b = %f %f %f\n", b[0], b[1], b[2]);
-          for (int i = 0; i < 11; i++){printf("vec_int[%d] = %1.8f %1.8f %1.8f\n", i, vec_int[i][0],vec_int[i][1],vec_int[i][2]);}
-          for (int i = 0; i < n_nodes; i++){printf("nodal_force[%d] = %1.8f %1.8f %1.8f\n", i, nodal_force[i][0], nodal_force[i][1], nodal_force[i][2]);}
-        */
-        /*
-        for (int i = 0; i < 4; i++){
-          printf("SE = %d\nnodal_force[%d] = %2.14f %2.14f %2.14f\n",(threadIdx.x + blockIdx.x * blockDim.x)%n_se+1, i, nodal_force[i][0], nodal_force[i][1], nodal_force[i][2]);
-        }
-        */
-        printf("dln = %d, SE = %d\ntotal_force = %2.14f %2.14f %2.14f\n", j+1, (threadIdx.x + blockIdx.x * blockDim.x)%n_se+1, total_force[0], total_force[1], total_force[2]);
-        #endif
       }
     }
   }
@@ -2275,230 +2411,10 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(float *g_dln_arr, 
         cuda_compute_forces_linear_rectangle(sch, vec_int, rp, sp, l_factor, nodal_force,
            total_force);
         add_force_thread_device(nodal_force, total_force, g_fx_arr, g_ftot_arr, n_se, n_nodes, j);
-        #ifdef debug
-        /*
-          printf("SE = %d\n", (threadIdx.x + blockIdx.x * blockDim.x)%n_se+1);
-          printf("t = %f %f %f\n", t[0], t[1], t[2]);
-          printf("x1 = %f %f %f\n", x1[0], x1[1], x1[2]);
-          printf("p = %f %f %f\n", p[0], p[1], p[2]);
-          printf("q = %f %f %f\n", q[0], q[1], q[2]);
-          printf("n = %f %f %f\n", n[0], n[1], n[2]);
-          printf("b = %f %f %f\n", b[0], b[1], b[2]);
-          for (int i = 0; i < 11; i++){printf("vec_int[%d] = %1.8f %1.8f %1.8f\n", i, vec_int[i][0],vec_int[i][1],vec_int[i][2]);}
-          for (int i = 0; i < n_nodes; i++){printf("nodal_force[%d] = %1.8f %1.8f %1.8f\n", i, nodal_force[i][0], nodal_force[i][1], nodal_force[i][2]);}
-        */
-        /*
-        for (int i = 0; i < 4; i++){
-          printf("SE = %d\nnodal_force[%d] = %2.14f %2.14f %2.14f\n",(threadIdx.x + blockIdx.x * blockDim.x)%n_se+1, i, nodal_force[i][0], nodal_force[i][1], nodal_force[i][2]);
-        }
-        */
-        printf("dln = %d, SE = %d\ntotal_force = %2.14f %2.14f %2.14f\n", (threadIdx.x + blockIdx.x * blockDim.x)%n_dln+1, j+1, total_force[0], total_force[1], total_force[2]);
-        #endif
       }
     }
   }
 }
-
-
-/* Work out best parallelisation.
-// Maximum number of threads per block.
-//cudaDeviceProp deviceProp;
-//cudaGetDeviceProperties(&deviceProp, 1);
-// Number of blocks launched.
-// deviceProp.maxGridSize[0], deviceProp.maxGridSize[1], deviceProp.maxGridSize[2]
-// Size of each block launched
-// deviceProp.maxThreadsDim[0], deviceProp.maxThreadsDim[1], deviceProp.maxThreadsDim[2]
-*/
-/*
-void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln){
-  // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
-  float *dln_node_arr[2], *se_node_arr[n_nodes];
-  // Variables for the special case where the line segment and surface element are parallel.
-  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
-  float *fx[n_nodes];
-  float ftot[3];
-  // Burger's vectors array from MATLAB. To be passed straight into d_b_arr.
-  float *b_arr[1];
-  // Material properties from MATLAB to be placed into shared memory in device.
-  float mu, nu, a, a_sq, one_m_nu, factor;
-  // Nodal force array (3 coordinates per node per SE, 3*n_nodes*n_se). To be inversely mapped to *fx_arr[n_nodes].
-  float *x_fx_arr;
-  // Nodal force array to be sent back to MATLAB.
-  float *fx_arr[n_nodes];
-  // Total force array on SE (3 coordinates per SE, 3*n_se) to be sent back to MATLAB.
-  float *ftot_arr, *x_ftot_arr;
-  // Maps of SE and DLN node arrays.
-  float *x_se_arr, *x_dln_arr, *x_b_arr;
-  // Device arrays.
-  float *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
-  int idx1, idx2;
-
-  // Memory allocation
-  b_arr[0] = (float *) malloc(3 * n_dln * sizeof(float));
-  dln_node_arr[0] = (float *) malloc(3 * n_dln * sizeof(float));
-  dln_node_arr[1] = (float *) malloc(3 * n_dln * sizeof(float));
-  for (int i = 0; i < n_nodes; i++){
-    se_node_arr[i] = (float *) malloc(3 * n_se  * sizeof(float));
-    fx[i] = (float *) malloc(3 * sizeof(float));
-  }
-  // Read input.
-  FILE * ptr_file;
-  ptr_file = fopen("cuda_input.txt", "r");
-  if (ptr_file == NULL){
-    printf("File does not exist.\n");
-  }
-  // Skip two lines.
-  fscanf(ptr_file, "%*[^\n]\n");
-  fscanf(ptr_file, "%*[^\n]\n");
-  for (int i = 0; i < n_dln*3; i+=3){
-    fscanf(ptr_file, "%lf %lf %lf", &dln_node_arr[0][i], &dln_node_arr[0][i+1], &dln_node_arr[0][i+2] );
-    fscanf(ptr_file, "%lf %lf %lf", &dln_node_arr[1][i], &dln_node_arr[1][i+1], &dln_node_arr[1][i+2] );
-  }
-  for (int i = 0; i < n_se*3; i+=3){
-    for (int j = 0; j < n_nodes; j++){
-      fscanf(ptr_file, "%lf %lf %lf", &se_node_arr[j][i], &se_node_arr[j][i+1], &se_node_arr[j][i+2] );
-    }
-  }
-  for (int i = 0; i < n_dln*3; i+=3){
-    fscanf(ptr_file, "%lf %lf %lf", &b_arr[0][i], &b_arr[0][i+1], &b_arr[0][i+2] );
-  }
-  fscanf(ptr_file, "%lf", &mu );
-  fscanf(ptr_file, "%lf", &nu );
-  fscanf(ptr_file, "%lf", &a );
-  fclose(ptr_file);
-  // Auxiliary constants.
-  a_sq     = a*a;
-  one_m_nu = 1.-nu;
-  factor   = 0.25*mu/pi/one_m_nu;
-  // Forward data map.
-  x_b_arr   = b_host_device_map(b_arr[0], n_dln);
-  x_dln_arr = dln_host_device_map(dln_node_arr[0], dln_node_arr[1], n_dln);
-  x_se_arr  = element_host_device_map(se_node_arr, n_se, n_nodes);
-  #ifdef debug
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-  #endif
-  // Allocate device memory.
-  checkCudaErrors( cudaMalloc( (void **) &d_x_dln_arr, 3 * n_dln * 2       * sizeof(float) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_x_b_arr  , 3 * n_dln           * sizeof(float) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_x_se_arr , 3 * n_se  * n_nodes * sizeof(float) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr   , 3 * n_se  * n_nodes * sizeof(float) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr , 3 * n_se            * sizeof(float) ) );
-  // Copy host to device.
-  // Only pass node coordinates to device.
-  checkCudaErrors( cudaMemcpy(d_x_se_arr , x_se_arr , 3*n_se *n_nodes*sizeof(float), cudaMemcpyHostToDevice) );
-  free(x_se_arr);
-  checkCudaErrors( cudaMemcpy(d_x_dln_arr, x_dln_arr, 3*n_dln*2      *sizeof(float), cudaMemcpyHostToDevice) );
-  free(x_dln_arr);
-  checkCudaErrors( cudaMemcpy(d_x_b_arr  , x_b_arr, 3*n_dln        *sizeof(float), cudaMemcpyHostToDevice) );
-  free(x_b_arr);
-  // Initialising force arrays to zero.
-  checkCudaErrors( cudaMemset(d_fx_arr  , 0.0, 3*n_se *n_nodes*sizeof(float)) );
-  checkCudaErrors( cudaMemset(d_ftot_arr, 0.0, 3*n_se         *sizeof(float)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_mu      , &mu      , sizeof(mu)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_nu      , &nu      , sizeof(nu)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_a       , &a       , sizeof(a)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_a_sq    , &a_sq    , sizeof(a_sq)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
-  checkCudaErrors( cudaMemcpyToSymbol(d_factor  , &factor  , sizeof(factor)) );
-  // CUDA
-  //nodal_surface_force_linear_rectangle<<<1,n_se>>>(d_x_se_arr);
-  //nodal_surface_force_linear_rectangle<<<n_se,1>>>(d_x_se_arr);
-  #ifdef debug
-    cudaEventRecord(start);
-  #endif
-  se_cuda_nodal_surface_force_linear_rectangle<<<6,6>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
-  #ifdef debug
-    cudaEventRecord(stop);
-    cudaEventSynchronize(stop);
-    float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("Time spent in SE parallelisation: %f (ms) \n", milliseconds);
-  #endif
-  // Copy device to host
-  // Only pass forces to host.
-  // x_fx_arr treated the same way as x_se_arr.
-  x_fx_arr   = (float *) malloc(3 * n_se * n_nodes * sizeof(float));
-  x_ftot_arr = (float *) malloc(3 * n_se           * sizeof(float));
-  checkCudaErrors( cudaMemcpy(x_fx_arr  , d_fx_arr  , 3 * n_se * n_nodes * sizeof(float), cudaMemcpyDeviceToHost) );
-  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se           * sizeof(float), cudaMemcpyDeviceToHost) );
-  ftot_arr = (float *) malloc(3 * n_se * sizeof(float));
-  ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
-  free(x_ftot_arr);
-  for (int i = 0; i < n_nodes; i++){
-    fx_arr[i] = (float *) malloc(3 * n_se * sizeof(float));
-  }
-  fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
-  free(x_fx_arr);
-  // Hunt for the special case of parallel line segments to surface elements.
-  cudaDeviceSynchronize();
-  idx1 = 0;
-  for (int i = 0; i < n_se; i++){
-    idx2 = 0;
-    // Transfer rectangular element i's coordinates into x3--x6.
-    for (int k = 0; k < 3; k++){
-      x3[k] = se_node_arr[0][idx1+k];
-      x4[k] = se_node_arr[1][idx1+k];
-      x5[k] = se_node_arr[2][idx1+k];
-      x6[k] = se_node_arr[3][idx1+k];
-    }
-    // Loop through the dislocation segments.
-    for (int j = 0; j < n_dln; j++){
-      // Transfer dislocation segment j's coordinates and burger's vector into x1--x2 and b
-      for (int k = 0; k < 3; k++){
-        x1[k] = dln_node_arr[0][idx2+k];
-        x2[k] = dln_node_arr[1][idx2+k];
-        b [k] = b_arr[0][idx2+k];
-      }
-      init_vector(x1, x2, 3, t);
-      init_vector2(x3, x4, 3, p, &p_norm);
-      init_vector2(x3, x5, 3, q, &q_norm);
-      cross_product(p, q, n);
-      normalise_vector(n, 3, n);
-      if (dot_product(t, n, 3) == 0.0){
-        nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, fx, ftot);
-        // Add the force contributions for segment j to the surface element i.
-        for (int k = 0; k < 3; k++){
-          //printf("dln = %d, se = %d, ftot[%d] = %f\n", j, i, k, ftot[k]);
-          //printf("x1 = %f %f %f\n", x1[0], x1[1], x1[2]);
-          //printf("x2 = %f %f %f\n", x2[0], x2[1], x2[2]);
-          fx_arr[0][idx1+k] += fx[0][k];
-          fx_arr[1][idx1+k] += fx[1][k];
-          fx_arr[2][idx1+k] += fx[2][k];
-          fx_arr[3][idx1+k] += fx[3][k];
-          ftot_arr [idx1+k] += ftot[k];
-        }
-      }
-      idx2 += 3;
-    }
-    idx1 += 3;
-  }
-  #ifdef debug
-    //for (int i = 0; i < 3*n_se*n_nodes; i++){
-    //  printf("x_fx_arr[%d] = %2.14f\n", i, x_fx_arr[i]);
-    //}
-    for (int i = 0; i < 3*n_se; i++){
-      printf("x_ftot_arr[%d] = %2.14f\n", i, ftot_arr[i]);
-    }
-    //for(int i = 0; i < n_nodes; i++){
-    //  for(int j = 0; j < 3*n_se; j+=3){
-    //    printf("fx_arr[%d] = %2.18f %2.18f %2.18f\n", i, fx_arr[i][j], fx_arr[i][j+1], fx_arr[i][j+2]);
-    //  }
-    //}
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-  #endif
-  // CUDA exit.
-  cudaDeviceReset();
-  for(int i = 0; i < n_nodes; i++){free(fx[i]);}
-  // Don't free these when using MATLAB. It silently crashes the program. Free them when using straight C.
-  //free(b_arr[0]); free(dln_node_arr[0]); free(dln_node_arr[1]); //free(x3_arr); free(x4_arr); free(x5_arr); free(x6_arr);
-  //for(int i=0; i < n_nodes; i++){free(se_node_arr[i]);}
-  //free(ftot_arr);
-  //for(int i=0; i < n_nodes; i++){free(fx_arr[i]);}
-}
-*/
 
 // main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln)
 void mexFunction(int nlhs, mxArray *plhs[],
@@ -2539,28 +2455,44 @@ void mexFunction(int nlhs, mxArray *plhs[],
   n_dln = (int) mxGetScalar(prhs[11]);
   dln_node_arr[0] = (float *) mxGetPr(prhs[0]);
   dln_node_arr[1] = (float *) mxGetPr(prhs[1]);
-  // Map dislocation node arrays to 1D array for parallelisation.
-  x_dln_arr       = element_host_device_map(dln_node_arr, n_dln, 2);
-  // Allocate and copy values of dislocation nodes to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
   // Execute host code while copying values from host to device.
   se_node_arr[0] = (float *) mxGetPr(prhs[2]);
   se_node_arr[1] = (float *) mxGetPr(prhs[3]);
   se_node_arr[2] = (float *) mxGetPr(prhs[4]);
   se_node_arr[3] = (float *) mxGetPr(prhs[5]);
-  // Map surface element node arrays to 1D array for parallelisation.
-  x_se_arr       = se_host_device_map(se_node_arr[0], se_node_arr[1], se_node_arr[2], se_node_arr[3], n_se);
-  // Allocate and copy values of surface element nodes to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
-  // Execute host code while copying values from host to device.
   b_arr[0] = (float *) mxGetPr(prhs[6]);
-  // Map Burger's vector array to 1D array for parallelisation.
-  x_b_arr  = element_host_device_map(b_arr, n_dln, 1);
-  // Allocate and copy values of Burger's vectors to device.
-  checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
-  checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
+  para_scheme = (int) mxGetScalar(prhs[13]);
+  // Map dislocation node arrays to 1D array for parallelisation.
+  if(para_scheme == 1){
+    x_dln_arr = element_host_device_map(dln_node_arr, n_dln, 2);
+    // Allocate and copy values of dislocation nodes to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
+    x_se_arr  = se_host_device_map(se_node_arr[0], se_node_arr[1], se_node_arr[2], se_node_arr[3], n_se);
+    // Allocate and copy values of surface element nodes to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
+    // Map Burger's vector array to 1D array for parallelisation.
+    x_b_arr  = element_host_device_map(b_arr, n_dln, 1);
+    // Allocate and copy values of Burger's vectors to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
+  }
+  else{
+    x_dln_arr = dln_host_device_map(dln_node_arr[0], dln_node_arr[1], n_dln);
+    // Allocate and copy values of dislocation nodes to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
+    x_se_arr  = element_host_device_map(se_node_arr, n_se, n_nodes);
+    // Allocate and copy values of surface element nodes to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
+    x_b_arr   = b_host_device_map(b_arr[0], n_dln);
+    // Allocate and copy values of Burger's vectors to device.
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
+  }
+
   // Execute host code while copying values from host to device.
   // Copy constant values to device.
   mu = mxGetScalar(prhs[7]);
@@ -2589,21 +2521,108 @@ void mexFunction(int nlhs, mxArray *plhs[],
   threads_per_block = (int) mxGetScalar(prhs[12]);
   blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
   // CUDA
-  dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
+  if(para_scheme == 1){
+    dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
+  }
+  else{
+    se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
+  }
   // Host code is executed asynchronously from the kernel execution.
   // Free all 1D arrays used to copy data to device.
   free(x_se_arr); free(x_dln_arr); free(x_b_arr);
-  x_fx_arr   = (float *) malloc(3 * n_se * n_nodes * sizeof(float));
-  x_ftot_arr = (float *) malloc(3 * n_se           * sizeof(float));
+  x_fx_arr   = (double *) malloc(3 * n_se * n_nodes * sizeof(double));
+  // Special case, where dislocation line is parallel with surface element.
+  // Add compiler glag -Dsc when wanting to deal with the special case.
+  #ifdef sc
+    // Initialise forces.
+    for (int i = 0; i < n_nodes; i++){
+      for (int j = 0; j < 3*n_se; j++){
+        fx_arr[i][j] = 0.0;
+      }
+    }
+    for (int i = 0; i < 3*n_se; i++){
+      ftot_arr[i] = 0.0;
+    }
+    idx1 = 0;
+    for (int i = 0; i < n_se; i++){
+      idx2 = 0;
+      // Transfer rectangular element i's coordinates into x3--x6.
+      for (int k = 0; k < 3; k++){
+        x3[k] = se_node_arr[0][idx1+k];
+        x4[k] = se_node_arr[1][idx1+k];
+        x5[k] = se_node_arr[2][idx1+k];
+        x6[k] = se_node_arr[3][idx1+k];
+      }
+      // Loop through the dislocation segments.
+      for (int j = 0; j < n_dln; j++){
+        // Transfer dislocation segment j's coordinates and burger's vector into x1--x2 and b
+        for (int k = 0; k < 3; k++){
+          x1[k] = dln_node_arr[0][idx2+k];
+          x2[k] = dln_node_arr[1][idx2+k];
+          b [k] = b_arr[0][idx2+k];
+        }
+        init_vector(x1, x2, 3, t);
+        init_vector2(x3, x4, 3, p, &p_norm);
+        init_vector2(x3, x5, 3, q, &q_norm);
+        cross_product(p, q, n);
+        normalise_vector(n, 3, n);
+        if (dot_product(t, n, 3) == 0.0){
+          nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
+          // Add the force contributions for segment j to the surface element i.
+          for (int k = 0; k < 3; k++){
+            fx_arr[0][idx1+k] += fx[0][k];
+            fx_arr[1][idx1+k] += fx[1][k];
+            fx_arr[2][idx1+k] += fx[2][k];
+            fx_arr[3][idx1+k] += fx[3][k];
+            ftot_arr [idx1+k] += ftot[k];
+          }
+        }
+        idx2 += 3;
+      }
+      idx1 += 3;
+    }
+    x_ftot_arr = (double *) malloc(3 * n_se * sizeof(double));
+    // Synchronously copy forces from device to host.
+    checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyDeviceToHost) );
+    if(para_scheme == 1){
+      // Map 1D device array to 2D array for MATLAB.
+      dln_add_fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
+      // Synchronously copy forces from device to host.
+      checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se * sizeof(double), cudaMemcpyDeviceToHost) );
+      for (int i = 0; i < 3*n_se; i++){
+        ftot_arr[i] += x_ftot_arr[i];
+      }
+    }
+    else{
+      // Map 1D device array to 2D array for MATLAB.
+      add_fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
+      // Synchronously copy forces from device to host.
+      checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se * sizeof(double), cudaMemcpyDeviceToHost) );
+      add_ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
+    }
+    free(x_ftot_arr);
+  #endif
+
+  // This code snippet ignores the special case where dislocation lines are parallel to the surface element.
+  // It is only compiled if the flag for the special case is not present.
+  #ifndef sc
   // Synchronously copy forces from device to host.
   checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyDeviceToHost) );
-  // Map 1D device array to 2D array for MATLAB.
-  fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
-  free(x_fx_arr);
-  checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se * sizeof(float), cudaMemcpyDeviceToHost) );
-  // Map 1D device array to 1D array for MATLAB.
-  ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
-  free(x_ftot_arr);
+    if(para_scheme == 1){
+      // Map 1D device array to 2D array for MATLAB.
+      dln_fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
+      checkCudaErrors( cudaMemcpy(ftot_arr, d_ftot_arr, 3 * n_se * sizeof(float), cudaMemcpyDeviceToHost) );
+    }
+    else{
+      x_ftot_arr = (double *) malloc(3 * n_se * sizeof(double));
+      fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
+      checkCudaErrors( cudaMemcpy(x_ftot_arr, d_ftot_arr, 3 * n_se * sizeof(double), cudaMemcpyDeviceToHost) );
+      ftot_device_host_map(x_ftot_arr, ftot_arr, n_se);
+      free(x_ftot_arr);
+    }
+  #endif
+
+   free(x_fx_arr);
   // CUDA exit.
   cudaDeviceReset();
 }

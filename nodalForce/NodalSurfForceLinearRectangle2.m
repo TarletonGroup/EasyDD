@@ -17,7 +17,7 @@ function [fx3,fx4,fx5,fx6, ftot]=NodalSurfForceLinearRectangle2(x1,x2,x3,x4,x5,x
 % p and q are unit vectors
 p= x4-x3 ;
 L=norm(p);
-p= p./L; %unit vector along one side of the rectangular surface element
+p= p./L; %unit vector along one side of the rectawhyngular surface element
 q= x5-x3;
 Lprime=norm(q);
 q=q./Lprime; %unit vector along the other side of the surface element
