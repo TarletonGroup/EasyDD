@@ -759,7 +759,7 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr,
   }
 }
 
-void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block){
+void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block, char **argv){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
   double *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
@@ -794,7 +794,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   }
   // Read input.
   FILE * ptr_file;
-  ptr_file = fopen("cuda_input.txt", "r");
+  ptr_file = fopen(argv[1], "r");
   if (ptr_file == NULL){
     printf("File does not exist.\n");
   }
@@ -954,7 +954,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   free(ftot_arr);
 }
 
-void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block){
+void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int threads_per_block, char **argv){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
   double *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
@@ -990,7 +990,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   }
   // Read input.
   FILE * ptr_file;
-  ptr_file = fopen("cuda_input.txt", "r");
+  ptr_file = fopen(argv[1], "r");
   if (ptr_file == NULL){
     printf("File does not exist.\n");
   }

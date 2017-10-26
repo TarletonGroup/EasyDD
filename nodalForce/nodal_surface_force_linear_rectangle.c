@@ -23,7 +23,7 @@
 #include "serial_forces_lin_rect.h"
 
 // Testing purposes
-int main(void){
+int main(int argc, char **argv){
   double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], mu, nu, a, *fx[n_nodes], ftot[3];
   double *dln_node_arr[2], *se_node_arr[n_nodes];
   double *b_arr;
@@ -57,9 +57,10 @@ int main(void){
 
   // Read input.
   FILE * ptr_file;
-  ptr_file = fopen("input.txt", "r");
+  ptr_file = fopen(argv[1], "r");
   if (ptr_file == NULL){
     printf("File does not exist.\n");
+    exit(EXIT_FAILURE);
   }
 
   fscanf(ptr_file, "%i", &n_dln);

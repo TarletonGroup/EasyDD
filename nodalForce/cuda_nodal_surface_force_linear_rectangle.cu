@@ -39,22 +39,30 @@
 // deviceProp.maxThreadsDim[0], deviceProp.maxThreadsDim[1], deviceProp.maxThreadsDim[2]
 */
 // Testing purposes
-int main(void){
+int main(int argc, char **argv){
   int n_se, n_dln, threads_per_block;
   FILE * ptr_file;
   printf("Reading input.txt... \n");
-  ptr_file = fopen("cuda_input.txt", "r");
+  ptr_file = fopen(argv[1], "r");
+  if (ptr_file == NULL){
+    printf("File does not exist.\n");
+    exit(EXIT_FAILURE);
+  }
   fscanf(ptr_file, "%i", &n_dln);
   fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &threads_per_block);
   fclose(ptr_file);
-  main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block);
+  main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block, argv);
   printf("Reading input.txt... \n");
-  ptr_file = fopen("cuda_input.txt", "r");
+  ptr_file = fopen(argv[1], "r");
+  if (ptr_file == NULL){
+    printf("File does not exist.\n");
+    exit(EXIT_FAILURE);
+  }
   fscanf(ptr_file, "%i", &n_dln);
   fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &threads_per_block);
-  main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block);
+  main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block, argv);
   fclose(ptr_file);
   return 0;
 }
