@@ -826,6 +826,9 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   #ifdef debug3
     clock_t begin = clock();
   #endif
+  #ifdef debug2
+    cudaEventRecord(start);
+  #endif
   // Auxiliary constants.
   a_sq     = a*a;
   one_m_nu = 1.-nu;
@@ -855,9 +858,6 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor  , &factor  , sizeof(factor)) );
   blocks_per_grid = (n_se + threads_per_block - 1)/threads_per_block;
-  #ifdef debug2
-    cudaEventRecord(start);
-  #endif
   se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   #ifdef debug2
     cudaEventRecord(stop);
@@ -1022,6 +1022,9 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   #ifdef debug3
     clock_t begin = clock();
   #endif
+  #ifdef debug2
+    cudaEventRecord(start);
+  #endif
   // Auxiliary constants.
   a_sq     = a*a;
   one_m_nu = 1.-nu;
@@ -1052,9 +1055,6 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor  , &factor  , sizeof(factor)) );
   // Change this to be automated with CUDA's automatic estimation.
   blocks_per_grid = (n_dln + threads_per_block - 1)/threads_per_block;
-  #ifdef debug2
-    cudaEventRecord(start);
-  #endif
   // CUDA
   dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   #ifdef debug2

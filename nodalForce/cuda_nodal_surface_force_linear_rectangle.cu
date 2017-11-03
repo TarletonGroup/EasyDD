@@ -42,7 +42,7 @@
 int main(int argc, char **argv){
   int n_se, n_dln, threads_per_block;
   FILE * ptr_file;
-  printf("Reading input.txt... \n");
+  printf("Over SEs\n");
   ptr_file = fopen(argv[1], "r");
   if (ptr_file == NULL){
     printf("File does not exist.\n");
@@ -53,7 +53,9 @@ int main(int argc, char **argv){
   fscanf(ptr_file, "%i", &threads_per_block);
   fclose(ptr_file);
   main_se_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block, argv);
-  printf("Reading input.txt... \n");
+  printf("\n");
+
+  printf("Over DLNs\n");
   ptr_file = fopen(argv[1], "r");
   if (ptr_file == NULL){
     printf("File does not exist.\n");
@@ -63,6 +65,7 @@ int main(int argc, char **argv){
   fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &threads_per_block);
   main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block, argv);
+  printf("\n");
   fclose(ptr_file);
   return 0;
 }

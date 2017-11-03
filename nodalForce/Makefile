@@ -11,10 +11,10 @@
 #all: qdc
 #qdc: nodal_surface_force_quad_triangle.c
 #	gcc -Wall -Wno-format -o qdc.out nodal_surface_force_quad_triangle_qp.c -lquadmath
-debugflags := -Ddebug #-Ddebug2 #-Ddebug3
+debugflags := -Ddebug2 #-Ddebug2 #-Ddebug
 NVCCFLAGS	:= -lineinfo -arch=sm_50 --ptxas-options=-v --use_fast_math
-gccflags := -Wall -lm
-optflags := #-O3
+gccflags :=  -lm -Wall
+optflags := -O3
 #-arch=sm_35
 
 all:	c_lin_rect lin_rect
