@@ -97,8 +97,8 @@ elseif yind==3
     yind2=5;
 end
 
- xlim([-1*vertices(xind2,xind) 2*vertices(xind2,xind)]*amag);
- ylim([-1*vertices(yind2,yind) 2*vertices(yind2,yind)]*amag);
+ xlim([-4*vertices(xind2,xind) 5*vertices(xind2,xind)]*amag);
+ ylim([-4*vertices(yind2,yind) 5*vertices(yind2,yind)]*amag);
 
 %axis equal;
 graph=plothandle;

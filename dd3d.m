@@ -82,23 +82,23 @@ while simTime < totalSimTime
     % frame recording
 %     intSimTime=intSimTime+dt;
 %     if intSimTime > dtplot && doplot == 1
-        %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-        plotHandle=schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
-        plotCounter=plotCounter+1;
-        plotCounterString=num2str(plotCounter,'%03d');
-        %saveas(plotHandle,[pwd '/Images/' plotCounterString], 'png')
-        %save([pwd '/Data/' plotCounterString],'rn','links','fend','Ubar','simTime');
-        %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-        %plotnodes(rn,links,plim,vertices);view(viewangle);
-        %zlim([-100 100])
-        %xlim([-100 100])
-        %ylim([-100 100])
+%         plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
+%         %plotHandle=schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
+%         plotCounter=plotCounter+1;
+%         plotCounterString=num2str(plotCounter,'%03d');
+%         %saveas(plotHandle,[pwd '/Images/' plotCounterString], 'png')
+%         %save([pwd '/Data/' plotCounterString],'rn','links','fend','Ubar','simTime');
+%         %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
+%         plotnodes(rn,links,plim,vertices);view(viewangle);
+%         zlim([-100 100])
+%         xlim([-100 100])
+%         ylim([-100 100])
 %         intSimTime=intSimTime-dtplot;
 %     end
     
     %DDD+FEM coupling
     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;
@@ -123,9 +123,9 @@ while simTime < totalSimTime
     end
     
      if(mod(curstep,plotfreq)==0)
-        %plotnodes(rn,links,plim,vertices);
-         %view(viewangle);
-         schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
+        plotnodes(rn,links,plim,vertices);
+         view(viewangle);
+         %schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
          drawnow
          pause(0.01);  
 %          

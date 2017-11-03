@@ -1,5 +1,5 @@
 function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t)
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -21,9 +21,9 @@ uhat=zeros(3*mno,1);
 utilda=zeros(3*mno,1); 
 
 gn = gamma(:,1); % global node number
-x0 = xnodes(gn,1:3); % field point
-point_array_length = size(x0,1);
-segments_array_length = size(segments,1);
+% x0 = xnodes(gn,1:3); % field point
+% point_array_length = size(x0,1);
+% segments_array_length = size(segments,1);
 
 %Matlab wrapper
 % tic;
@@ -32,16 +32,17 @@ segments_array_length = size(segments,1);
 
 %Full C version (including combinatorials, checks, corrections etc.)
 % tic;
-[Ux,Uy,Uz] = UtildaMex(x0(:,1),x0(:,2),x0(:,3),... %coordinates
-                       segments(:,3), segments(:,4), segments(:,5),... %burgers vector
-                       segments(:,6), segments(:,7), segments(:,8),... %start node segs
-                       segments(:,9), segments(:,10), segments(:,11),... %end node segs
-                       segments(:,12), segments(:,13), segments(:,14),... %slip plane
-                       NU,point_array_length,segments_array_length);
+% [Ux,Uy,Uz] = UtildaMex(x0(:,1),x0(:,2),x0(:,3),... %coordinates
+%                        segments(:,3), segments(:,4), segments(:,5),... %burgers vector
+%                        segments(:,6), segments(:,7), segments(:,8),... %start node segs
+%                        segments(:,9), segments(:,10), segments(:,11),... %end node segs
+%                        segments(:,12), segments(:,13), segments(:,14),... %slip plane
+%                        NU,point_array_length,segments_array_length);
 % displacements = horzcat(Ux,Uy,Uz);
 % toc;
 % disp(displacementsMEX-displacements);
 %  [Ux, Uy, Uz]  = displacement_fivel(x0,segments,NU);
+[Ux, Uy, Uz] = Utilda_bb2(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
 
 utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;

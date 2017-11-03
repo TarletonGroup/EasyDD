@@ -19,62 +19,78 @@ function [Ux, Uy, Uz] = Utilda_bb2(rn,links,gnl,nu,xnodes,dx,dy,dz,mx,my,mz)
 nodenum=size(gnl,1);                                        %Number of FE nodes
 segnum=size(links,1);                                       %Number of dislocation segments
 Utilda=zeros(nodenum,3);                                    %Preallocate the displacement
-x=dx/mx;                                                    %x coordinate inside simulated cuboid
-y=dy/my;                                                    %y coordinate inside simulated cuboid
-z=dz/mz;                                                    %z coordinate inside simulated cuboid
+x=dx/(2*mx);                                                    %x coordinate inside simulated cuboid
+y=dy/(2*my);                                                    %y coordinate inside simulated cuboid
+z=dz/(2*mz);                                                    %z coordinate inside simulated cuboid
 C=[x,y,z];                                                  %Closure point inside simulated cuboid
 
 for i=1:segnum
     
-    if rn(links(i,1),4) == 6 && rn(links(i,2),4) == 67      %Ignore all segments connecting surface nodes to virtual nodes
-        continue
-    elseif rn(links(i,2),4) == 6 && rn(links(i,1),4) == 67
-        continue
-    end
+%     if rn(links(i,1),4) == 6 && rn(links(i,2),4) == 67      %Ignore all segments connecting surface nodes to virtual nodes
+%         continue
+%     elseif rn(links(i,2),4) == 6 && rn(links(i,1),4) == 67
+%         continue
+%     end
     
     A=rn(links(i,1),1:3);                                   %Coordinates of first node connected to current segment
     B=rn(links(i,2),1:3);                                   %Coordinates of second node connected to current segment
-    b=links(i,3:5);                                         %Burgers vector of current segment
+    b=links(i,3:5)/norm(links(i,3:5));                      %Burgers vector of current segment
+%     proj_vec=1e5*b;
+%     AB=B-A;
+%     screwcheck=dot(AB,b);
+%     planenormal=cross(AB,b);
+    
+    if A == B
+        continue
+    end
       
-      if rn(links(i,1),4) == 67                             %Finds virtual segments
-          flag=1;
-          
-          Aprime=A-10e5*b;                                  %Projects first node on to the surface along the Burgers vector
-          CA=A-C;
-          CAprime=Aprime-C;
-          smCA=CA(1)^2+CA(2)^2+CA(3)^2;
-          smCAprime=CAprime(1)^2+CAprime(2)^2+CAprime(3)^2;
-          
-          if smCAprime >= smCA                              %Ensures projected node is closer to the volume than original virtual node
-             Aprime=A+10e5*b; 
-          end
-          
-          Bprime=B-10e5*b;                                  %Projects second node on to the surface along the Burgers vector
-          CB=B-C;
-          CBprime=Bprime-C;
-          smCB=CB(1)^2+CB(2)^2+CB(3)^2;
-          smCBprime=CBprime(1)^2+CBprime(2)^2+CBprime(3)^2;
-          
-          if smCBprime >= smCB                              %Ensures projected node is closer to the volume than original virtual node
-             Bprime=B+10e5*b; 
-          end
-          
-          pyramid=[A;B;C;Aprime;Bprime];                    %Designates original virtual nodes, closure point and projected nodes as vertices
-          tess=convhulln(pyramid);                          %Finds the convex hull of the designated vertices
-          tol=1e-10;
-          checker=inhull(xnodes(:,1:3),pyramid,tess,tol);   %Flags FE nodes inside the convex hull
-      else
-          flag=0;                                           %Flags non-virtual segments
-      end
+%       if rn(links(i,1),4) == 67 ||  rn(links(i,2),4) == 67    %Finds virtual segments
+%           out=1;
+%           
+%           Aprime=A-proj_vec;                                  %Projects first node on to the surface along the Burgers vector
+%           CA=A-C;
+%           CAprime=Aprime-C;
+%           smCA=norm(CA);
+%           smCAprime=norm(CAprime);
+%           
+%           if smCAprime >= smCA                              %Ensures projected node is closer to the volume than original virtual node
+%              Aprime=A+proj_vec; 
+%           end
+%           
+%           Bprime=B-proj_vec;                                  %Projects second node on to the surface along the Burgers vector
+%           CB=B-C;
+%           CBprime=Bprime-C;
+%           smCB=norm(CB);
+%           smCBprime=norm(CBprime);
+%           
+%           if smCBprime >= smCB                              %Ensures projected node is closer to the volume than original virtual node
+%              Bprime=B+proj_vec; 
+%           end
+%           
+%           planecheck=dot(planenormal,CA);
+%           
+%           if screwcheck == 0
+%               out=0;
+%           elseif planecheck == 0
+%               checker=zeros(nodenum,1);
+%           else
+%               pyramid=[A;B;C;Aprime;Bprime];                    %Designates original virtual nodes, closure point and projected nodes as vertices
+%               tess=convhulln(pyramid,{'QJ','Pp'});                          %Finds the convex hull of the designated vertices
+%               tol=1e-10;
+%               checker=inhull(xnodes(:,1:3),pyramid,tess,tol);   %Flags FE nodes inside the convex hull
+%           end
+%       else
+          out=0;                                           %Flags non-virtual segments
+%       end
    
       for j=1:nodenum
           
-          nodepoint=xnodes((gnl(i)),1:3);                   %Coordinates of the FE node
+          nodepoint=xnodes((gnl(j)),1:3);                   %Coordinates of the FE node
           p=nodepoint';                                     %Column vector for use in displacement_et
           
-          if flag == 0                                      %Calculates displacement vector caused by internal segments using Barnett triangles
+          if out == 0                                      %Calculates displacement vector caused by internal segments using Barnett triangles
               Utilda(j,:)=Utilda(j,:)+displacement_et(p,A',B',C',b',nu);
-          elseif flag == 1                                  %Identifies virtual segments
+          elseif out == 1                                  %Identifies virtual segments
               
               if checker(j) == 0                            %Calculates displacement vector caused  by virtual segments and the segments connecting them to the surface using Barnett triangles
                   Utilda(j,:)=Utilda(j,:)+displacement_et(p,A',B',C',b',nu)+displacement_et(p,B',Bprime',C',b',nu)+displacement_et(p,Aprime',A',C',b',nu);
@@ -243,7 +259,7 @@ temp = tan(svec(1))*tan(svec(2))*tan(svec(3))*tan(svec(4));
 if temp < eps
     temp = 0;
 end
-omega = 4*atan(sqrt(temp));
+omega = 4*real(atan(sqrt(temp)));
 
 sgn = sign(dot(lamA,n));
 
@@ -272,14 +288,14 @@ function [u] = solang_correction(p,A,B,Bprime,Aprime,C,b)
 %field point is inside the pyramid created when the loop connects to the
 %closure point. Uses code from displacement_et
 
-segs=[Aprime,A,; A,B; B,Bprime; Bprime,Aprime];
+segs=[Aprime',A',; A',B'; B',Bprime'; Bprime',Aprime'];
 num=size(segs,1);
-omega_big=[];
+omega_big=0;
 
 for i=1:num
   
-RA = segs(i,1) - p;
-RB = segs(i,2) - p;
+RA = segs(i,1:3)' - p;
+RB = segs(i,4:6)' - p;
 RC = C - p;
 
 lamA = safenorm(RA);
@@ -294,7 +310,9 @@ tBC = safenorm(vecBC);
 
 n = cross(tAB,tBC);
 
-omega_big  = omega_big + solang(lamA, lamB, lamC,n);
+addon = solang(lamA, lamB, lamC,n);
+
+omega_big  = omega_big + addon;
     
 end
 
