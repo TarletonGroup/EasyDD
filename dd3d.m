@@ -23,7 +23,7 @@
 %  mex displacementmex_et.c
 %  mex CreateInputMex.c %CollisionMarielle
 %  mex CollisionCheckerMexMarielle.c %CollisionMarielle 
-  disp('Done!');
+%   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
 [rn,links]=cleanupnodes(rn,links);
@@ -43,10 +43,10 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 disp('Done! Initializing simulation.');
 
 global USE_GPU;
-USE_GPU=0; %0 if CPU only.
+USE_GPU=1; %0 if CPU only.
 
 if (USE_GPU==1)
-    disp('Going to use GPU as well...'); %setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
+    disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
     system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
 end  
 
@@ -80,24 +80,25 @@ t=zeros(1e6,1); simTime=0;
 while simTime < totalSimTime
     
     % frame recording
-    intSimTime=intSimTime+dt;
-    if intSimTime > dtplot && doplot == 1
-        %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-        plotCounter=plotCounter+1;
-        plotCounterString=num2str(plotCounter,'%03d');
-        %saveas(plotHandle,plotCounterString,'png')
-        save(plotCounterString,'rn','links','fend','Ubar','simTime');
-        %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-        %plotnodes(rn,links,plim,vertices);view(viewangle);
-        %zlim([-100 100])
-        %xlim([-100 100])
-        %ylim([-100 100])
-        intSimTime=intSimTime-dtplot;
-    end
+%     intSimTime=intSimTime+dt;
+%     if intSimTime > dtplot && doplot == 1
+%         plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
+%         %plotHandle=schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
+%         plotCounter=plotCounter+1;
+%         plotCounterString=num2str(plotCounter,'%03d');
+%         %saveas(plotHandle,[pwd '/Images/' plotCounterString], 'png')
+%         %save([pwd '/Data/' plotCounterString],'rn','links','fend','Ubar','simTime');
+%         %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
+%         plotnodes(rn,links,plim,vertices);view(viewangle);
+%         zlim([-100 100])
+%         xlim([-100 100])
+%         ylim([-100 100])
+%         intSimTime=intSimTime-dtplot;
+%     end
     
     %DDD+FEM coupling
     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;
@@ -124,6 +125,7 @@ while simTime < totalSimTime
      if(mod(curstep,plotfreq)==0)
         plotnodes(rn,links,plim,vertices);
          view(viewangle);
+         %schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
          drawnow
          pause(0.01);  
 %          
@@ -177,7 +179,8 @@ while simTime < totalSimTime
         %remeshing virtual dislocation structures
         if (dovirtmesh)
            %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen_mex(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
-           [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
+           %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
+           [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen3(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,MU,NU,a,Ec);
            %[rnnew,linksnew,connectivitynew,linksinconnectnew] = virtualmeshcoarsen2(rnnew,linksnew,maxconnections,10*lmin);
         end
         %remeshing internal dislocation structures

@@ -68,7 +68,7 @@ denominator = norm(RA)*(1 + dot(lamA,tAB));
     elseif abs(numerator) < eps
         logarithm = 0;
     else
-        logarithm = real(log(numerator/denominator)); % for large step calculations, log will produce an imaginary 
+        logarithm = log(numerator/denominator);
     end    
 
 out = cross(b,tAB)*logarithm;

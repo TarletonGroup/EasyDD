@@ -1,12 +1,16 @@
+%%
+
+
+
 % % code below is just to visulise the defomed mesh
 
 clear all
 close all
 disp('Loading restart file');
-load restart.50sources.75744.mat
+load restart.mat %restart.50sources.75744.mat
 
-plotmesh=0;
-plotstress=1;
+plotmesh=1;
+plotstress=0;
 
 %refine mesh
 mx=mx*2;
@@ -50,7 +54,7 @@ if plotmesh
     xp = zeros(mno,3);
     for j =1:mno;
          xp(j,1:3) = xnodes(j,1:3)...
-             + 5e4*utilde(3*j-2:3*j)'+ 0e4*uhat(3*j-2:3*j)';
+             + 1e3*utilda(3*j-2:3*j)'+ 0e4*uhat(3*j-2:3*j)';
     end
     amag=1;
     xp = amag*xp;
@@ -71,7 +75,7 @@ if plotmesh
     zlabel('z-direction (\mum)');
     xlabel('x-direction (\mum)');
 %     zlim([-6 6])
-%     xlim([0 31])
+%     xlim([0 9e4])
     title('$\tilde{u}$ scaled','FontSize',14,'Interpreter','Latex');
 end
 

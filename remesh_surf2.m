@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [rnnew,linksnew,connectivitynew,linksinconnectnew]=...
-    remesh_surf(rnnew,linksnew,connectivitynew,linksinconnectnew,vertices,P,fn)
+    remesh_surf2(rnnew,linksnew,connectivitynew,linksinconnectnew,vertices,P,fn)
 
 % Beginning of surface remeshing for surface nodes. %%%%%%%%%%%%%%%%%%%%
 % Flag all nodes outside of medium.
@@ -26,28 +26,6 @@ tess = convhulln(vertices); tol=10E-10;
 in = inhull(rnnew(:,1:3), vertices, tess, tol); %node with flag 1 is inside domain, 0 is outside domain.
 rn_size = size(rnnew,1);
 Index=zeros(rn_size,1);
-
-for i=1:rn_size
-    %if node is already flagged as virtual fixed node, or is internal
-    %skip to next node
-    if rnnew(i,end) == 67 || in(i) == 1
-        continue;
-    end
-
-    %estimate surface centroid nearest to point
-    [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
-    
-    %find surface normal associated with centroid
-    Index(i)=index;
-    
-    %extend far away
-    rnnew = extend(rnnew,linksnew,i,index,fn);
-    if any(any(isnan(rnnew)))
-        disp('The new extended node is NaN! See Line 46 in remesh_surf.m');
-        pause;
-    end
-    
-end
 
 % create the list of nodes and connections
 L1=size(rnnew,1);
@@ -60,11 +38,25 @@ connumb=conlist(i,1);
 conlist(i,2:connumb+1)=linspace(1,connumb,connumb);
 end
 
+for i=1:rn_size   
+
+    if rnnew(i,end) == 67 || in(i) == 1
+        continue;
+    end
+    
+    %estimate surface centroid nearest to point
+    [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
+    
+    %find surface normal associated with centroid
+    Index(i)=index;
+     
+end
+
 for n=1:L1
     n0=nodelist(n); % the node id which is currently considered.
     
     % Find outside nodes connected with inside node with flag 0
-    if rnnew(n0,end)==0
+    if rnnew(n,end)==0
         
 
         numNbrs=conlist(n,1); % the number of neighbor nodes
@@ -76,7 +68,11 @@ for n=1:L1
             posinlink=connectivitynew(n0,2*ii+1);
             n1=linksnew(linkid,3-posinlink); % the neighbor node id
             
-            if rnnew(n1,end)==67
+            if ~isequal(size(in,1),size(rnnew,1))
+            in = inhull(rnnew(:,1:3), vertices, tess, tol);
+            end
+            
+            if in(n1)==0%rnnew(n1,end)==67
                 rt=rnnew(n1,1:3)-rnnew(n0,1:3); % calculate the length of the link and its tangent line direction
                 Lni = norm(rt);
                 if Lni>0
@@ -88,9 +84,17 @@ for n=1:L1
                 
                 %For segments constituted by a virtual and a real node, find
                 %intersection point of segment with surface plane.
+                if n1 > size(Index,1)
+                    
+                %estimate surface centroid nearest to point
+                [~,index] = min( (P(:,1) - rnnew(n1,1)).^2 + (P(:,2) - rnnew(n1,2)).^2 + (P(:,3) - rnnew(n1,3)).^2 );
+    
+                %find surface normal associated with centroid
+                Index(n1)=index;
+                end
                 plane_id = Index(n1);
                 if plane_id == 0 || isempty(plane_id) %update id
-                    [~,plane_id] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
+                    [~,plane_id] = min( (P(:,1) - rnnew(n1,1)).^2 + (P(:,2) - rnnew(n1,2)).^2 + (P(:,3) - rnnew(n1,3)).^2 );
                 end
                 plane_point = P(plane_id,:);
                 plane_normal = fn(plane_id,:);
@@ -128,6 +132,24 @@ for n=1:L1
         end
     end
 end
+
+for i=1:rn_size
+    %if node is already flagged as virtual fixed node, or is internal
+    %skip to next node
+    if rnnew(i,end) == 67 || in(i) == 1
+        continue;
+    end
+    
+    %extend far away
+    rnnew = extend(rnnew,linksnew,i,index,fn);
+    if any(any(isnan(rnnew)))
+        disp('The new extended node is NaN! See Line 46 in remesh_surf.m');
+        pause;
+    end
+    
+end
+
+
 
 %find surface nodes connected only with virtual nodes and repair them
 %accordingly
@@ -243,7 +265,7 @@ function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
 %     rnnew(rn_id,end) = 67;
     
     %% Option (4) extend based on projection of surface normal on to slip plane calculated from burgers vector or nodal velocity
-   
+%    
 %     p_inf=10^5;   %large number used to desegnate pseudo-infinity. Should be updated to releated to simulated volume size
 %     vel_vec=rnnew(rn_id,4:6);   %nodal velocity vector
 %     vel_vec=vel_vec/norm(vel_vec);   %normalise velocity
