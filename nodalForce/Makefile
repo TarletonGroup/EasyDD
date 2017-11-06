@@ -11,7 +11,7 @@
 #all: qdc
 #qdc: nodal_surface_force_quad_triangle.c
 #	gcc -Wall -Wno-format -o qdc.out nodal_surface_force_quad_triangle_qp.c -lquadmath
-debugflags := -Ddebug2 #-Ddebug2 #-Ddebug
+debugflags := #-Ddebug #-Ddebug2 #-Ddebug
 NVCCFLAGS	:= -lineinfo -arch=sm_50 --ptxas-options=-v --use_fast_math
 gccflags :=  -lm -Wall
 optflags := -O3

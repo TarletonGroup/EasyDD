@@ -22,77 +22,76 @@
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
-  float *dln_node_arr[2], *se_node_arr[n_nodes];
+  double *dln_node_arr[2], *se_node_arr[n_nodes];
   // Variables for the special case where the line segment and surface element are parallel.
-  float x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
-  float *fx[n_nodes];
-  float ftot[3];
+  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], p[3], q[3], t[3], n[3], p_norm, q_norm;
+  double *fx[n_nodes];
+  double ftot[3];
   // Burger's vectors array from MATLAB. To be passed straight into d_b_arr.
-  float *b_arr[1];
+  double *b_arr[1];
   // Material properties from MATLAB to be placed into shared memory in device.
-  float mu, nu, a, a_sq, one_m_nu, factor;
+  double mu, nu, a, a_sq, one_m_nu, factor;
   // Nodal force array (3 coordinates per node per SE, 3*n_nodes*n_se). To be inversely mapped to *fx_arr[n_nodes].
-  float *x_fx_arr;
+  double *x_fx_arr;
   // Nodal force array to be sent back to MATLAB.
-  float *fx_arr[n_nodes];
+  double *fx_arr[n_nodes];
   // Total force array on SE (3 coordinates per SE, 3*n_se) to be sent back to MATLAB.
-  float *ftot_arr, *x_ftot_arr;
+  double *ftot_arr, *x_ftot_arr;
   // Maps of SE and DLN node arrays.
-  float *x_se_arr, *x_dln_arr, *x_b_arr;
+  double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
-  float *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
-  int threads_per_block, blocks_per_grid, n_se, n_dln;
-  int idx1, idx2;
+  double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  int threads_per_block, blocks_per_grid, n_se, n_dln, para_scheme;
   //int debug = 1;
   //while(debug == 1){}
   // Stagger cuda function calls to take advantage of asynchronous calls.
   // If memory becomes an issue, make copying x_dln_arr, x_se_arr and x_b_arr to the device a synchronous operation and free the pointers straight after.
   n_se = (int) mxGetScalar(prhs[10]);
   // Allocate and set forces to 0 in device.
-  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr  , 3 * n_se  * n_nodes * sizeof(float) ) );
-  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr, 3 * n_se            * sizeof(float) ) );
-  checkCudaErrors( cudaMemsetAsync(d_fx_arr  , 0.0, 3 * n_se * n_nodes * sizeof(float)) );
-  checkCudaErrors( cudaMemsetAsync(d_ftot_arr, 0.0, 3 * n_se           * sizeof(float)) );
+  checkCudaErrors( cudaMalloc( (void **) &d_fx_arr  , 3 * n_se  * n_nodes * sizeof(double) ) );
+  checkCudaErrors( cudaMalloc( (void **) &d_ftot_arr, 3 * n_se            * sizeof(double) ) );
+  checkCudaErrors( cudaMemsetAsync(d_fx_arr  , 0.0, 3 * n_se * n_nodes * sizeof(double)) );
+  checkCudaErrors( cudaMemsetAsync(d_ftot_arr, 0.0, 3 * n_se           * sizeof(double)) );
   // Execute host code while device sets force arrays to zero.
   n_dln = (int) mxGetScalar(prhs[11]);
-  dln_node_arr[0] = (float *) mxGetPr(prhs[0]);
-  dln_node_arr[1] = (float *) mxGetPr(prhs[1]);
+  dln_node_arr[0] = (double *) mxGetPr(prhs[0]);
+  dln_node_arr[1] = (double *) mxGetPr(prhs[1]);
   // Execute host code while copying values from host to device.
-  se_node_arr[0] = (float *) mxGetPr(prhs[2]);
-  se_node_arr[1] = (float *) mxGetPr(prhs[3]);
-  se_node_arr[2] = (float *) mxGetPr(prhs[4]);
-  se_node_arr[3] = (float *) mxGetPr(prhs[5]);
-  b_arr[0] = (float *) mxGetPr(prhs[6]);
+  se_node_arr[0] = (double *) mxGetPr(prhs[2]);
+  se_node_arr[1] = (double *) mxGetPr(prhs[3]);
+  se_node_arr[2] = (double *) mxGetPr(prhs[4]);
+  se_node_arr[3] = (double *) mxGetPr(prhs[5]);
+  b_arr[0] = (double *) mxGetPr(prhs[6]);
   para_scheme = (int) mxGetScalar(prhs[13]);
   // Map dislocation node arrays to 1D array for parallelisation.
   if(para_scheme == 1){
     x_dln_arr = element_host_device_map(dln_node_arr, n_dln, 2);
     // Allocate and copy values of dislocation nodes to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(double), cudaMemcpyHostToDevice) );
     x_se_arr  = se_host_device_map(se_node_arr[0], se_node_arr[1], se_node_arr[2], se_node_arr[3], n_se);
     // Allocate and copy values of surface element nodes to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyHostToDevice) );
     // Map Burger's vector array to 1D array for parallelisation.
     x_b_arr  = element_host_device_map(b_arr, n_dln, 1);
     // Allocate and copy values of Burger's vectors to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(double), cudaMemcpyHostToDevice) );
   }
   else{
     x_dln_arr = dln_host_device_map(dln_node_arr[0], dln_node_arr[1], n_dln);
     // Allocate and copy values of dislocation nodes to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_dln_arr, 3 * n_dln * 2 * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_dln_arr,  x_dln_arr, 3 * n_dln * 2 * sizeof(double), cudaMemcpyHostToDevice) );
     x_se_arr  = element_host_device_map(se_node_arr, n_se, n_nodes);
     // Allocate and copy values of surface element nodes to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_se_arr, 3 * n_se * n_nodes * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_se_arr,   x_se_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyHostToDevice) );
     x_b_arr   = b_host_device_map(b_arr[0], n_dln);
     // Allocate and copy values of Burger's vectors to device.
-    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(float) ) );
-    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(float), cudaMemcpyHostToDevice) );
+    checkCudaErrors( cudaMalloc     ( (void **) &d_x_b_arr, 3 * n_dln * sizeof(double) ) );
+    checkCudaErrors( cudaMemcpyAsync(d_x_b_arr,    x_b_arr, 3 * n_dln * sizeof(double), cudaMemcpyHostToDevice) );
   }
 
   // Execute host code while copying values from host to device.
@@ -115,11 +114,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
   plhs[2] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[3] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[4] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
-  fx_arr[0] = (float *) mxGetPr(plhs[0]);
-  fx_arr[1] = (float *) mxGetPr(plhs[1]);
-  fx_arr[2] = (float *) mxGetPr(plhs[2]);
-  fx_arr[3] = (float *) mxGetPr(plhs[3]);
-  ftot_arr  = (float *) mxGetPr(plhs[4]);
+  fx_arr[0] = (double *) mxGetPr(plhs[0]);
+  fx_arr[1] = (double *) mxGetPr(plhs[1]);
+  fx_arr[2] = (double *) mxGetPr(plhs[2]);
+  fx_arr[3] = (double *) mxGetPr(plhs[3]);
+  ftot_arr  = (double *) mxGetPr(plhs[4]);
   threads_per_block = (int) mxGetScalar(prhs[12]);
   blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
   // CUDA
@@ -136,6 +135,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   // Special case, where dislocation line is parallel with surface element.
   // Add compiler glag -Dsc when wanting to deal with the special case.
   #ifdef sc
+    int idx1, idx2;
     // Initialise forces.
     for (int i = 0; i < n_nodes; i++){
       for (int j = 0; j < 3*n_se; j++){
@@ -209,11 +209,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
   // It is only compiled if the flag for the special case is not present.
   #ifndef sc
   // Synchronously copy forces from device to host.
-  checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(float), cudaMemcpyDeviceToHost) );
+  checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyDeviceToHost) );
     if(para_scheme == 1){
       // Map 1D device array to 2D array for MATLAB.
       dln_fx_device_host_map(x_fx_arr, fx_arr, n_se, n_nodes);
-      checkCudaErrors( cudaMemcpy(ftot_arr, d_ftot_arr, 3 * n_se * sizeof(float), cudaMemcpyDeviceToHost) );
+      checkCudaErrors( cudaMemcpy(ftot_arr, d_ftot_arr, 3 * n_se * sizeof(double), cudaMemcpyDeviceToHost) );
     }
     else{
       x_ftot_arr = (double *) malloc(3 * n_se * sizeof(double));

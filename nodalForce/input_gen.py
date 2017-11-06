@@ -7,8 +7,8 @@ Created on Wed Oct  4 15:16:40 2017
 
 import numpy as np
 
-n_dln = 5000
-n_se = 5000
+n_dln = 500
+n_se = 500
 threads_per_block = 128 # Max 256 for this graphics card
 
 f = open('cuda_input.txt', 'w')

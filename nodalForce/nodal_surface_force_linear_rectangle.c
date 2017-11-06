@@ -128,9 +128,11 @@ int main(int argc, char **argv){
     }
     idx1 += 3;
   }
-  for (int i = 0; i < n_se; i++){
-    printf("ftot_arr[%d] = [%2.14f, %2.14f, %2.14f]\n", i, ftot_arr[3*i], ftot_arr[3*i+1], ftot_arr[3*i+2]);
-  }
+  #ifdef debug
+    for (int i = 0; i < n_se; i++){
+      printf("ftot_arr[%d] = [%2.14f, %2.14f, %2.14f]\n", i, ftot_arr[3*i], ftot_arr[3*i+1], ftot_arr[3*i+2]);
+    }
+  #endif
 
   //main_nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, mu, nu, a, a_sq, one_m_nu, factor, fx, ftot);
   for(int i = 0; i < n_nodes; i++){free(fx[i]);}
