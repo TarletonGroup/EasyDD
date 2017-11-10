@@ -59,7 +59,9 @@ fhat=zeros(3*(mno),1);
 gamma=[gammat;gammaMixed];
 
 %ftilda = zeros(3*mno,1);
-ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);   
+ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);
+
+%%
 %ftilda=zeros(3*mno,1); %ET uncomment later!
 
 fhat(freeDofs) = -ftilda(freeDofs);% no applied forces

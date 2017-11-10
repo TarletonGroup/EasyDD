@@ -1,12 +1,18 @@
 %Check that left face of cantilever has same ftilda for FEM and analytical.
-clear all;
+%clear all;
 % %load a test condition
-run inputCheck.m
+% setenv('MW_NVCC_PATH','C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin')
+%
+% mexcuda COMPFLAGS="$COMPFLAGS -arch=sm_50 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex.cu -Dsc
+run ./Inputs/inputCheck.m
 % run source_generator.m
 
 counter=1;
-
-for mx=60;
+error = [0 0 0];
+min_mx = 20;
+max_mx = 20;
+stp_mx = 10;
+for mx=min_mx:stp_mx:max_mx
 
     segments = constructsegmentlist(rn,links);
     
@@ -116,14 +122,35 @@ for mx=60;
     x4_array = reshape(x4_array',sizeRectangleList*3,1);
     x5_array = reshape(x5_array',sizeRectangleList*3,1);
     x6_array = reshape(x6_array',sizeRectangleList*3,1);
-   
+    %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = NodalSurfForceLinearRectangleMexArray(x1_array,x2_array,...
+     %             x3_array,x4_array,x5_array,x6_array,...
+      %            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+     tic;
+      [fx3_array2,fx4_array2,fx5_array2,fx6_array2,fxtot_array2] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
+        x3_array,x4_array,x5_array,x6_array,...
+        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList,512,1);
+      %cuda_dln_nodal_surface_force_linear_rectangle(x1_array,x2_array,...
+        %x3_array,x4_array,x5_array,x6_array,...
+        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList,512);
+    time_par = toc;
+    disp(time_par)
     tic;
-    [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = NodalSurfForceLinearRectangleMexArray(x1_array,x2_array,...
-                  x3_array,x4_array,x5_array,x6_array,...
-                  b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
-    toc;
-
+     [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_arr(x1_array,x2_array,...
+        x3_array,x4_array,x5_array,x6_array,...
+        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+    time_lin = toc;
+    disp(time_lin)
+      %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_arr2(x1_array,x2_array,...
+       % x3_array,x4_array,x5_array,x6_array,...
+        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+      %[fx3_array2,fx4_array2,fx5_array2,fx6_array2,fxtot_array2] = nodal_surface_force_linear_rectangle_arr_unix(x1_array,x2_array,...
+       % x3_array,x4_array,x5_array,x6_array,...
+        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+        
     fmidpoint_elementMEX = reshape(fxtot_array,3,mx*mz)';
+    fmidpoint_elementMEX2 = reshape(fxtot_array2,3,mx*mz)';
+    %fmidpoint_elementMEXd1 = reshape(fxtot_arrayd1,3,mx*mz)';
+    %fmidpoint_elementMEXd2 = reshape(fxtot_arrayd2,3,mx*mz)';
     
     %%
     %Use field point stress
@@ -167,46 +194,98 @@ for mx=60;
     Y=reshape(y,mx,mz);
     Z=reshape(z,mx,mz);
     toc;
-    
-    figure;
+      
+    h=figure;   
     subplot(3,2,1);
+    
     contourf(X,Z,reshape(ftilda(:,1),mx,mz));
-    caxis([-100 100]);
-    title('f^{Numerical}_x');
-    xlabel('x-direction');
+    colorvec = [-200 500];
+    caxis(colorvec);
+    %title(['mx = ',num2str(mx)])
+    title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
     subplot(3,2,2);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,1),mx,mz));
-    caxis([-100 100]);
-    title('f^{Analytical}_x');
-    ylabel('z-direction')
-    xlabel('x-direction')
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,3);
     contourf(X,Z,reshape(ftilda(:,2),mx,mz));
-    caxis([-100 100]);
-    title('f^{Numerical}_y');
-    xlabel('x-direction')
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,4);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,2),mx,mz));
-    caxis([-100 100]);
-    title('f^{Analytical}_y');
-    ylabel('z-direction')
-    xlabel('x-direction')
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,5);
     contourf(X,Z,reshape(ftilda(:,3),mx,mz));
-    caxis([-100 100]);
-    title('f^{Numerical}_z');
-    xlabel('x-direction')
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,6);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,3),mx,mz));
-    caxis([-100 100]);
-    title('f^{Analytical}_z');
-    ylabel('z-direction')
-    xlabel('x-direction')
-
-    err(counter,1)=rms((ftilda(:,1)-fmidpoint_elementMEX(:,1))./fmidpoint_elementMEX(:,1))/(mx*my*mz);
-    err(counter,2)=rms((ftilda(:,2)-fmidpoint_elementMEX(:,2))./fmidpoint_elementMEX(:,2))/(mx*my*mz);
-    err(counter,3)=rms((ftilda(:,3)-fmidpoint_elementMEX(:,3))./fmidpoint_elementMEX(:,3))/(mx*my*mz);
-    elements(counter) = mx*my*mz;
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     
+    
+    
+    g = figure;
+    subplot(3,2,1);
+    contourf(X,Z,reshape(ftilda(:,1),mx,mz));
+    colorvec = [-200 500];
+    caxis(colorvec);
+    %title(['mx = ',num2str(mx)])
+    title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
+    subplot(3,2,2);
+    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,1),mx,mz));
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    subplot(3,2,3);
+    contourf(X,Z,reshape(ftilda(:,2),mx,mz));
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    subplot(3,2,4);
+    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,2),mx,mz));
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    subplot(3,2,5);
+    contourf(X,Z,reshape(ftilda(:,3),mx,mz));
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    subplot(3,2,6);
+    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,3),mx,mz));
+    caxis(colorvec);
+    title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    saveas(g, sprintf('fig2_%d_mx.png', mx));
+    close all
+    %err(counter,1)=rms((ftilda(:,1)-fmidpoint_elementMEX(:,1))./fmidpoint_elementMEX(:,1))/(mx*mz);
+    %err(counter,2)=rms((ftilda(:,2)-fmidpoint_elementMEX(:,2))./fmidpoint_elementMEX(:,2))/(mx*mz);
+    %err(counter,3)=rms((ftilda(:,3)-fmidpoint_elementMEX(:,3))./fmidpoint_elementMEX(:,3))/(mx*mz);
+    %elements(counter) = mx*mz;
+    mean_error(counter) = (rms((ftilda(:,1)-fmidpoint_elementMEX(:,1))./fmidpoint_elementMEX(:,1))...
+        + rms((ftilda(:,2)-fmidpoint_elementMEX(:,2))./fmidpoint_elementMEX(:,2))...
+        + rms((ftilda(:,3)-fmidpoint_elementMEX(:,3))./fmidpoint_elementMEX(:,3)))/3;
     counter=counter+1;
 end
+ testx = min_mx:stp_mx:max_mx;
+ h = figure;
+ plot(testx, mean_error)
+ title('Mean Error $\mathbf{f}^{\mathrm{Numerical}}$ vs. $\mathbf{f}^{\mathrm{Analytical}}$', 'Interpreter', 'latex', 'FontSize', 14)
+ ylabel('Mean Error, A.U.', 'Interpreter', 'latex', 'FontSize', 14)
+ xlabel('Mesh Elements in $x$', 'Interpreter', 'latex', 'FontSize', 14)
+ saveas(h, sprintf('error2.png'));

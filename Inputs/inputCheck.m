@@ -28,16 +28,16 @@ mumag = 1;%160E3; % MPa only used for plotting
 
 CRYSTAL_STRUCTURE = 'bcc';
 NUM_SOURCES = 1;
-DIST_SOURCE = 2.5/bmag;
+DIST_SOURCE = 0.5/bmag;
 
 %% FEM PARAMETERS
 %Cantilever
 
-dx=6/bmag; %10micron
+dx=10/bmag; %10micron
 dy=2/bmag; %2micron
 dz=2/bmag; %2micron
 
-mx=60; % number of elements along beam length
+mx=30; % number of elements along beam length
 loading=1; 
 vertices = [0,0,0;...
             dx,0,0;...
@@ -57,9 +57,9 @@ NU = 0.305;
 %% DDLab PARAMETERS
 
 %Dislocation nodes and segments generator
-[rn,links] = checkGenerator(NUM_SOURCES,DIST_SOURCE,CRYSTAL_STRUCTURE,dx,dy,dz);
+[rn,links] = checkGenerator101(NUM_SOURCES,DIST_SOURCE,CRYSTAL_STRUCTURE,dx,dy,dz);
 
-rn(:,1:3) = rn(:,1:3)+dx/mx*0.25;
+%rn(:,1:3) = rn(:,1:3)+dx/mx*0.25;
 %%
 %Edge and screw glide and climb mobility parameters
 mobility='mobbcc1'; 

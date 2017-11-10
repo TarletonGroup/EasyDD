@@ -10,35 +10,36 @@ function [rn,links] = checkGenerator101(NUM_SOURCES,DIST_SOURCE,CRYSTAL_STRUCTUR
 %     disp('Crystal structure not recognized. Aborting');
 %     return;
 % end
-bufferfactor = 0.6% > 1/2 
+bufferfactor = 0.65;% > 1/2 
 %NB Sources are idealised as squares...
 Xmin = 0+bufferfactor*DIST_SOURCE;
-Xmax = dx*0.75-bufferfactor*DIST_SOURCE;
+Xmax = dx-bufferfactor*DIST_SOURCE;
 Ymin = 0+bufferfactor*DIST_SOURCE;
 Ymax = dy-bufferfactor*DIST_SOURCE;
 Zmin = 0+bufferfactor*DIST_SOURCE;
 Zmax = dz-bufferfactor*DIST_SOURCE;
 
 %Generate midpoints of sources
- midX = Xmin + (Xmax - Xmin).*rand(NUM_SOURCES,1);
- midY = Ymin + (Ymax - Ymin).*rand(NUM_SOURCES,1);
- midZ = Zmin + (Zmax - Zmin).*rand(NUM_SOURCES,1);
+ midX = Xmin + (Xmax - Xmin).*rand(NUM_SOURCES,1); %*0.75;
+ midY = Ymin + (Ymax - Ymin).*rand(NUM_SOURCES,1); %*0.1; 
+ midZ = Zmin + (Zmax - Zmin).*rand(NUM_SOURCES,1); %*0.45;
  midPTS = horzcat(midX,midY,midZ);
 %midPTS(1,:) = [0.1*dx,0.5*dy,0.8*dz];
 
 %Generate random {101} type habit planes for each source
 % normal = slipplane(NUM_SOURCES);
-normal = [1 0 1];
+normal = [0 1 0];
 % generate random <101> b vector
 % b_vec = pmone(normal,NUM_SOURCES);
-b_vec = [1 0 1]; % use [101] for debugging
+b_vec = [-0.2 0.5 -0.35]; % use [101] for debugging
 
 %We have thus defined slip-plane and b-vector of the loops.
 %We try a loop placed within the slip-plane (shear loop)...
 
 % seg_vec = cross(normal',b_vec');
-edge =  0.5*[0 1 0]*DIST_SOURCE;
-screw = 0.25*[1 0 1] *DIST_SOURCE;
+edge = 0.5*[-0.35 .2 0.4]*DIST_SOURCE;%[1 0 1]*DIST_SOURCE;
+screw = 0.25*[0.2 -0.5 0.3]*DIST_SOURCE;%[-1 0 1]*DIST_SOURCE;
+
 
 rn = zeros(8*NUM_SOURCES,4);
 links = zeros(8*NUM_SOURCES,8);
