@@ -54,7 +54,7 @@ if plotmesh
     xp = zeros(mno,3);
     for j =1:mno;
          xp(j,1:3) = xnodes(j,1:3)...
-             + 1e3*utilda(3*j-2:3*j)'+ 0e4*uhat(3*j-2:3*j)';
+             + 1e3*utilda(3*j-2:3*j)'; %+ 0e4*uhat(3*j-2:3*j)';
     end
     amag=1;
     xp = amag*xp;

@@ -1,15 +1,14 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Designed to calculate the displacement vectors on a cuboid convex hull due to the
 % presence of a dislocation structure where any virtual nodes have been projected
-% away from the surface along the line of the Burgers vector except when
-% the Burgers vector is perpendicular to the local surface normal
+% away from the surface along the line of the Burgers vector 
 % 
 % Bruce Bromage
 % Michromechanical Testing Group
 % Department of Materials, University of Oxford
 % bruce.bromage@materials.ox.ac.uk
 % October 2017
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [Ux, Uy, Uz] = Utilda_bb2(rn,links,gnl,nu,xnodes,dx,dy,dz,mx,my,mz)
 
@@ -50,111 +49,99 @@ for i=1:segnum
     A=rn(links(i,1),1:3);                                   %Coordinates of first node connected to current segment
     B=rn(links(i,2),1:3);                                   %Coordinates of second node connected to current segment
     b=links(i,3:5);                                         %Burgers vector of AB
-    bA=[links(links(:,1)==links(i,1),3:5);links(links(:,2)==links(i,1),3:5)];  %Average Burgers vector at node A
+    bA=[links(links(:,1)==links(i,1),3:5);links(links(:,2)==links(i,1),3:5)];  %Average burgers vector at node A
     bA=sum(bA,1);
     bA=bA/norm(bA);
-    bB=[links(links(:,1)==links(i,2),3:5);links(links(:,2)==links(i,2),3:5)];  %Average Burgers vector at node B
+    bB=[links(links(:,1)==links(i,2),3:5);links(links(:,2)==links(i,2),3:5)];  %Average burgers vector at node B
     bB=sum(bB,1);
     bB=bB/norm(bB);
-    proj_vecA=1e5*bA;                                                          %Backup projection vector for node A, should be matched with remesh_surf
-    lineA=[A,bA];                                                              %Line of Burgers vector from node A for use inintersectLineMesh3d
-    proj_vecB=1e5*bB;                                                          %Backup projection vector for node B, should be matched with remesh_surf
-    lineB=[B,bB];                                                              %Line of Burgers vector from node B for use inintersectLineMesh3d
-    AB=B-A;                                                                    %Vector for segment AB
-    planenormal=cross(AB,b);                                                   %Slip plane normal for segment AB
-    screwcheck=norm(planenormal);                                              %Check if AB is screw type
+%     proj_vecA=1e5*bA;
+    lineA=[A,bA];
+%     proj_vecB=1e5*bB;
+    lineB=[B,bB];
+    AB=B-A;
+    screwcheck=dot(AB,b);
+    planenormal=cross(AB,b);
     
-    if A == B                                                                  %Sanity check in case of faulty remeshing
+    if A == B
         continue
     end
-    
-     CA=A-C;                                                                   %vector from node A to closure point
-     CB=B-C;                                                                   %vector from node B to closure point
-     
-      if rn(links(i,1),4) == 67 ||  rn(links(i,2),4) == 67                     %Finds virtual segments
-          out=1;                                                               %Flags virtual segments as external
-          surfptsA = intersectLineMesh3d(lineA, vertices, faces);              %Finds points on the surface where Burgers vector from node A intersects with the surface
-          surfptsB = intersectLineMesh3d(lineB, vertices, faces);              %Finds points on the surface where Burgers vector from node B intersects with the surface
-                    
-          if isempty(surfptsA)                                      %Projects node A along the Burgers vector in the case where a face has been fully exited
-              Aprime=A-proj_vecA;
-              CAprime=Aprime-C;
-              normCA=norm(CA);
-              normCAprime=norm(CAprime);
-              
-              if normCAprime >= normCA                              %Ensures projected node is closer to the volume than original virtual node
-                  Aprime=A+proj_vecA;
-              end
-
-          else
-              Aprime=surfptsA(1,:);                                 %Designates equivalent surface node for node A
-              Aprime2=surfptsA(2,:);
-              AAprime=Aprime-A;
-              AAprime2=Aprime2-A;
-              normAAprime=norm(AAprime);
-              normAAprime2=norm(AAprime2);
+      
+      if rn(links(i,1),4) == 67 ||  rn(links(i,2),4) == 67    %Finds virtual segments
+          out=1;
           
+          surfptsA = intersectLineMesh3d(lineA, vertices, faces);
+%           Aprime=A-proj_vecA;                                  %Projects first node on to the surface along the Burgers vector
+          Aprime=surfptsA(1,:);
+          Aprime2=surfptsA(2,:);
+          CA=A-C;
+%           CAprime=Aprime-C;
+          AAprime=Aprime-A;
+          AAprime2=Aprime2-A;
+%           normCA=norm(CA);
+%           normCAprime=norm(CAprime);
+          normAAprime=norm(AAprime);
+          normAAprime2=norm(AAprime2);
           
-              if normAAprime > normAAprime2                         %Ensures surface node on the correct face has been chosen
-                  Aprime=Aprime2;
-              end 
-              
+%           if normCAprime >= normCA                              %Ensures projected node is closer to the volume than original virtual node
+%              Aprime=A+proj_vecA;
+%           end
+          
+          if normAAprime > normAAprime2
+              Aprime=Aprime2;
           end
           
-          if isempty(surfptsB)
-              Bprime=B-proj_vecB;                                   %Projects node B along the Burgers vector in the case where a face has been fully exited
-              CBprime=Bprime-C;
-              normCB=norm(CB);
-              normCBprime=norm(CBprime);
-              
-              if normCBprime >= normCB                              %Ensures projected node is closer to the volume than original virtual node
-                  Bprime=B+proj_vecB;
-              end
-              
-          else
-              Bprime=surfptsB(1,:);                                 %Designates equivalent surface node for node B
-              Bprime2=surfptsB(2,:);
-              BBprime=Bprime-B;
-              BBprime2=Bprime2-B;
-              normBBprime=norm(BBprime);
-              normBBprime2=norm(BBprime2);
+          surfptsB = intersectLineMesh3d(lineB, vertices, faces);
+%           Bprime=B-proj_vecB;                                  %Projects second node on to the surface along the Burgers vector
+          Bprime=surfptsB(1,:);
+          Bprime2=surfptsB(2,:);
+%           CB=B-C;
+%           CBprime=Bprime-C;
+          BBprime=Bprime-B;
+          BBprime2=Bprime2-B;
+%           normCB=norm(CB);
+          normBBprime=norm(BBprime);
+          normBBprime2=norm(BBprime2);
           
-              if normBBprime > normBBprime2                         %Ensures surface node on the correct face has been chosen
-                  Bprime=Bprime2; 
-              end
-              
+%           if normCBprime >= normCB                              %Ensures projected node is closer to the volume than original virtual node
+%              Bprime=B+proj_vecB;
+%           end
+          
+          if normBBprime > normBBprime2
+              Bprime=Bprime2; 
           end
           
-          planecheck=dot(planenormal,CA);                           %Checks if closure point is in the plane of the loop
+          planecheck=dot(planenormal,CA);
           
-          if screwcheck < eps                                       %Treat unprojected screw type virtual segments as internal
+          if screwcheck == 0
               out=0;
-          elseif planecheck == 0                                    %Do not generate convex hull if closure point is in the plane of the loop
+          elseif planecheck == 0
               checker=zeros(size(xnodes,1),1);
           else
-              pyramid=[A;B;C;Aprime;Bprime];                        %Designates original virtual nodes, closure point and projected nodes as vertices
-              tess=convhulln(pyramid,{'QJ','Pp'});                  %Finds the convex hull of the designated vertices
+              pyramid=[A;B;C;Aprime;Bprime];                    %Designates original virtual nodes, closure point and projected nodes as vertices
+              tess=convhulln(pyramid,{'QJ','Pp'});                          %Finds the convex hull of the designated vertices
               tol=1e1;
-              checker=inhull(xnodes(:,1:3),pyramid,tess,tol);       %Flags FE nodes inside the convex hull
+              checker=inhull(xnodes(:,1:3),pyramid,tess,tol);   %Flags FE nodes inside the convex hull
           end
       else
-          out=0;                                                    %Flags non-virtual segments
+          out=0;                                           %Flags non-virtual segments
       end
             
       for j=1:nodenum
           
-          nodepoint=xnodes((gnl(j)),1:3);                           %Coordinates of the FE node
-          p=nodepoint';                                             %Column vector for use in displacement_et
+          nodepoint=xnodes((gnl(j)),1:3);                   %Coordinates of the FE node
+          p=nodepoint';                                     %Column vector for use in displacement_et
           
-          if out == 0                                               %Calculates displacement vector caused by internal segments using Barnett triangles
-              Utilda(j,:)=Utilda(j,:)+displacement_et_el(p,A',B',b',nu)+displacement_et_plas(p,A',B',C',b');
+          if out == 0                                      %Calculates displacement vector caused by internal segments using Barnett triangles
+              Utilda(j,:)=Utilda(j,:)+displacement_et(p,A',B',C',b',nu);
+          elseif out == 1                                  %Identifies virtual segments
               
-          elseif out == 1                                           %Identifies external virtual segments
-              
-              if checker(gnl(j)) == 0                               %Calculates displacement vector caused  by virtual segments and the segments connecting them to the surface using Barnett triangles
-                  Utilda(j,:)=Utilda(j,:)+displacement_et_el(p,A',B',b',nu)+displacement_et_el(p,B',Bprime',b',nu)+displacement_et_el(p,Aprime',A',b',nu)+displacement_et_plas(p,A',B',C',b')+displacement_et_plas(p,B',Bprime',C',b')+displacement_et_plas(p,Aprime',A',C',b');
-                  
-              elseif checker(gnl(j)) == 1                           %Identifies FE nodes inside the pyramidal convex hull and calcultes the correct displacement accordingly
+              if checker(gnl(j)) == 0                            %Calculates displacement vector caused  by virtual segments and the segments connecting them to the surface using Barnett triangles
+                  Utilda(j,:)=Utilda(j,:)+displacement_et(p,A',B',C',b',nu)+displacement_et(p,B',Bprime',C',b',nu)+displacement_et(p,Aprime',A',C',b',nu);
+              elseif checker(gnl(j)) == 1                        %Identifies FE nodes inside the pyramidal convex hull and calcultes the correct displacement accordingly
+%                   Ctemp=A+0.5*AB+10*bA;
+%                   Utilda(j,:)=Utilda(j,:)+displacement_et_el(p,A',B',b',nu)+displacement_et_el(p,B',Bprime',b',nu)+displacement_et_el(p,Aprime',A',b',nu)+displacement_et_plas(p,A',B',Ctemp',b')+displacement_et_plas(p,Aprime',A',Ctemp',b')+displacement_et_plas(p,B',Bprime',Ctemp',b')+displacement_et_plas(p,Bprime',Aprime',Ctemp',b')+displacement_et_plas(p,Aprime',Bprime',C',b');
+%                   Utilda(j,:)=Utilda(j,:)+displacement_et(p,A',B',Ctemp',b',nu)+displacement_et(p,B',Bprime',Ctemp',b',nu)+displacement_et(p,Aprime',A',Ctemp',b',nu)+displacement_et(p,Bprime',Aprime',Ctemp',b',nu)+displacement_et(p,Aprime',Bprime',C',b',nu);
                   Utilda(j,:)=Utilda(j,:)+displacement_et_el(p,A',B',b',nu)+displacement_et_el(p,B',Bprime',b',nu)+displacement_et_el(p,Aprime',A',b',nu)+solang_correction(p,A',B',Bprime',Aprime',C',b');
               end
               
@@ -164,9 +151,67 @@ for i=1:segnum
       
 end
 
-Ux=Utilda(:,1);                                                     %Organises outputs
+Ux=Utilda(:,1);                                             %Organises outputs
 Uy=Utilda(:,2);
 Uz=Utilda(:,3);
+
+end
+
+function [u] = displacement_et(p,A,B,C,b,nu)
+% Code to calculate the displacement vector at a point p 
+% due to a loop specified by a set of nodes. Loop must be 
+% closed. 
+% Steve Fitzgerald 16 Oct 2013
+% Ed Tarleton 05 Dec 2014 -- used for debugging the solid angle/slip plane
+% normal 
+% This is equivalent a matlab version of displacmentmex.c but without bugs
+% hopefully!
+
+% p is field point
+% ABC define triangle 
+% n is slip plane normal defined by closing the original loop with RH sense
+con1 = (1-2*nu)/(8*pi*(1-nu));
+con2 = 1/(8*pi*(1-nu));
+
+
+% R vectors (from P to nodes)
+RA = A - p;
+RB = B - p;
+RC = C - p;
+
+lamA = safenorm(RA);
+lamB = safenorm(RB);
+lamC = safenorm(RC);
+
+vecAB = B - A;
+vecBC = C - B;
+vecCA = A - C;
+
+  
+tAB = safenorm(vecAB);
+tBC = safenorm(vecBC);
+tCA = safenorm(vecCA);
+
+% calculate slip plane normal
+% vec_a = segs(1,:)/norm(segs(1,:));
+%     vec_b = -segs(end,:)/norm(segs(end,:));
+
+    n = cross(tAB,tBC);
+    
+
+% f = fab+fbc+fca
+f = fab(b, tAB, lamA, lamB, RA, RB) ...
+    + fab(b, tBC, lamB, lamC, RB, RC) ...
+    + fab(b, tCA, lamC, lamA, RC, RA);
+
+% g = gab+ gbc + gca
+g = gab(b, lamA, lamB) + gab(b, lamB, lamC) + gab(b, lamC, lamA);
+
+omega  = solang(lamA, lamB, lamC,n);
+% update displacement inc. solid angle
+u =  - b*omega/(4*pi) - con1.*f + con2.*g;
+
+u = u';
 
 end
 

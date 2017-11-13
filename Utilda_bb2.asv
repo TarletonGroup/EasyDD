@@ -1,15 +1,15 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Designed to calculate the displacement vectors on a cuboid convex hull due to the
 % presence of a dislocation structure where any virtual nodes have been projected
 % away from the surface along the line of the Burgers vector except when
-% the Burgers vector is perpendicular to the local surface normal
+% the Burgers ve
 % 
 % Bruce Bromage
 % Michromechanical Testing Group
 % Department of Materials, University of Oxford
 % bruce.bromage@materials.ox.ac.uk
 % October 2017
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [Ux, Uy, Uz] = Utilda_bb2(rn,links,gnl,nu,xnodes,dx,dy,dz,mx,my,mz)
 
