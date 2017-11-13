@@ -173,7 +173,7 @@ function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
     %% Option (1) extend using burgers vector
     %Has issues with screw segments
     %extend point to "infinity", or far away, along Burgers vector of segment.
-    p_inf=1e5;
+    p_inf=1e7;
     burg = [linksnew(linksnew(:,1)==rn_id,3:5);linksnew(linksnew(:,2)==rn_id,3:5)];
     %if the node is connected is part to multiple segments, i.e. a junction
     %with segments of differing burgers vector, take the resultant as the

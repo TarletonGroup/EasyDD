@@ -56,9 +56,9 @@ for i=1:segnum
     bB=[links(links(:,1)==links(i,2),3:5);links(links(:,2)==links(i,2),3:5)];  %Average Burgers vector at node B
     bB=sum(bB,1);
     bB=bB/norm(bB);
-    proj_vecA=1e5*bA;                                                          %Backup projection vector for node A, should be matched with remesh_surf
+    proj_vecA=1e7*bA;                                                          %Backup projection vector for node A, should be matched with remesh_surf
     lineA=[A,bA];                                                              %Line of Burgers vector from node A for use inintersectLineMesh3d
-    proj_vecB=1e5*bB;                                                          %Backup projection vector for node B, should be matched with remesh_surf
+    proj_vecB=1e7*bB;                                                          %Backup projection vector for node B, should be matched with remesh_surf
     lineB=[B,bB];                                                              %Line of Burgers vector from node B for use inintersectLineMesh3d
     AB=B-A;                                                                    %Vector for segment AB
     planenormal=cross(AB,b);                                                   %Slip plane normal for segment AB
