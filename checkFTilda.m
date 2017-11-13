@@ -4,6 +4,7 @@
 % setenv('MW_NVCC_PATH','C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin')
 %
 % mexcuda COMPFLAGS="$COMPFLAGS -arch=sm_50 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex.cu -Dsc
+
 run ./Inputs/inputCheck.m
 % run source_generator.m
 
@@ -105,12 +106,13 @@ for mx=min_mx:stp_mx:max_mx
     
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
-    b_array = reshape(segments(:,3:5)',sizeSegmentList*3,1);
+    b_array = reshape(segments(:,3:5)',sizeSegmentList*3,1);  
     
     x3_array=zeros(sizeRectangleList,3);
     x4_array=zeros(sizeRectangleList,3);
     x5_array=zeros(sizeRectangleList,3);
     x6_array=zeros(sizeRectangleList,3);
+    tic;
     for i=1:sizeRectangleList
         x3x6 = xnodes(nc(i,[5,6,8,7]),1:3);
         x3_array(i,1:3) = x3x6(1,1:3);
@@ -122,6 +124,21 @@ for mx=min_mx:stp_mx:max_mx
     x4_array = reshape(x4_array',sizeRectangleList*3,1);
     x5_array = reshape(x5_array',sizeRectangleList*3,1);
     x6_array = reshape(x6_array',sizeRectangleList*3,1);
+    time_naive = toc;
+    fprintf('Time node extraction naive = %f\n', time_naive)
+    
+    nodes = xnodes(nc(:,[5,6,8,7]),1:3);
+    mask  = xnodes(nc(:,[5,6,8,7]), 2) == 0;
+    tmp   = reshape(nodes(mask, :)', 12 * mx * mz, 1);
+    x3_2  = tmp(1:3*mx*mz);
+    %any((x3_array == x3_2) == 0)
+    
+    x3x6_2 = zeros(3*mx*mz, 4);
+    tic;
+    x3x6_2 = extract_node_plane(xnodes, nc, [5,6,8,7], mx*mz, [2; 0], [1; 3*mx*mz], x3x6_2);
+    time_func = toc;
+    fprintf('Time node extraction function = %f\n', time_func)
+    
     %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = NodalSurfForceLinearRectangleMexArray(x1_array,x2_array,...
      %             x3_array,x4_array,x5_array,x6_array,...
       %            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
@@ -131,7 +148,7 @@ for mx=min_mx:stp_mx:max_mx
         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList,512,1);
       %cuda_dln_nodal_surface_force_linear_rectangle(x1_array,x2_array,...
         %x3_array,x4_array,x5_array,x6_array,...
-        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList,512);
+        %b_array,MU,NU,a,sizeRectangleLi    st,sizeSegmentList,512);
     time_par = toc;
     disp(time_par)
     tic;
