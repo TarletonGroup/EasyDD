@@ -160,10 +160,6 @@ function x3x6 = analytic_traction(                   ...
     for i = 1: 2: size(surf_nodes, 2)
         surf_nodes(7, i  ) = min(fem_nodes(fem_node_cnct(:, surf_nodes(1:4, i  )), surf_nodes(6, i  )));
         surf_nodes(7, i+1) = max(fem_nodes(fem_node_cnct(:, surf_nodes(1:4, i+1)), surf_nodes(6, i+1)));
-%         min(fem_node_cnct(:, surf_nodes(1:4, i  )),...
-%                                                   surf_nodes(6  , i  ));
-%         surf_nodes(7, i+1) = max(fem_node_cnct(:, surf_nodes(1:4, i+1)),...
-%                                                   surf_nodes(6  , i+1));
     end %for
       
     % Indices for vectorised code.
