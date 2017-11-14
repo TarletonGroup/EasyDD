@@ -104,6 +104,8 @@ for mx=min_mx:stp_mx:max_mx
     sizeRectangleList = mx*mz;
     sizeSegmentList = size(segments,1);
     
+     x3x6_2 = analytic_traction(xnodes, nc, rn, links, [mx;my;mz], 3, MU, NU, a, 1, 1);
+    
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
     b_array = reshape(segments(:,3:5)',sizeSegmentList*3,1);  
@@ -133,11 +135,25 @@ for mx=min_mx:stp_mx:max_mx
     x3_2  = tmp(1:3*mx*mz);
     %any((x3_array == x3_2) == 0)
     
-    x3x6_2 = zeros(3*mx*mz, 4);
-    tic;
-    x3x6_2 = extract_node_plane(xnodes, nc, [5,6,8,7], mx*mz, [2; 0], [1; 3*mx*mz], x3x6_2);
-    time_func = toc;
-    fprintf('Time node extraction function = %f\n', time_func)
+    
+%     for i = 1: 2: 6
+%         disp(i)
+%     end
+%     x3x6_2 = zeros(3*mx*mz, 4);
+%     test = zeros(6,7)';
+%     test(1:4,1) = [5;6;8;7];
+%     test(5,1) = mx*mz;
+%     test(6,1)= 2;
+%     test(7,1)= 0;
+%     tic;
+%     [x3x6_2, idx] = extract_node_plane(xnodes, nc, test(1:4,1)', test(5,1) , test(6:7,1), 1, x3x6_2);
+%     time_func = toc;
+%     fprintf('Time node extraction function = %f\n', time_func)
+%      any((x3_array == x3x6_2(:,1)) == 0)
+%      any((x4_array == x3x6_2(:,2)) == 0)
+%      any((x5_array == x3x6_2(:,3)) == 0)
+%      any((x6_array == x3x6_2(:,4)) == 0)
+    
     
     %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = NodalSurfForceLinearRectangleMexArray(x1_array,x2_array,...
      %             x3_array,x4_array,x5_array,x6_array,...
