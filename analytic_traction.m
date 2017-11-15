@@ -2,6 +2,7 @@ function x3x6 = analytic_traction(                   ...
                                         fem_nodes, fem_node_cnct, ...
                                         dln_nodes, dln_node_cnct, ...
                                         fem_dim  , fem_faces    , ...
+                                        n_nodes  ,                ...
                                         mu,    nu,     a        , ...
                                         use_gpu  , para_scheme    ...
                                        )
@@ -32,7 +33,7 @@ function x3x6 = analytic_traction(                   ...
     % Describes the coordinates of the nodes of the ft_inite element model.
     %
     % fem_node_cnct = dimension(:,8). Assumed shape 2D array with 8
-    % columns. Describes the node connectivity of the ft_inite elements in
+    % columns. Describes the node connectivity of the finite elements in
     % the model.
     %
     % dln_nodes = dimension(:,4). Assumed shape 2D array with 4 columns.
@@ -116,8 +117,9 @@ function x3x6 = analytic_traction(                   ...
     n_dln = size(dln, 2);
     
     % Generate dislocation line nodes and burgers vectors.
-    x1 = reshape(dln(6:8 , :), 3 * n_dln, 1);
-    x2 = reshape(dln(9:11, :), 3 * n_dln, 1);
+    x1x2 = zeros(3 * n_dln, 2);
+    x1x2(:, 1) = reshape(dln(6:8 , :), 3 * n_dln, 1);
+    x1x2(:, 2) = reshape(dln(9:11, :), 3 * n_dln, 1);
     b  = reshape(dln(3:5,  :), 3 * n_dln, 1);
     clear dln;
     
@@ -136,18 +138,16 @@ function x3x6 = analytic_traction(                   ...
         % If we have a yz face we add my*mz elements. 
         elseif(fem_face == 3 || fem_face == 4)
             n_se = n_se + yz;
-   %     min(fem_node_cnct(:, surf_nodes(1:4, 1)),...
-%                                             surf_nodes(6  , 1))
-     % Otherwise we have an xy face and we add mx*my elements.
+        % Otherwise we have an xy face and we add mx*my elements.
         else
             n_se = n_se + xy;
         end %if
     end %for
-    % Allocate x3 to x6.
-    x3x6 = zeros(3*n_se, 4);
+    
+    
     
     % Set surface node labels for surface node extraction.
-    surf_nodes         = zeros(7, 6);
+    surf_nodes         = zeros(n_nodes+3, 6);
     surf_nodes(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
     surf_nodes(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
     surf_nodes(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
@@ -155,22 +155,33 @@ function x3x6 = analytic_traction(                   ...
     surf_nodes(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
     surf_nodes(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
     
-    clear xy; clear xz; clear yz;
+    clear xy; clear xz; clear yz; 
+    % Allocate x3 to x6.
+    tic;
+    x3x6 = zeros(3*n_se, 4);
     % Extremal values for x, y, z.
     for i = 1: 2: size(surf_nodes, 2)
-        surf_nodes(7, i  ) = min(fem_nodes(fem_node_cnct(:, surf_nodes(1:4, i  )), surf_nodes(6, i  )));
-        surf_nodes(7, i+1) = max(fem_nodes(fem_node_cnct(:, surf_nodes(1:4, i+1)), surf_nodes(6, i+1)));
+        surf_nodes(7, i  ) = min(fem_nodes(fem_node_cnct(:, surf_nodes(1:n_nodes, i  )), surf_nodes(6, i  )));
+        surf_nodes(7, i+1) = max(fem_nodes(fem_node_cnct(:, surf_nodes(1:n_nodes, i+1)), surf_nodes(6, i+1)));
     end %for
-      
     % Indices for vectorised code.
     idxi = 1;
      for i = 1: size(fem_faces, 1)
         face_idx = fem_faces(i);
         [x3x6, idxi] = extract_node_plane(fem_nodes, fem_node_cnct,...
-                            surf_nodes(1:4, face_idx)',...
-                            surf_nodes(5  , face_idx) ,...
-                            surf_nodes(6:7, face_idx) , idxi, x3x6);
+                            surf_nodes(1:n_nodes          , face_idx)',...
+                            surf_nodes(n_nodes+1          , face_idx) ,...
+                            surf_nodes(n_nodes+2:n_nodes+3, face_idx) ,...
+                            idxi, x3x6);
      end %for
+     time1 = toc;
+     
+     surf_nodes_test = surf_nodes(1:6,:);
+     tic;
+     test = extract_node_plane2(fem_nodes, fem_node_cnct, surf_nodes_test, fem_faces, n_se, n_nodes);
+     time2 = toc;
+    any((test == x3x6) == 0)
+    time1/time2
     clear surf_nodes; clear face_idx;
     
 
