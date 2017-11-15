@@ -62,6 +62,8 @@ function x3x6 = analytic_traction(                   ...
     % calculation according to the labelling scheme in S. Queyreau, 
     % J. Marian, B.D. Wirth, A. Arsenlis, MSMSE, 22(3):035004, (2014).
     %
+    % n_nodes := number of nodes per element.
+    %
     % mu := shear modulus of material.
     %
     % nu := poisson's ratio.
@@ -96,9 +98,18 @@ function x3x6 = analytic_traction(                   ...
     %
     % dln := dislocation line segments with Burgers' vector.
     %
-    % surf_nodes := dimension(7, 6). Each column is laid out as follows:
-    % [node_label_1; node_label_2; node_label_3; node_label_4; 
-    %  plane_dimension; coordinate_number; plane_selection_criteria]
+    % surf_node_util := dimension(n_nodes+2, 6). Each column is laid out as
+    % follows: 
+    %   [node_label_initial; ... ; node_label_final; 
+    %    plane_area; coordinate_number]. 
+    % Each row corresponds to one plane.
+    %
+    % x1x2 := dimension(3*n_dln, 2). The first column has the 
+    % xyz-coordinates of the x1 nodes (dislocation line nodes) in the force
+    % calculation, the second contains those of the x2 nodes.
+    %
+    % x3x6 := dimension(3*n_se, 4). Same thing as x1x2, only for the surface
+    % elements.
     %
     %=====================================================================%
     % Outputs
@@ -112,23 +123,24 @@ function x3x6 = analytic_traction(                   ...
     %
     %%===================================================================%%
     
-    % Generate dislocation line segments.
+    %% Generate dislocation line segments.
     dln   = constructsegmentlist(dln_nodes, dln_node_cnct)';
     n_dln = size(dln, 2);
     
-    % Generate dislocation line nodes and burgers vectors.
+    % Extract dislocation line nodes and burgers vectors.
     x1x2 = zeros(3 * n_dln, 2);
     x1x2(:, 1) = reshape(dln(6:8 , :), 3 * n_dln, 1);
     x1x2(:, 2) = reshape(dln(9:11, :), 3 * n_dln, 1);
     b  = reshape(dln(3:5,  :), 3 * n_dln, 1);
     clear dln;
     
-    % Generate surface element nodes.
+    %% Generate surface element nodes.
+    % Calculate face dimensions.
     xy = fem_dim(1)*fem_dim(2);
     xz = fem_dim(1)*fem_dim(3);
     yz = fem_dim(2)*fem_dim(3);
     
-    % Calculate the number of surface elements.
+    % Calculate number of surface elements.
     n_se = 0;
     for i = 1: size(fem_faces, 1)
         fem_face = fem_faces(i);
@@ -144,45 +156,57 @@ function x3x6 = analytic_traction(                   ...
         end %if
     end %for
     
-    
-    
     % Set surface node labels for surface node extraction.
-    surf_nodes         = zeros(n_nodes+3, 6);
-    surf_nodes(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
-    surf_nodes(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
-    surf_nodes(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
-    surf_nodes(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
-    surf_nodes(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
-    surf_nodes(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
-    
-    clear xy; clear xz; clear yz; 
-    % Allocate x3 to x6.
-    tic;
-    x3x6 = zeros(3*n_se, 4);
-    % Extremal values for x, y, z.
-    for i = 1: 2: size(surf_nodes, 2)
-        surf_nodes(7, i  ) = min(fem_nodes(fem_node_cnct(:, surf_nodes(1:n_nodes, i  )), surf_nodes(6, i  )));
-        surf_nodes(7, i+1) = max(fem_nodes(fem_node_cnct(:, surf_nodes(1:n_nodes, i+1)), surf_nodes(6, i+1)));
-    end %for
-    % Indices for vectorised code.
-    idxi = 1;
-     for i = 1: size(fem_faces, 1)
-        face_idx = fem_faces(i);
-        [x3x6, idxi] = extract_node_plane(fem_nodes, fem_node_cnct,...
-                            surf_nodes(1:n_nodes          , face_idx)',...
-                            surf_nodes(n_nodes+1          , face_idx) ,...
-                            surf_nodes(n_nodes+2:n_nodes+3, face_idx) ,...
-                            idxi, x3x6);
-     end %for
-     time1 = toc;
-     
-     surf_nodes_test = surf_nodes(1:6,:);
-     tic;
-     test = extract_node_plane2(fem_nodes, fem_node_cnct, surf_nodes_test, fem_faces, n_se, n_nodes);
-     time2 = toc;
-    any((test == x3x6) == 0)
-    time1/time2
-    clear surf_nodes; clear face_idx;
-    
-
+    surf_node_util = zeros(n_nodes+2, 6);
+    % For rectangular surface elements. Add an if statement and redifine
+    % matrix to generalise it for triangular surface elements.
+    surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
+    surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
+    surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
+    surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
+    surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
+    surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
+         
+    x3x6 = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_faces, n_se, n_nodes);
+    clear surf_node_util;
 end %function
+
+
+%%=======================================================================%%
+% This is faster if only extracting 1 to 3 planes. Replace the SE node
+% extraction block of code in the funciton with this if that is what you 
+% want. It shouldn't be this way but MATLAB is weird.
+%%-----------------------------------------------------------------------%%
+% % Set surface node labels for surface node extraction.
+%     surf_node_util         = zeros(n_nodes+3, 6);
+%     surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
+%     surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
+%     surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
+%     surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
+%     surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
+%     surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
+%     
+%     clear xy; clear xz; clear yz; 
+%     % Allocate x3 to x6.
+%     x3x6 = zeros(3*n_se, 4);
+%     % Extremal values for x, y, z.
+%     for i = 1: 2: size(surf_node_util, 2)
+%         surf_node_util(7, i  ) = min(fem_nodes(fem_node_cnct(:, surf_node_util(1:n_nodes, i  )), surf_node_util(6, i  )));
+%         surf_node_util(7, i+1) = max(fem_nodes(fem_node_cnct(:, surf_node_util(1:n_nodes, i+1)), surf_node_util(6, i+1)));
+%     end %for
+%     % Indices for vectorised code.
+%     idxi = 1;
+%      for i = 1: size(fem_faces, 1)
+%         face_idx = fem_faces(i);
+%         dim_3 = surf_node_util(n_nodes+1, face_idx)*3;
+%         idxf = idxi + dim_3 - 1;
+%         x3x6(idxi: idxf, :) = extract_node_plane(fem_nodes, fem_node_cnct,...
+%                             surf_node_util(1:n_nodes          , face_idx)',...
+%                             dim_3 ,...
+%                             surf_node_util(n_nodes+2:n_nodes+3, face_idx),...
+%                             x3x6(idxi: idxf, :));
+%         idxi = idxf + 1;
+%      end %for
+%      
+%     test = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util_test, fem_faces, n_se, n_nodes);
+%     clear surf_node_util; clear face_idx;
