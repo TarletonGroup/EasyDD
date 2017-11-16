@@ -1,4 +1,6 @@
-function node_plane = extract_node_plane(fem_nodes, fem_node_cnct, node_labels, dim, filter, node_plane)
+function node_plane = extract_node_plane(fem_nodes  , fem_node_cnct,...
+                                         node_labels, dim, filter  ,...
+                                         node_plane)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
@@ -31,10 +33,10 @@ function node_plane = extract_node_plane(fem_nodes, fem_node_cnct, node_labels, 
     % Inputs
     %=====================================================================%
     %
-    % fem_nodes := dimension(:,3). Assumed shape 2D array with 3 columns.
+    % fem_nodes := dimension(:, 3). Assumed shape 2D array with 3 columns.
     % Describes the coordinates of the nodes of the ft_inite element model.
     %
-    % fem_node_cnct := dimension(:,8). Assumed shape 2D array with 8
+    % fem_node_cnct := dimension(:, 8). Assumed shape 2D array with 8
     % columns. Describes the node connectivity of the finite elements in
     % the model.
     %
@@ -51,7 +53,7 @@ function node_plane = extract_node_plane(fem_nodes, fem_node_cnct, node_labels, 
     % Dummy variables
     %=====================================================================%
     %
-    % n_nodes := number of nodes in a plane element.
+    % n_nodes := number of nodes per planar element.
     %
     % tmp_nodes := dimension(n_nodes, 3). Contains the xyz-coordinates of 
     % all nodes with the labels specified by node_label.
@@ -78,13 +80,14 @@ function node_plane = extract_node_plane(fem_nodes, fem_node_cnct, node_labels, 
     end %if
     
     %% Finding plane nodes
-    % Find the all the nodes labelled as stated in node_labels
-    tmp_nodes  = fem_nodes(fem_node_cnct(:, node_labels), 1:3);
+    % Find the all the nodes labelled as stated in node_labels 
+    % (corresponding to a plane family)
+    tmp_nodes = fem_nodes(fem_node_cnct(:, node_labels), 1:3);
     % Find an array of entries that meet the filter criteria in tmp_nodes
-    mask       = tmp_nodes(:, filter(1)) == filter(2);
+    mask = tmp_nodes(:, filter(1)) == filter(2);
     % Reshape the array to a column array containing only the nodes which
     % meet the filter criteria.
-    tmp_nodes  = reshape(tmp_nodes(mask, :)', n_nodes * dim, 1);
+    tmp_nodes = reshape(tmp_nodes(mask, :)', n_nodes * dim, 1);
     
     %% Passing data to the slice of the array that contains the nodes for every plane
     step = 0;

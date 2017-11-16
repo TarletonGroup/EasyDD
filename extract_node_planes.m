@@ -1,5 +1,7 @@
-function node_plane = extract_node_planes(fem_nodes, fem_node_cnct, node_labels, fem_faces, n_elem, n_nodes_elem)
-    %%===================================================================%%
+function node_plane = extract_node_planes(fem_nodes     , fem_node_cnct,...
+                                          surf_node_util, fem_planes    ,...
+                                          n_elem        , n_nodes)
+    %%====================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
     % Daniel Celis Garza, in 13/11/17. 
@@ -31,27 +33,36 @@ function node_plane = extract_node_planes(fem_nodes, fem_node_cnct, node_labels,
     % Inputs
     %=====================================================================%
     %
-    % fem_nodes := dimension(:,3). Assumed shape 2D array with 3 columns.
+    % fem_nodes := dimension(:, 3). Assumed shape 2D array with 3 columns.
     % Describes the coordinates of the nodes of the ft_inite element model.
     %
-    % fem_node_cnct := dimension(:,8). Assumed shape 2D array with 8
+    % fem_node_cnct := dimension(:, 8). Assumed shape 2D array with 8
     % columns. Describes the node connectivity of the finite elements in
     % the model.
     %
-    % node_labels := dimension(:). The labels of the nodes that are to be
-    % extracted from fem_nodes.
+    % surf_node_util := dimension(n_nodes+2, 6). Each column is laid out as
+    % follows: 
+    %   [node_label_initial; ... ; node_label_final; 
+    %    plane_area; coordinate_number]. 
+    % Each row corresponds to one plane.
     %
-    % dim := three times the area of the plane to be extracted (3
-    % dimensions).
+    % fem_planes := dimension(:). Contains the planes whose nodes are to be 
+    % extracted.
     %
-    % filter := the selection criteria used to filter which nodes we want
-    % to obtain.
+    % n_elem := total number of elements to be extracted.
+    %
+    % n_nodes := number of nodes per planar element.
     %
     %=====================================================================%
     % Dummy variables
     %=====================================================================%
     %
-    % n_nodes := number of nodes in a plane element.
+    % plane_idx := the index of the fem plane to be extracted during the
+    % current iteration.
+    %
+    % dim_3 := 3*plane_area, there are three coordinates per plane
+    % node, plane_area is the total number of nodes in a plane and is found
+    % in surf_node_utils.
     %
     % tmp_nodes := dimension(n_nodes, 3). Contains the xyz-coordinates of 
     % all nodes with the labels specified by node_label.
@@ -60,41 +71,76 @@ function node_plane = extract_node_planes(fem_nodes, fem_node_cnct, node_labels,
     % only when a given condition is met. It is used to index tmp_nodes to 
     % find only the nodes that correspond to a given plane.
     %
+    % coord := orthogonal coordinate to the plane (for node filtering 
+    % purposes).
+    %
+    % idxi, idxf := initial and final index that slice the output array
+    % into sections for each extracted plane.
+    %
+    % filter := value for filtering data.
+    %
+    % step := step that ensures proper array indexing for each section of
+    % the linear array that contains the nodes of a given plane.
+    %
     %=====================================================================%
     % Input/output variables
     %=====================================================================%
     %
-    % node_plane := dimension(dim/3, n_nodes). It is the slice of the array
-    % that holds the nodes of the plane. Only pass the array slice
+    % node_plane := dimension(3*n_elem, n_nodes). It is the slice of the 
+    % arraythat holds the nodes of the plane. Only pass the array slice
     % that corresponds to the current plane of nodes to be extracted,
     % a la Fortran intent(in out).
     %
     %%===================================================================%%
-    node_plane = zeros(3*n_elem, n_nodes_elem);
+    
+    %% Allocating node plane
+    node_plane = zeros(3*n_elem, n_nodes);
+    
+    %% Looping through the planes to be extracted
     idxi = 1;
-    for i = 1: size(fem_faces, 1)
-        face_idx = fem_faces(i);
-        dim_3 = 3 * node_labels(5, face_idx);
-        coord = node_labels(6, face_idx);
-        idxf  = idxi + dim_3 - 1;
-        tmp_nodes = fem_nodes(fem_node_cnct(:, node_labels(1:n_nodes_elem, face_idx)), 1:3);  
-        % If face is odd it is a minimum value face.
-        if(mod(face_idx, 2) ~= 0)
+    for i = 1: size(fem_planes, 1)
+        % Assigning control variables for the iteration
+        plane_idx = fem_planes(i);
+        dim_3 = 3 * surf_node_util(5, plane_idx);
+        coord =     surf_node_util(6, plane_idx);
+        % Set final index of the output array slice containing the nodes
+        % for this iteration's plane
+        idxf = idxi + dim_3 - 1;
+        % Extracting all the nodes whose labels correspond to the plane
+        % family to be extracted this iteration
+        tmp_nodes = fem_nodes(fem_node_cnct(:, surf_node_util(1:n_nodes, plane_idx)), 1:3);  
+        % If the plane index is odd it is a face where its orthogonal coordinate is at
+        % a minimum.
+        if(mod(plane_idx, 2) ~= 0)
             filter = min(tmp_nodes(:, coord));
-        % If face is even it is a maximum value face.
+        % Otherwise find the face whose orthogonal coordinate is at a maximum
         else
             filter = max(tmp_nodes(:, coord));
         end %if
-        mask       = tmp_nodes(:, coord) == filter;
-        tmp_nodes  = reshape(tmp_nodes(mask,:)', n_nodes_elem * dim_3, 1);
+        % Find an array of entries that meet the filter criteria in tmp_nodes
+        mask = tmp_nodes(:, coord) == filter;
+        % Reshape the array to a column array containing only the nodes which
+        % meet the filter criteria.
+        tmp_nodes = reshape(tmp_nodes(mask,:)', n_nodes * dim_3, 1);
+        
+        %% Passing data to the slice of the array that contains the nodes for every plane
+        % Set the slice of the tmp_nodes array to be indexed
         step = 0;
-        for j = 1: n_nodes_elem
+        for j = 1: n_nodes
+            % Grab the array slice that corresponds to node j in the
+            % tmp_nodes array and send it off to the corresponding column
+            % of the slice of the output array containing all extracted nodes
             node_plane(idxi: idxf, j) = tmp_nodes(1 + step: dim_3 + step);
+            % Advance the step to move onto the array slice that contains
+            % node j+1 in tmp_nodes
             step = step + dim_3;
         end %for
+        % Set the initial index to shift the output array slice onto the
+        % next plane to be extracted.
         idxi = idxf + 1;
         clear tmp_nodes; clear mask;
     end %for
     
-    clear idxi; clear face_idx; clear dim_3; clear coord; clear idxf; clear filter; clear step;
+    %% Cleanup
+    clear idxi; clear plane_idx; clear dim_3; clear coord; clear idxf; clear filter; clear step;
 end %function

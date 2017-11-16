@@ -104,7 +104,7 @@ for mx=min_mx:stp_mx:max_mx
     sizeRectangleList = mx*mz;
     sizeSegmentList = size(segments,1);
     
-     x3x6_2 = analytic_traction(xnodes, nc, rn, links, [mx;my;mz], [3;4;5;6;1;2], 4, MU, NU, a, 1, 1);
+     x3x6 = analytic_traction(xnodes, nc, rn, links, [mx;my;mz], [3;4;5;6;1;2], 4, MU, NU, a, 1, 1);
     
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
@@ -129,14 +129,14 @@ for mx=min_mx:stp_mx:max_mx
     time_naive = toc;
     fprintf('Time node extraction naive = %f\n', time_naive)
     
-    nodes = xnodes(nc(:,[6, 5, 7, 8]),1:3);
-%     [5,6,8,7]
-    
-    mask  = xnodes(nc(:,[6, 5, 7, 8]), 2) == 0;
-    tmp   = reshape(nodes(mask, :)', 12 * mx * mz, 1);
-    x3_2  = tmp(1:3*mx*mz);
-    any((x3_2 == x3x6_2(1:3*mx*mz,1))==0)
-    %any((x3_array == x3_2) == 0)
+%     nodes = xnodes(nc(:,[6, 5, 7, 8]),1:3);
+% %     [5,6,8,7]
+%     
+%     mask  = xnodes(nc(:,[6, 5, 7, 8]), 2) == 0;
+%     tmp   = reshape(nodes(mask, :)', 12 * mx * mz, 1);
+%     x3_2  = tmp(1:3*mx*mz);
+%     any((x3_2 == x3x6_2(1:3*mx*mz,1))==0)
+%     %any((x3_array == x3_2) == 0)
     
     
 %     for i = 1: 2: 6
