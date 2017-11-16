@@ -9,3 +9,35 @@
 			\caption[Coupling Discrete Dislocation Dynamics to Finite Element Methods.]{The \kwd{dl} ensemble in a volume $ V $ is bounded by surface $ S $. First, the traction field $ \sum_{\textrm{d}} \tns{\tilde{\sigma}}_{\textrm{d}} $ due to the \kwd{dl} ensemble is evaluated at the surface. Then, a traditional \kwd{fem} or \kwd{bem} calculates the image traction field $ \tns{\hat{\sigma}} \times \vec{n} $. Which is then fed back to the \kwd{ddd} problem to evolve the \kwd{dl} positions and repeat the cycle. Image edited from \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element}.}
 			\label{f:fem_ddd}
 		\end{figure}
+	\section{Extracting Surface Nodes}
+		The \kwd{fem} coupler arranges the nodes starting on the $ xz $-plane where $ y = 0, \ldots, n \mathrm{d}y,~n\in \mathbb{N} $. However in order to couple \kwd{ddd} to \kwd{fem} we only require the surface nodes where displacements are not calculated. Because we're working with rectangular prisms, we can easily pick out the surface nodes using a search algorithm with a logical mask. MATLAB and Fortran provide vector intrinsics that allow one to do so. \Cref{f:fem_surf_nodes} illustrates only the surface nodes according to our implementation's node arrangement---which is the $ xz $-plane going from $ y = y_{\textrm{min}} \to y = y_{\textrm{max}} $.
+		\begin{figure}
+			\centering
+			\begin{subfigure}[t]{0.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth]{fem_surf_nodes.pdf}
+				\caption[Surface nodes of our \kwd{fe} model.]{Arrangement of the surface nodes of our \kwd{fe} model.}
+				\label{f:fem_surf_nodes}
+			\end{subfigure}
+			~
+			\begin{subfigure}[t]{0.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth]{fe_numbering.pdf}
+				\caption[Single finite element node numbering.]{Single \kwd{fe} node numbering.}
+				\label{f:fe_numbering}
+			\end{subfigure}
+		\caption[Coupling Discrete Dislocation Dynamics to Finite Element Methods.]{Coupling Discrete Dislocation Dynamics to Finite Element Methods.}
+		\label{f:fem_node_arr}
+		\end{figure}
+		However, due to the nature of the analytical solutions in \cref{c:lin_rect}, we need all the surface nodes of the rectangular faces for which there are no displacements. This means that edge nodes are shared between 2 adjacent faces and corner nodes between 3 adjacent faces. In order to properly apply the logical mask to find \emph{only} the surface nodes need to know that each \kwdp{fe}' nodes are numbered according to \cref{f:fe_numbering}.
+		
+		Using \cref{f:fem_node_arr} one can work out which nodes are of interest to whichever surface is being extracted. The ordering of the nodes in the final array will depend on the definition of the problems in \cref{c:lin_rect,c:quad_triang}.
+		
+		Node selection remains an expensive operation and minimising array indexing is of the utmost importance for the best perfomance. Selecting nodes in the traditional sense, i.e. with code branching such as \texttt{if statements} or \texttt{case selection} is unmantainable, verbose and very prone to mistakes. The issue was solved by introducing an auxiliary matrix which defines various parameters that aid node selection and greatly reduces code size, improves readability, and eliminates the need for code branching. The matrix can be constructed utilising \cref{f:fem_node_arr} in order to know which nodes correspond to which \kwd{fe} planes. The $ p\textsuperscript{th} $ column of the matrix\footnote{MATLAB uses column-major ordering, so this gives us the best performance for vectorised code.} corresponds to the $ p\textsuperscript{th} $ plane (according to an arbitrary plane numbering) and is defined as the following column vector,
+		\begin{align}
+			\vec{V_{p}}^{\mathsf{T}} =
+				\begin{bmatrix}
+					L_{1p} & L_{2p} & \cdots & L_{Np} & A_{p} & C_{p}
+				\end{bmatrix}\,,
+		\end{align}	
+		where $ L_{np} \equiv $ the numeric label for node $ n $ as given by \cref{f:fem_node_arr}, $ A_{p} \equiv $ the area of the plane, and $ C_{p} \equiv$ the numeric label of the orthogonal coordinate to the plane $ C_{p} = 1, ~2, ~3 $ for the $ x, ~y, ~z $ coordinates respectively. $ A_{p} $ lets us segment our output and transitional arrays so that the only data being modified is that which corresponds to the correct plane and $ C_{p} $ lets us know which coordinate we must use in our selection criteria. The information codified in this matrix allows us to index and process only the necessary columns to extract the surface nodes we're interested in. The advantage of this setup over a naïve implementation is that it can be relatively easily expanded, maintained, and is general enough that it lends itself to a variety of selection criteria.

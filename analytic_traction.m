@@ -1,11 +1,11 @@
-function [nodal_force, total_force, x3x6] = analytic_traction(      ...
-                fem_nodes, fem_node_cnct, dln_nodes, dln_node_cnct, ...
-                fem_dim  , fem_planes   , n_nodes  , mu, nu, a    , ...
+function [nodal_force, total_force, x3x6] = analytic_traction(     ...
+                fem_nodes, fem_node_cnct, dln_nodes, dln_node_cnct,...
+                fem_dim  , fem_planes   , n_nodes  , mu, nu, a    ,...
                 use_gpu  , para_scheme)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
-    % Daniel Celis Garza, in 12/11/17--16/11/17. 
+    % Daniel Celis Garza, in 12/11/17--16/11/17.
     %---------------------------------------------------------------------%
     % Couples analytical forces to the surfaces of a rectangular
     % cantilever whose nodes are labelled as follows:
@@ -13,16 +13,16 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
     % 4. ----- .3
     %  |\       |\
     %  | \      | \
-    % 1. -\---- .2 \ 
+    % 1. -\---- .2 \
     %   \  \     \  \
     %    \ 8. ----\- .7
     %     \ |      \ |
     %      \|       \|
     %      5. ----- .6
     % ^z
-    % |  y      
-    % | /         
-    % |/           
+    % |  y
+    % | /
+    % |/
     % |------>x
     %
     %=====================================================================%
@@ -43,13 +43,13 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
     % columns. Describes the node connectivity of the dislocation ensemble,
     % associated Burgers' vectors and slip planes.
     %
-    % fem_dim := [dim_x; dim_y; dim_z], finite element model dimensions. 
-    % dim_x := dimension in x-direction, dim_y := dimension in y-direction, 
+    % fem_dim := [dim_x; dim_y; dim_z], finite element model dimensions.
+    % dim_x := dimension in x-direction, dim_y := dimension in y-direction,
     % dim_z := dimension in z-direction.
     %
-    % fem_planes := dimension(:). Assumed shape 1D array (maximum length 6) 
-    % with the faces for which tractions are to be calculated. In order to 
-    % make it consistent with the FEMcoupler and the analytical forces 
+    % fem_planes := dimension(:). Assumed shape 1D array (maximum length 6)
+    % with the faces for which tractions are to be calculated. In order to
+    % make it consistent with the FEMcoupler and the analytical forces
     % exerted by dislocations on free surfaces. The faces re det_fined by the
     % areas made up of the following nodes in the diagram:
     % min(x), yz-plane, nodes [5, 1, 8, 4], face 1
@@ -59,7 +59,7 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
 	% min(z), xy-plane, nodes [5, 6, 1, 2], face 5
 	% max(z), xy-plane, nodes [4, 3, 8, 7], face 6.
     % The node ordering for each face ensures self-consistency in the force
-    % calculation according to the labelling scheme in S. Queyreau, 
+    % calculation according to the labelling scheme in S. Queyreau,
     % J. Marian, B.D. Wirth, A. Arsenlis, MSMSE, 22(3):035004, (2014).
     %
     % n_nodes := number of nodes per element.
@@ -99,12 +99,12 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
     % dln := dislocation line segments with Burgers' vector.
     %
     % surf_node_util := dimension(n_nodes+2, 6). Each column is laid out as
-    % follows: 
-    %   [node_label_initial; ... ; node_label_final; 
-    %    plane_area; coordinate_number]. 
+    % follows:
+    %   [node_label_initial; ... ; node_label_final;
+    %    plane_area; coordinate_number].
     % Each row corresponds to one plane.
     %
-    % x1x2 := dimension(3*n_dln, 2). The first column has the 
+    % x1x2 := dimension(3*n_dln, 2). The first column has the
     % xyz-coordinates of the x1 nodes (dislocation line nodes) in the force
     % calculation, the second contains those of the x2 nodes.
     %
@@ -122,24 +122,24 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
     % element (sum over all nodes of an element).
     %
     %%===================================================================%%
-    
+
     %% Generate dislocation line segments.
     dln   = constructsegmentlist(dln_nodes, dln_node_cnct)';
     n_dln = size(dln, 2);
-    
+
     % Extract dislocation line nodes and burgers vectors.
     x1x2 = zeros(3 * n_dln, 2);
     x1x2(:, 1) = reshape(dln(6:8 , :), 3 * n_dln, 1);
     x1x2(:, 2) = reshape(dln(9:11, :), 3 * n_dln, 1);
     b  = reshape(dln(3:5,  :), 3 * n_dln, 1);
     clear dln;
-    
+
     %% Generate surface element nodes.
     % Calculate face dimensions.
     xy = fem_dim(1)*fem_dim(2);
     xz = fem_dim(1)*fem_dim(3);
     yz = fem_dim(2)*fem_dim(3);
-    
+
     % Calculate number of surface elements.
     n_se = 0;
     for i = 1: size(fem_planes, 1)
@@ -147,7 +147,7 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
         % If we have an xz face we add mx*mz elements.
         if(fem_face == 1 || fem_face == 2)
             n_se = n_se + xz;
-        % If we have a yz face we add my*mz elements. 
+        % If we have a yz face we add my*mz elements.
         elseif(fem_face == 3 || fem_face == 4)
             n_se = n_se + yz;
         % Otherwise we have an xy face and we add mx*my elements.
@@ -155,7 +155,7 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
             n_se = n_se + xy;
         end %if
     end %for
-    
+
     % Set surface node labels for surface node extraction.
     surf_node_util = zeros(n_nodes+2, 6);
     % For rectangular surface elements. Add an if statement and redifine
@@ -166,15 +166,15 @@ function [nodal_force, total_force, x3x6] = analytic_traction(      ...
     surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
     surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
     surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
-         
+
     x3x6 = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
     clear surf_node_util;
-    
+
     %% Force calculation.
     % Allocating nodal and total force arrays
     nodal_force = zeros(3*n_se, n_nodes);
     total_force = zeros(3*n_se);
-    
+
     % CUDA C calculation
     if (use_gpu == 1)
         n_threads = 512;
@@ -201,7 +201,7 @@ end %function
 
 
 %%=======================================================================%%
-% This is faster if only extracting 1 to 3 planes. Replace the 
+% This is faster if only extracting 1 to 3 planes. Replace the
 % "%% Generate surface element nodes" block with this one if that is the case.
 % This way should always be slower but MATLAB is dumb like that.
 %%-----------------------------------------------------------------------%%
@@ -213,8 +213,8 @@ end %function
 %     surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
 %     surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
 %     surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
-%     
-%     clear xy; clear xz; clear yz; 
+%
+%     clear xy; clear xz; clear yz;
 %     % Allocate x3 to x6.
 %     x3x6 = zeros(3*n_se, 4);
 %     % Extremal values for x, y, z.
@@ -235,6 +235,6 @@ end %function
 %                             x3x6(idxi: idxf, :));
 %         idxi = idxf + 1;
 %      end %for
-%      
+%
 %     test = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util_test, fem_planes, n_se, n_nodes);
 %     clear surf_node_util; clear plane_idx;
