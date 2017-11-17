@@ -13,14 +13,14 @@
 		The \kwd{fem} coupler arranges the nodes starting on the $ xz $-plane where $ y = 0, \ldots, n \mathrm{d}y,~n\in \mathbb{N} $. However in order to couple \kwd{ddd} to \kwd{fem} we only require the surface nodes where displacements are not calculated. Because we're working with rectangular prisms, we can easily pick out the surface nodes using a search algorithm with a logical mask. MATLAB and Fortran provide vector intrinsics that allow one to do so. \Cref{f:fem_surf_nodes} illustrates only the surface nodes according to our implementation's node arrangement---which is the $ xz $-plane going from $ y = y_{\textrm{min}} \to y = y_{\textrm{max}} $.
 		\begin{figure}
 			\centering
-			\begin{subfigure}[t]{0.45\linewidth}
+			\begin{subfigure}[b]{0.45\linewidth}
 				\centering
 				\includegraphics[width=\linewidth]{fem_surf_nodes.pdf}
 				\caption[Surface nodes of our \kwd{fe} model.]{Arrangement of the surface nodes of our \kwd{fe} model.}
 				\label{f:fem_surf_nodes}
 			\end{subfigure}
 			~
-			\begin{subfigure}[t]{0.45\linewidth}
+			\begin{subfigure}[b]{0.45\linewidth}
 				\centering
 				\includegraphics[width=\linewidth]{fe_numbering.pdf}
 				\caption[Single finite element node numbering.]{Single \kwd{fe} node numbering.}
@@ -34,10 +34,40 @@
 		Using \cref{f:fem_node_arr} one can work out which nodes are of interest to whichever surface is being extracted. The ordering of the nodes in the final array will depend on the definition of the problems in \cref{c:lin_rect,c:quad_triang}.
 		
 		Node selection remains an expensive operation and minimising array indexing is of the utmost importance for the best perfomance. Selecting nodes in the traditional sense, i.e. with code branching such as \texttt{if statements} or \texttt{case selection} is unmantainable, verbose and very prone to mistakes. The issue was solved by introducing an auxiliary matrix which defines various parameters that aid node selection and greatly reduces code size, improves readability, and eliminates the need for code branching. The matrix can be constructed utilising \cref{f:fem_node_arr} in order to know which nodes correspond to which \kwd{fe} planes. The $ p\textsuperscript{th} $ column of the matrix\footnote{MATLAB uses column-major ordering, so this gives us the best performance for vectorised code.} corresponds to the $ p\textsuperscript{th} $ plane (according to an arbitrary plane numbering) and is defined as the following column vector,
-		\begin{align}
+		\begin{align}\label{e:surf_node_util_vec}
 			\vec{V_{p}}^{\mathsf{T}} =
 				\begin{bmatrix}
 					L_{1p} & L_{2p} & \cdots & L_{Np} & A_{p} & C_{p}
 				\end{bmatrix}\,,
 		\end{align}	
-		where $ L_{np} \equiv $ the numeric label for node $ n $ as given by \cref{f:fem_node_arr}, $ A_{p} \equiv $ the area of the plane, and $ C_{p} \equiv$ the numeric label of the orthogonal coordinate to the plane $ C_{p} = 1, ~2, ~3 $ for the $ x, ~y, ~z $ coordinates respectively. $ A_{p} $ lets us segment our output and transitional arrays so that the only data being modified is that which corresponds to the correct plane and $ C_{p} $ lets us know which coordinate we must use in our selection criteria. The information codified in this matrix allows us to index and process only the necessary columns to extract the surface nodes we're interested in. The advantage of this setup over a naïve implementation is that it can be relatively easily expanded, maintained, and is general enough that it lends itself to a variety of selection criteria.
+		where $ L_{np} \equiv $ the numeric label for node $ n $ as given by \cref{f:fem_node_arr}, $ A_{p} \equiv $ the area of the plane, and $ C_{p} \equiv$ the numeric label of the orthogonal coordinate to the plane $ C_{p} = 1, ~2, ~3 $ for the $ x, ~y, ~z $ coordinates respectively. $ A_{p} $ lets us segment our output and transitional arrays so that the only data being modified is that which corresponds to the correct plane and $ C_{p} $ lets us know which coordinate we must use in our selection criteria. Using our particular node labelling scheme (with dimensions $ \Delta x,~ \Delta y,~ \Delta z $ respectively in the $ x,~ y,~ z $ directions), the matrix is defined as
+		\begin{align}\label{eq:surf_node_util}
+			\mtx{V} = 
+				\begin{bmatrix}
+					5 & 2 & 6 & 1 & 5 & 4\\
+					1 & 6 & 5 & 2 & 6 & 3\\
+					8 & 3 & 7 & 4 & 1 & 8\\
+					4 & 7 & 8 & 3 & 2 & 7\\
+					\Delta y \Delta z & \Delta y \Delta z & \Delta x \Delta z & \Delta x \Delta z & \Delta x \Delta y & \Delta x \Delta y\\
+					1 & 1 & 2 & 2 & 3 & 3
+				\end{bmatrix}\,.
+		\end{align}
+		The information codified in \cref{eq:surf_node_util} lets us index and process only the necessary columns to extract the surface nodes we're interested in. The advantage of this setup over a naïve implementation is that it can be relatively easily expanded, maintained, and is general enough that it lends itself to a variety of selection criteria. The columns from left to right (1 to 6) represent: 
+		\begin{inparaenum}[{face} 1 $ \equiv $]
+			\item $ \min(x),~ yz $-plane;
+			\item $ \max(x),~ yz $-plane;
+			\item $ \min(y),~ xz $-plane;
+			\item $ \max(y),~ xz $-plane;
+			\item $ \min(z),~ xy $-plane;
+			\item $ \max(z),~ xy $-plane.
+		\end{inparaenum} 
+		
+		It is important to make sure the nodes are extracted in a self consistent manner because the problem definition in \cref{c:lin_rect,c:quad_triang} assumes a specific node ordering. In particular, the labelling chirality must remain the same. This is due to the fact that the problems in \cref{c:lin_rect,c:quad_triang} utilise internal coordinates derived from a set of basis vectors, and scalar projections onto them. If the relationship between the vectors is kept, but the chirality is different (opposite) the calculated quantities will have the wrong sign. If however the relationship between the vectors is different to the problem formulation, the program will crash due to division by 0. Self-consistency was achieved by placing an imaginary observer inside the \kwd{fe} model facing the $ \min(x),~ yz $-plane (face 1) and rotating it to view all 6 planes according to \cref{f:surf_node_plane}.
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.75\linewidth]{surf_node_plane.pdf}
+			\caption[Self-consistent, chirality preserving surface planes.]{Self-consistent, chirality preserving surface planes. Plane and node numbering according to the columns of \cref{eq:surf_node_util} and \cref{f:fem_node_arr}.}
+			\label{f:surf_node_plane}
+		\end{figure}
+		
+		

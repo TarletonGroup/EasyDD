@@ -53,11 +53,11 @@ function [nodal_force, total_force, x3x6] = analytic_traction(     ...
     % exerted by dislocations on free surfaces. The faces re det_fined by the
     % areas made up of the following nodes in the diagram:
     % min(x), yz-plane, nodes [5, 1, 8, 4], face 1
-	% max(x), yz-plane, nodes [2, 6, 3, 7], face 2
+    % max(x), yz-plane, nodes [2, 6, 3, 7], face 2
     % min(y), xz-plane, nodes [6, 5, 7, 8], face 3
-	% max(y), xz-plane, nodes [1, 2, 4, 3], face 4
-	% min(z), xy-plane, nodes [5, 6, 1, 2], face 5
-	% max(z), xy-plane, nodes [4, 3, 8, 7], face 6.
+    % max(y), xz-plane, nodes [1, 2, 4, 3], face 4
+    % min(z), xy-plane, nodes [5, 6, 1, 2], face 5
+    % max(z), xy-plane, nodes [4, 3, 8, 7], face 6.
     % The node ordering for each face ensures self-consistency in the force
     % calculation according to the labelling scheme in S. Queyreau,
     % J. Marian, B.D. Wirth, A. Arsenlis, MSMSE, 22(3):035004, (2014).
