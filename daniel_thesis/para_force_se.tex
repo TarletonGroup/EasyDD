@@ -175,7 +175,7 @@
 			\end{aligned}
 		\end{align}
 	\end{subequations}
-	where $ e\equiv $~\kwd{se} label, $ n \equiv $~node label, $ E \equiv $~number of \kwdp{se} in the scope. $ N \equiv $~number of nodes in a \kwd{se}.
+	where $ e $ is the \kwd{se} label, $ n $ the node label, $ E $ the number of \kwdp{se} in the scope. $ N $ the number of nodes in a \kwd{se}.
 	
 	Data-mapping according to \cref{a:fcne} and relabelling the nodes so they go from $ 0 \to N-1 $, the data from \cref{f:lrse_map} would be arranged in \kwd{devmem} like \cref{e:fcne_eg},
 	\begin{align}\label{e:fcne_eg}
@@ -305,7 +305,7 @@
 			\end{aligned}
 		\end{align}
 	\end{subequations}
-	where $ e\equiv $~surface \textbf{e}lement, $ n \equiv $~\textbf{n}ode, $ E \equiv $~total number of \kwdp{se} in scope, $ N \equiv $~total number of nodes in each \kwd{se}.
+	where $ e $ is the surface \textbf{e}lement, $ n $ the \textbf{n}ode, $ E $ the total number of \kwdp{se} in scope, $ N $ the total number of nodes in each \kwd{se}.
 	
 	Data-mapping according to \cref{a:fnce} and relabelling the nodes so they go from $ 0 \to N-1 $, the data from \cref{f:lrse_map} would be arranged in \kwd{devmem} like \cref{e:fnce_eg},
 	\begin{align}\label{e:fnce_eg}
@@ -367,7 +367,7 @@
 				\underbrace{0,0,0,0}_{\mathbf{x_{5}}}, \underbrace{0,0,0,0}_{\mathbf{x_{6}}}}^{z\textrm{-coord}}\right]
 		\end{split}
 	\end{align}
-	In general the number of indices in the array would be $ 3 \times e \times n $ where $ e \equiv $~number of surface elements, $ n \equiv $~number of nodes per element and 3 is the number of spatial dimensions.
+	In general the number of indices in the array would be $ 3 \times e \times n $ where $ e $ is the number of surface elements, $ n $ the number of nodes per element and 3 the number of spatial dimensions.
 	%
 	\section{Thread Block Size Optimisation}
 	\href{http://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#memory-optimizations}{http://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html\#memory-optimizations}

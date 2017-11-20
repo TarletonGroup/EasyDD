@@ -4,6 +4,42 @@
 	\section{Forces Exerted by a Dislocation Line Segment on Linear Rectangular Surface Elements}
 	\label{s:f_lin_rect}
 		%
+		Coupling \kwd{ddd} to \kwd{fem} requires the traction field $ \tns{\sigma^{\infty}}(\vec{x}) \cdot \vec{n}(\vec{x}) $ to be distributed among the set of relevant discrete nodes of a \kwd{fe} or \kwd{be} model. This is usually achieved as follows,
+		\begin{align}\label{e:ddd_fem_force}
+			\vec{F}^{(n)} = \int_{S^{e}} \left[\tns{\sigma^{\infty}}(\vec{x}) \cdot \vec{n}(\vec{x})\right] L_{n}(\vec{x})\; \rvar{d}S_{e}\,,
+		\end{align}
+		where $ \rvar{d}S_{e} $ is the infinitesimal surface element with surface area $ S_{e} $. $ L_{n}(\vec{x}) $ are so-called shape functions (interpolation functions) that distribute  the traction field among the surface element's nodes.
+		
+		The problematic singularity associated with the classical Volterra dislocation is avoided by using the non-singular formulation of \citet{a_non-singular_continuum_theory_of_dislocations}. The stress field of a dislocation in a homogenous infinite linear elastic domain can be calculated as a contour integral along the loop \cite{mura_t},
+		\begin{align}\label{e:field_stress}
+			\sigma_{ij}^{\infty}(\vec{x}) = C_{ijkl} \oint \epsilon_{lnh} C_{pqmn} \dfrac{\partial G_{kp}(\vec{x} - \vec{x'})}{\partial x_{q}} b_{m} \rvar{d}x'_{h}\,,
+		\end{align}
+		where $ C_{ijkl} $ is the elastic stiffness matrix, $ \epsilon_{lnh} $ the permutation operator, \kwds{bv} the \kwd{bv}, $ \vec{x'} $ the coordinate that spans the dislocation, and $ G_{kp}(\vec{x} - \vec{x'}) $ is Green's function of elasticity \cite{mura_t}. $ G_{kp}(\vec{x} - \vec{x'}) $ is defined as the displacement component in the $ x_{k} $ direction at point $ \vec{x} $ due to a force applied in the $ x_{p} $ direction at point $ \vec{x'} $. The traditional singularity comes from taking the \kwd{bv} distribution as a delta function. \citet{a_non-singular_continuum_theory_of_dislocations} proposed an alternative definition of $ G_{kp}(\vec{x} - \vec{x'}) $ which has a wider isotropic spread mainly localised in a radius $ a $ around the dislocation core,
+		\begin{align}\label{e:elastic_green_func}
+			G_{ij}(\vec{x} - \vec{x'}) = \dfrac{1}{8\pi \mu}\left[ \delta_{ij} \partial_{pp} - \dfrac{1}{2(1-\nu)} \partial_{ij} \right] R_{a}\,,
+		\end{align}
+		where $ \mu $, $ \nu $ are the isotropic shear modulus and Poisson's ratio respectively, $ \delta_{ij} $ is the Kronecker Delta, $ \partial_{x_{1} \ldots\, x_{n}} \equiv \dfrac{\partial^{n}}{\partial x_{1} \ldots\, \partial x_{n}}$. $ R_{a} $ is the defined as,
+		\begin{subequations}
+			\begin{align}\label{e:ra}
+				R_{a}(\vec{x}) &= R(\vec{x}) * w(\vec{x}) = \int R(\vec{x} - \vec{x'}) w(\vec{x'}) \rvar{d}^{3}\vec{x'}\nn
+							   &= \sqrt{R^{2} + a^{2}}\\
+				w(\vec{x}) 	   &= \dfrac{15 a^{4}}{8\pi (R^{2} + a^{2})^{7/2}}\,,
+			\end{align}
+		\end{subequations}
+		 where $ w(\vec{x}) $ is a \kwd{bv} distribution in \cite{a_non-singular_continuum_theory_of_dislocations}. To keep in line with the definition of \cref{e:field_stress}, where the displacement component is in the $ x_{k} $ direction, $ R_{a} = \sqrt{R_{k}^{2} + a^{2}} $.
+		 
+		 For two dislocation nodes (1, 2) connected by straight line segments \cref{e:field_stress} becomes,
+		 \begin{align}
+			 \tns{\sigma}^{(12)}(\vec{x}) =
+			 \begin{split} 
+				&-\dfrac{\mu}{8\pi} \int\limits_{\vec{x}_{1}}^{\vec{x}_{2}} \left( \dfrac{2}{R_{a}^{3}} + \dfrac{3 a^{2}}{R_{a}^{5}} \right) \left[ \left( \vec{R} \times \vec{b} \right) \otimes \rvar{d}\vec{x'} + \rvar{d}\vec{x'} \otimes \left( \vec{R} \times \vec{b} \right) \right]\\
+				%
+				&+ \dfrac{\mu}{4\pi (1 - \nu)} \int\limits_{\vec{x}_{1}}^{\vec{x}_{2}} \left( \dfrac{1}{R_{a}^{3}} + \dfrac{3 a^{2}}{R_{a}^{5}} \right) \left[ \left(\vec{R} \times \vec{b}\right)\cdot \rvar{d}\vec{x'} \right] \mtx{I}_{2}\\
+				%
+				&- \dfrac{\mu}{4\pi (1 - \nu)} \int\limits_{\vec{x}_{1}}^{\vec{x}_{2}} \dfrac{1}{R_{a}^{3}} \left[ \left(\vec{b} \times \rvar{d}\vec{x'}\right) \otimes \vec{R} + \vec{R} \otimes \left(\vec{b} \times \rvar{d}\vec{x'}\right) \right]\\
+				&+ \dfrac{\mu}{4\pi (1 - \nu)} \int\limits_{\vec{x}_{1}}^{\vec{x}_{2}} \dfrac{3}{R_{a}^{5}} \left[ \left( \vec{R} \times \vec{b} \right) \cdot \rvar{d}\vec{x'} \right]\vec{R} \otimes \vec{R}
+			 \end{split}
+		 \end{align}
 		\begin{figure}
 			\centering
 			\includegraphics[width=\linewidth]{force_calc_linear_rectangle.pdf}
