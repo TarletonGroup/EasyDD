@@ -27,7 +27,7 @@ amag=3.18e-4;
 mumag = 160E3; % MPa only used for plotting  
 
 CRYSTAL_STRUCTURE = 'bcc';
-NUM_SOURCES = 50;
+NUM_SOURCES = 1;
 DIST_SOURCE = 0.5/amag;
 
 %% FEM PARAMETERS

@@ -122,7 +122,15 @@ function node_plane = extract_node_planes(fem_nodes     , fem_node_cnct,...
         % Reshape the array to a column array containing only the nodes which
         % meet the filter criteria.
         tmp_nodes = reshape(tmp_nodes(mask,:)', n_nodes * dim_3, 1);
-
+        %% Experimenting trying to find indices of planes
+        % Finding the node indices of the plane. It works. Can give us a 
+        % way for finding the proper mapping to add the traction forces to 
+        % the FEM forces
+        tmp_node_idx = fem_node_cnct(:, surf_node_util(1:n_nodes, plane_idx));
+        tmp_node_idx = reshape(tmp_node_idx, size(tmp_node_idx,1)*size(tmp_node_idx,2),1);
+        node_idx = tmp_node_idx(mask);
+        tmp_nodes2 = reshape(fem_nodes(node_idx,1:3)',n_nodes*dim_3,1);
+        any((tmp_nodes == tmp_nodes2)==0)
         %% Passing data to the slice of the array that contains the nodes for every plane
         % Set the slice of the tmp_nodes array to be indexed
         step = 0;

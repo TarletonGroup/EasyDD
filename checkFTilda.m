@@ -10,8 +10,8 @@ run ./Inputs/inputCheck.m
 
 counter=1;
 error = [0 0 0];
-min_mx = 20;
-max_mx = 20;
+min_mx = 10;
+max_mx = 10;
 stp_mx = 10;
 for mx=min_mx:stp_mx:max_mx
 
@@ -23,7 +23,17 @@ for mx=min_mx:stp_mx:max_mx
     [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
         Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
-
+    %% Testing the backward map
+        snodes = [Sleft];
+        mx
+        my
+        mz
+        snodes(:,1)
+        x3x6 = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
+                xnodes, nc, rn, links,...
+                [mx; my; mz]  , [1]   , 4  , MU, NU, a    ,...
+                1  , 1);
+      %%
 %     % FRONT FACE
 %     fmidpoint_element = zeros(mx*mz,3);
      midpoint_element = zeros(mx*mz,3);
@@ -104,7 +114,7 @@ for mx=min_mx:stp_mx:max_mx
     sizeRectangleList = mx*mz;
     sizeSegmentList = size(segments,1);
     
-     x3x6 = analytic_traction(xnodes, nc, rn, links, [mx;my;mz], [3;4;5;6;1;2], 4, MU, NU, a, 1, 1);
+     %x3x6 = analytic_traction(xnodes, nc, rn, links, [mx;my;mz], [3;4;5;6;1;2], 4, MU, NU, a, 1, 1);
     
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
