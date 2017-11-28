@@ -1,7 +1,7 @@
 function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 fem_nodes, fem_node_cnct, dln_nodes, dln_node_cnct,...
                 fem_dim  , fem_planes   , n_nodes  , mu, nu, a    ,...
-                use_gpu  , para_scheme)
+                use_gpu  , para_scheme, surf_node_util)
 %             nodal_force, total_force, 
     %%===================================================================%%
     %---------------------------------------------------------------------%
@@ -147,24 +147,24 @@ function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,
     xz = fem_dim(1)*fem_dim(3);
     yz = fem_dim(2)*fem_dim(3);
 
-    % Set surface node labels for surface node extraction.
-    surf_node_util = zeros(n_nodes+2, 6);
-    % For rectangular surface elements. Add an if statement and redifine
-    % matrix to generalise it for triangular surface elements.
-    surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
-    surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
-    surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
-    surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
-    surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
-    surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
-    
+    % If the matrix is undefined then provide a default.
+    if ~exist('surf_node_util','var')
+        % Set surface node labels for surface node extraction.
+        surf_node_util = zeros(n_nodes+2, 6);
+        % For rectangular surface elements. Add an if statement and redifine
+        % matrix to generalise it for triangular surface elements.
+        surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1
+        surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2
+        surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4
+        surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
+        surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
+        surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
+    end %if
     % Calculate number of surface elements.
     n_se = 0;
     for i = 1: size(fem_planes,1)
-        fem_face = fem_planes(i);
-        n_se = n_se + surf_node_util(5, i);
-    end %for
-    
+        n_se = n_se + surf_node_util(5, fem_planes(i));
+    end %for    
 
     [x3x6_lbl, x3x6] = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
     clear surf_node_util;

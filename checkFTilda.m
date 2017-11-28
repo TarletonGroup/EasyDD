@@ -15,10 +15,7 @@ max_mx = 10;
 stp_mx = 10;
 for mx=min_mx:stp_mx:max_mx
 
-    segments = constructsegmentlist(rn,links);44    11    55    22
-    55    22    66    33
-    77    44    88    55
-    88    55    99    66
+    segments = constructsegmentlist(rn,links);
     
     %construct finite element arrays
     %construct stiffeness matrix K and pre-compute L,U decompositions.
@@ -28,6 +25,7 @@ for mx=min_mx:stp_mx:max_mx
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
     %% Testing the backward map
         snodes = [Sleft];
+        mx
         my
         mz
         [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
