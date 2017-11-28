@@ -1,4 +1,4 @@
-function [x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
+function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 fem_nodes, fem_node_cnct, dln_nodes, dln_node_cnct,...
                 fem_dim  , fem_planes   , n_nodes  , mu, nu, a    ,...
                 use_gpu  , para_scheme)
@@ -147,22 +147,6 @@ function [x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gamm
     xz = fem_dim(1)*fem_dim(3);
     yz = fem_dim(2)*fem_dim(3);
 
-    % Calculate number of surface elements.
-    n_se = 0;
-    for i = 1: size(fem_planes,1)
-        fem_face = fem_planes(i);
-        % If we have an xz face we add mx*mz elements.
-        if(fem_face == 1 || fem_face == 2)
-            n_se = n_se + xz;
-        % If we have a yz face we add my*mz elements.
-        elseif(fem_face == 3 || fem_face == 4)
-            n_se = n_se + yz;
-        % Otherwise we have an xy face and we add mx*my elements.
-        else
-            n_se = n_se + xy;
-        end %if
-    end %for
-
     % Set surface node labels for surface node extraction.
     surf_node_util = zeros(n_nodes+2, 6);
     % For rectangular surface elements. Add an if statement and redifine
@@ -173,8 +157,16 @@ function [x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gamm
     surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3
     surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5
     surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6
+    
+    % Calculate number of surface elements.
+    n_se = 0;
+    for i = 1: size(fem_planes,1)
+        fem_face = fem_planes(i);
+        n_se = n_se + surf_node_util(5, i);
+    end %for
+    
 
-    x3x6 = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
+    [x3x6_lbl, x3x6] = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
     clear surf_node_util;
 
 %     %% Force calculation.
