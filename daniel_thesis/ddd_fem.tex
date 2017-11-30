@@ -2,7 +2,7 @@
 \label{c:ddd_fem}
 	\section{Superposition Scheme}
 	\label{s:sup_sch}
-		Coupling \kwd{ddd} to \kwdp{fem} \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element} is important to properly simulate micromechanical tests because \kwd{ddd} provides us with a more precise set of inputs and greater granularity for solving the \kwd{fe} problem.
+		Coupling \kwd{ddd} to \kwdp{fem} \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element} is important to properly simulate micromechanical tests because \kwd{ddd} provides us with a more precise set of inputs and greater granularity for solving the \kwd{fe} problem. This can be achieved by using a so-called superposition scheme \cref{f:fem_ddd} that enables the independent solution of both problems, whilst feeding information from one to the other in a continuous feedback loop.
 		\begin{figure}
 			\centering
 			\includegraphics[width=\linewidth]{fem_ddd.pdf}
@@ -16,17 +16,17 @@
 			\begin{subfigure}[b]{0.45\linewidth}
 				\centering
 				\includegraphics[width=\linewidth]{fem_surf_nodes.pdf}
-				\caption[Surface nodes of our \kwd{fe} model.]{Arrangement of the surface nodes of our \kwd{fe} model.}
+				\caption[Surface nodes of our \kwd{fe} model.]{Arrangement of the surface nodes of our \kwd{fe} model. \kwd{fe} nodes are arranged in chunks of $ \Delta x \Delta z $ nodes in our implementation, but we only want the surface nodes.}
 				\label{f:fem_surf_nodes}
 			\end{subfigure}
 			~
 			\begin{subfigure}[b]{0.45\linewidth}
 				\centering
 				\includegraphics[width=\linewidth]{fe_numbering.pdf}
-				\caption[Single finite element node numbering.]{Single \kwd{fe} node numbering.}
+				\caption[Single finite element node numbering.]{Single \kwd{fe} node numbering. It is necessary to know which \kwd{fe} plane corresponds to which node labels. This lets us design the auxiliary matrix that selects nodes according to the planes we want to extract.}
 				\label{f:fe_numbering}
 			\end{subfigure}
-		\caption[Coupling Discrete Dislocation Dynamics to Finite Element Methods.]{Coupling Discrete Dislocation Dynamics to Finite Element Methods.}
+		\caption[Finite Element node arrangement for coupling to Discrete Dislocation Dynamics.]{\kwd{fe} node arrangement for coupling to \kwd{ddd}.}
 		\label{f:fem_node_arr}
 		\end{figure}
 		However, due to the nature of the analytical solutions in \cref{c:lin_rect}, we need all the surface nodes of the rectangular faces for which there are no displacements. This means that edge nodes are shared between 2 adjacent faces and corner nodes between 3 adjacent faces. In order to properly apply the logical mask to find \emph{only} the surface nodes need to know that each \kwdp{fe}' nodes are numbered according to \cref{f:fe_numbering}.
@@ -69,5 +69,51 @@
 			\caption[Self-consistent, chirality preserving surface planes.]{Self-consistent, chirality preserving surface planes. Plane and node numbering according to the columns of \cref{e:surf_node_util} and \cref{f:fem_node_arr}.}
 			\label{f:surf_node_plane}
 		\end{figure}
+		\section{Mapping Forces}
+		\begin{algorithm}
+			\caption{If $ \vec{\hat{F}} $'s columns are arranged the same way as $ \vec{\gamma_{t}} $.}
+			\begin{algorithmic}[1]
+				\State\Comment{Loop through the array containing the node labels of the relevant surface nodes.}
+				\For{$ i = 0;\, i < \rvar{length}(\vec{\gamma_{t}});\, i++$}
+					\State\Comment{Save the global node label for the current iteration.}
+					\State $ n \gets \vec{\gamma_{t}}[i] $
+					\State\Comment{Use the node label to find a vector with the linear location of all surface nodes whose labels correspond to the node whose forces we want to pass on to the \kwd{fem} coupler.}
+					\State $ \vec{L} \gets \rvar{find}(\mtx{N_{L}} == n) $
+					\State\Comment{Loop over coordinates.}
+					\For{$ k = 0;\, k < 3;\, k++ $}
+						\State\Comment{Use global node label vector to index the force array from the analytical force calculation due to dislocations on surface nodes. Multiplied by 3 because there are three coordinates per node. We sum the forces from the analytical calculation because the same global node can be part of multiple surface elements. We add $ k $ because the $ x,~y,~z $ coordinates are consecutively stored in $ \mtx{F_{n}} $.}
+						\State $ \mtx{\tilde{F}}[3\times \vec{L} + k] \gets \mtx{\tilde{F}}[3\times \vec{L} + k] + \sum\mtx{F_{n}}[3\times \vec{L} + k]  $
+					\EndFor
+				\EndFor
+			\end{algorithmic}
+		\end{algorithm}
+	
+%	\begin{algorithm}
+%		\begin{algorithmic}[1]
+%			content...
+%		\end{algorithmic}
+%	\end{algorithm}
+	
+	$ \vec{\hat{F}} $ only cares about the global node numbers, of which there are $ M $. The columns of $ \mtx{N_{L}},~ \mtx{F_{N}} $ represent the 4 nodes of a \kwd{se}, the rows represent the \kwd{se} they are part of. The column vector $ \vec{x} $ represents the $ x,~y~z $-coordinates of the node-element or global node corresponding to their subscript. The column vector $ \vec{\gamma_{t}} $ is the list of global nodes for which the forces induced by dislocations must be calculated.
+	\begin{align}
+		\mtx{N_{L}} &=	\begin{bmatrix}
+							4 & 5 & 1 & 2\\
+							5 & 6 & 2 & 3\\
+							7 & 8 & 4 & 5\\
+							8 & 9 & 5 & 6\\
+						\end{bmatrix}\\
+		\mtx{F_{n}} &=	\begin{bmatrix}
+							\vec{x_{11}} & \vec{x_{12}} & \vec{x_{13}} & \vec{x_{14}}\\
+							\vec{x_{21}} & \vec{x_{22}} & \vec{x_{23}} & \vec{x_{24}}\\
+							\vec{x_{31}} & \vec{x_{32}} & \vec{x_{33}} & \vec{x_{34}}\\
+							\vec{x_{41}} & \vec{x_{42}} & \vec{x_{43}} & \vec{x_{44}}\\
+						\end{bmatrix}\\
+		\vec{\hat{F}}^{\mathsf{T}} &= 	\begin{bmatrix}
+											\vec{x_{1}}^{\mathsf{T}} & \vec{x_{2}}^{\mathsf{T}} & \ldots & \vec{x_{M}}^{\mathsf{T}}
+										\end{bmatrix}\\
+		\vec{x_{en}}^{\mathsf{T}} &=	\begin{bmatrix}
+											x_{en} & y_{en} & z_{en}
+										\end{bmatrix}
+	\end{align}
 		
 		

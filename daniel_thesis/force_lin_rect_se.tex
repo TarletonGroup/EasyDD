@@ -29,7 +29,7 @@
 		 where $ w(\vec{x}) $ is a \kwd{bv} distribution in \cite{a_non-singular_continuum_theory_of_dislocations}. To keep in line with the definition of \cref{e:field_stress}, where the displacement component is in the $ x_{k} $ direction, $ R_{a} = \sqrt{R_{k}^{2} + a^{2}} $.
 		 
 		 For two dislocation nodes (1, 2) connected by straight line segments \cref{e:field_stress} becomes,
-		 \begin{align}
+		 \begin{align}\label{e:two_node_stress_field}
 			 \tns{\sigma}^{(12)}(\vec{x}) =
 			 \begin{split} 
 				&-\dfrac{\mu}{8\pi} \int\limits_{\vec{x}_{1}}^{\vec{x}_{2}} \left( \dfrac{2}{R_{a}^{3}} + \dfrac{3 a^{2}}{R_{a}^{5}} \right) \left[ \left( \vec{R} \times \vec{b} \right) \otimes \rvar{d}\vec{x'} + \rvar{d}\vec{x'} \otimes \left( \vec{R} \times \vec{b} \right) \right]\\
@@ -56,7 +56,7 @@
 			\begin{figure}
 				\centering
 				\includegraphics[width=\linewidth]{ftot_rotation_lin_rect.pdf}
-				\caption[Avoiding singularities by rotating dislocation line segments.]{Effects of rotating a single \kwd{dls} on the forces exerted by it on a linear rectangular \kwd{se}. The specific values of this function are not known \emph{a priori}, all that is known is that it must be periodic ($ T = 2\pi$) and have finite maximum and minimum values. The singularity is avoided by perturbing the angle $ \theta = 0 \to \theta = \pm \epsilon\,\, \epsilon \gtrsim 0 $.}
+				\caption[Avoiding singularities by rotating dislocation line segments.]{Effects of rotating a single \kwd{dls} on the forces exerted by it on a linear rectangular \kwd{se}. The specific values of this function are not known \emph{a priori}, all that is known is that it must be periodic ($ T = 2\pi$) and have finite maximum and minimum values. The singularity is avoided by perturbing the angle $ \theta = 0 \to \theta = \pm \epsilon\,, \epsilon \gtrsim 0 $.}
 				\label{f:rflrs}
 			\end{figure}
 		%

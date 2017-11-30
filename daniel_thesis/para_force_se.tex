@@ -2,7 +2,7 @@
 \label{c:para_f_dln_se}
 	%
 	\section{Parallelisation on Graphics Processing Units}
-	Efficient parallelisation requires \kwd{cma}, which means we have to be extremely careful when mapping CPU memory to device memory. The fact that threads work ``simultaneously'' means that in order to obtain good performance, the data which is to be ``simultaneously'' loaded into each thread must be contiguous. This maximises cache memory use and therefore reduces slow memory fetch operations to global or shared memory.
+	Efficient parallelisation requires \kwd{cma}, which means we have to be extremely careful when mapping CPU memory to device memory. The fact that threads work ``simultaneously''\footnote{Not quite but essentially simultaneously.} means that in order to obtain good performance, data which is to be ``simultaneously'' loaded into each thread must be contiguous. This maximises cache memory use and therefore reduces slow memory fetch operations to global or shared memory.
 	
 	The parallelisation was done only over the \kwdp{se} in order to avoid the undesirable and inefficient GPU branching that would occur under other schemes.
 	

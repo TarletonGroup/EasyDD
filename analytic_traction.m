@@ -1,7 +1,7 @@
 function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
-                fem_nodes, fem_node_cnct, dln_nodes, dln_node_cnct,...
-                fem_dim  , fem_planes   , n_nodes  , mu, nu, a    ,...
-                use_gpu  , para_scheme, surf_node_util)
+                fem_nodes, fem_node_cnct, dln_nodes  , dln_node_cnct,...
+                fem_dim  , fem_planes   , n_nodes    , gamma       ,...
+                mu, nu, a, use_gpu      , para_scheme, surf_node_util)
 %             nodal_force, total_force, 
     %%===================================================================%%
     %---------------------------------------------------------------------%
@@ -168,6 +168,13 @@ function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,
 
     [x3x6_lbl, x3x6] = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
     clear surf_node_util;
+    
+    for i = 1: size(gamma, 1)
+        idx = 3*find(x3x6_lbl == gamma(i));
+            [x3x6(idx-2); x3x6(idx-1); x3x6(idx)]
+            [sum(x3x6(idx-2)); sum(x3x6(idx-1)); sum(x3x6(idx))]
+%         end %for
+    end %for
 
 %     %% Force calculation.
 %     % Allocating nodal and total force arrays

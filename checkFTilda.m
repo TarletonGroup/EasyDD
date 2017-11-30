@@ -25,17 +25,15 @@ for mx=min_mx:stp_mx:max_mx
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
     %% Testing the backward map
         snodes = [Sleft];
-        mx
-        my
-        mz
+        gamma = [gammat(:,1); gammaMixed(:,1)];
         [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 xnodes, nc, rn, links,...
-                [mx; my; mz]  , [1;2;3;4;5;6]   , 4  , MU, NU, a    ,...
+                [mx; my; mz]  , [1;2;3;4;5;6]   , 4  , gamma, MU, NU, a    ,...
                 1  , 1);
-            size(x3x6_lbl)
-            size(x3x6)
-            clear x3x6;
-            clear x3x6_lbl;
+%             size(x3x6_lbl)
+%             size(x3x6)
+%             clear x3x6;
+%             clear x3x6_lbl;
       %%
 %     % FRONT FACE
 %     fmidpoint_element = zeros(mx*mz,3);
