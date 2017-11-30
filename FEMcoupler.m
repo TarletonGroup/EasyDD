@@ -42,7 +42,7 @@ gn = gamma(:,1); % global node number
 % toc;
 % disp(displacementsMEX-displacements);
 %  [Ux, Uy, Uz]  = displacement_fivel(x0,segments,NU);
-[Ux, Uy, Uz] = Utilda_bb2(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
 
 utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;
