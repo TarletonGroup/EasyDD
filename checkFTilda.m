@@ -26,10 +26,15 @@ for mx=min_mx:stp_mx:max_mx
     %% Testing the backward map
         snodes = [Sleft];
         gamma = [gammat(:,1); gammaMixed(:,1)];
-        [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
+        [f_dln] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 xnodes, nc, rn, links,...
                 [mx; my; mz]  , [1;2;3;4;5;6]   , 4  , gamma, MU, NU, a    ,...
-                1  , 1);
+                0  , 1);
+              size(gamma)
+              size(f_dln)
+              f_dln
+              
+%               f_dln
 %             size(x3x6_lbl)
 %             size(x3x6)
 %             clear x3x6;

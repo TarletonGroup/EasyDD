@@ -1,4 +1,4 @@
-function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
+function [f_dln] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 fem_nodes, fem_node_cnct, dln_nodes  , dln_node_cnct,...
                 fem_dim  , fem_planes   , n_nodes    , gamma       ,...
                 mu, nu, a, use_gpu      , para_scheme, surf_node_util)
@@ -162,47 +162,68 @@ function [x3x6_lbl, x3x6] = analytic_traction(...%Stop,Sbot,Sleft,Sright,Sfront,
     end %if
     % Calculate number of surface elements.
     n_se = 0;
-    for i = 1: size(fem_planes,1)
+    for i = 1: size(fem_planes, 1)
         n_se = n_se + surf_node_util(5, fem_planes(i));
     end %for    
 
     [x3x6_lbl, x3x6] = extract_node_planes(fem_nodes, fem_node_cnct, surf_node_util, fem_planes, n_se, n_nodes);
     clear surf_node_util;
-    
-    for i = 1: size(gamma, 1)
-        idx = 3*find(x3x6_lbl == gamma(i));
-            [x3x6(idx-2); x3x6(idx-1); x3x6(idx)]
-            [sum(x3x6(idx-2)); sum(x3x6(idx-1)); sum(x3x6(idx))]
-%         end %for
-    end %for
 
-%     %% Force calculation.
-%     % Allocating nodal and total force arrays
-%     nodal_force = zeros(3*n_se, n_nodes);
-%     total_force = zeros(3*n_se);
-% 
-%     % CUDA C calculation
-%     if (use_gpu == 1)
-%         n_threads = 512;
-%         if (~exists(para_scheme))
-%             para_scheme = 1;
-%         end %if
-%         [nodal_force(:, 1), nodal_force(:, 2),...
-%          nodal_force(:, 3), nodal_force(:, 4),...
-%          total_force(:)] = nodal_surface_force_linear_rectangle_mex(           ...
-%                                 x1x2(:, 1), x1x2(:, 2),                        ...
-%                                 x3x6(:, 1), x3x6(:, 2), x3x6(:, 3), x3x6(:, 4),...
-%                                 b(:), mu, nu, a, n_se, n_dln,...
-%                                 n_threads, para_scheme);
-%     % Serial force calculation in C
-%     else
-%         [nodal_force(:, 1), nodal_force(:, 2),...
-%          nodal_force(:, 3), nodal_force(:, 4),...
-%          total_force(:)] = nodal_surface_force_linear_rectangle_arr(           ...
-%                                 x1x2(:, 1), x1x2(:, 2),                        ...
-%                                 x3x6(:, 1), x3x6(:, 2), x3x6(:, 3), x3x6(:, 4),...
-%                                 b(:), mu, nu, a, n_se, n_dln);
-%     end %if
+    %% Force calculation.
+    % Allocating nodal and total force arrays
+    nodal_force = zeros(3*n_se, n_nodes);
+    total_force = zeros(3*n_se, 1);
+
+    % CUDA C calculation
+    if (use_gpu == 1)
+        n_threads = 512;
+        if (~exists(para_scheme))
+            para_scheme = 1;
+        end %if
+        [nodal_force(:, 1), nodal_force(:, 2),...
+         nodal_force(:, 3), nodal_force(:, 4),...
+         total_force] = nodal_surface_force_linear_rectangle_mex(           ...
+                                x1x2(:, 1), x1x2(:, 2),                        ...
+                                x3x6(:, 1), x3x6(:, 2), x3x6(:, 3), x3x6(:, 4),...
+                                b(:), mu, nu, a, n_se, n_dln,...
+                                n_threads, para_scheme);
+    % Serial force calculation in C
+    else
+        [nodal_force(:, 1), nodal_force(:, 2),...
+         nodal_force(:, 3), nodal_force(:, 4),...
+         total_force] = nodal_surface_force_linear_rectangle_arr(           ...
+                                x1x2(:, 1), x1x2(:, 2),                        ...
+                                x3x6(:, 1), x3x6(:, 2), x3x6(:, 3), x3x6(:, 4),...
+                                b(:), mu, nu, a, n_se, n_dln);
+    end %if
+    %% Map analytical nodal forces into a useful form for the force superposition scheme.
+    % Allocate f_dln.
+    % Find the number of nodes for which tractions need to be calculated.
+    n_nodes_t = size(gamma, 1);
+    % Allocate the force vector for forces induced by dislocations.
+    f_dln = zeros(3*n_nodes_t, 1);
+    % Loop through the number of nodes.
+    for i = 1: n_nodes_t
+        % Find the indices of the node labels corresponding to the node
+        % gamma(i). Multiplied by three because each node has 3
+        % coordinates. This lands idxi on the index which corresponds to 
+        % the z-coordinate of node gamma(i).
+        idxi = 3*find(x3x6_lbl == gamma(i));
+        % The FEM forces are given in the same node order as gamma, so this
+        % finds the index of the nodal forces corresponding to gamma(i).
+        % Multiplied by 3 because the nodes have 3 coordinates. This lands 
+        % idxi on the index which corresponds to the z-coordinate of node 
+        % gamma(i).
+        idxf = i*3;
+        % Loop through coordinates.
+        for j = 2:-1:0
+            % The index is displaced by -2, -1, 0, corresponding to the
+            % indices of the x, y, z coordinate respectively.
+            % We add the force contributions from all surface elements a node
+            % is part of. This gives us the total x,y,z forces on each node.
+            f_dln(idxf-j) = sum(nodal_force(idxi-j));
+        end %for
+    end %for
 end %function
 
 
