@@ -313,26 +313,57 @@ disp('global K...');
 % end
 % toc
 
-kg = sparse(mno*3,mno*3);
-tic;
-a =1:8;
-% b =1:8;
-for p =1:mel
-    percentage = 100*p/mel;
-    if mod(percentage,1)==0
-        fprintf('Assembly %d percent complete \n',100*p/mel);
-    end
-    gn=nc(p,a);
-%     gnb=nc(p,b);
-    dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
-%     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
-    dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
-%     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
-    kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
-    
-end
-toc
+% kg = sparse(mno*3,mno*3);
+% tic;
+% a =1:8;
+% % b =1:8;
+% for p =1:mel
+%     percentage = 100*p/mel;
+%     if mod(percentage,1)==0
+%         fprintf('Assembly %d percent complete \n',100*p/mel);
+%     end
+%     gn=nc(p,a);
+% %     gnb=nc(p,b);
+%     dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
+% %     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
+%     dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
+% %     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
+%     kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
+%     
+% end
+% toc
 
+%HY20171205:***********************************************
+%HY20171205: modified by HY following Ed's instruction
+%see http://blogs.mathworks.com/loren/2007/03/01/creating-sparse-finite-element-matrices-in-matlab/
+%instead of K(i,k) = K(i,j) + ... construct I J X tripletes and use sparse
+%as it's much faster O(nlog(n)) compared to O(n^2)
+tic
+disp('global stifness matrix assembly new (fast) method...')
+a=1:8; %local node numbers 
+dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
+ntriplets = 3*mno;
+I = zeros(ntriplets,1);
+J = zeros(ntriplets,1);
+X = zeros(ntriplets,1);
+ntriplets = 0;
+
+for p =1:mel
+    gn=nc(p,a); % global node numbers
+    dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3]; % global degree of freedom
+    for i =1:24
+        for j =1:24
+            ntriplets = ntriplets + 1;
+            I(ntriplets) = dof(i);
+            J(ntriplets) = dof(j);
+            X(ntriplets) = ke(dofLocal(i),dofLocal(j),p);
+        end
+    end
+end
+
+kg= sparse(I,J,X,3*mno,3*mno); %the (full) global stiffness matrix
+toc
+%HY20171205:***********************************************
 %------------------------------ boundary conditions ---------------------
 disp('reformatting K');
 % reformat kg due to applied displacements
