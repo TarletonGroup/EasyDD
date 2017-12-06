@@ -3,8 +3,8 @@
 
 function [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
-
+    w,h,d,my,mz,mel,unfixedDofs,Kred,Lred,Ured] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
+%HY20171206: new return variables (,unfixedDofs,Kred,Lred,Ured) added in order to use setdiff
 % E Tarleton edmund.tarleton@materials.ox.ac.uk
 % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) per element
 % 4. ----- .3
@@ -553,12 +553,13 @@ else
    pause
 end
 
-for m = 1:length(fixedDofs)    
-    i = fixedDofs(m);
-    K(:,i) = 0;
-    K(i,:) = 0;
-    K(i,i) = bcwt; 
-end
+%HY20171206: commented by HY
+% for m = 1:length(fixedDofs)    
+%     i = fixedDofs(m);
+%     K(:,i) = 0;
+%     K(i,:) = 0;
+%     K(i,i) = bcwt; 
+% end
 
  if length([fixedDofs;freeDofs])>length(unique([fixedDofs;freeDofs]))
         disp('error')
@@ -585,16 +586,40 @@ hold off
 % [L,U] = lu(K);    
 % toc;
 
-disp('Cholesky Factorization of K...'); %should be symmetric!
-tic;
-U = chol(K);
-L = U';
-toc;
+%HY20171206: commented by HY
+% disp('Cholesky Factorization of K...'); %should be symmetric!
+% tic;
+% U = chol(K);
+% L = U';
+% toc;
 
 % if max(abs(diag( U\(L\K) )))-1 > 1000*eps
 %     disp('Error in inverse K')
 %     pause
 % end
+
+%HY20171206:********************************************************
+%HY20171206: modified by HY to make the code cleaner by removing the
+%equations related to the fixedDofs; since FreeDofs has been used to
+%represent the free boundary nodes, a new term, unfixedDofs, is used to
+%represent all the nodes other than the fixed ones. i.e.
+%unfixedDofs=allDofs - fixedDofs
+
+allDofs = [1:3*mno];
+unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
+Kred = K(unfixedDofs,unfixedDofs); %HY20171206: Kred refers to the reduced K
+% tic
+% disp('LU decomposition of Kred')
+% [Lred, Ured] = lu(Kred);
+% toc
+disp('Cholesky Factorization of Kred...'); %should be symmetric!
+tic;
+Ured = chol(Kred);
+Lred = Ured';
+toc;
+L=[]; %HY20171206: since L is needed as a returned variable
+U=[]; %HY20171206: since U is needed as a returned variable
+%HY20171206:********************************************************
 
 disp('finished FEM')
 %-------------------------------------------------------------------

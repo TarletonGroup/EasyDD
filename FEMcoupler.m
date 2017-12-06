@@ -1,6 +1,6 @@
 function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz)
-    
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,unfixedDofs,Kred,Lred,Ured)
+%HY20171206: new variables (,unfixedDofs,Kred,Lred,Ured) added in order to use setdiff    
 %Coupling of FEM and DDD
 % u = uhat + utilda
 % f = fhat + ftilda
@@ -68,11 +68,26 @@ fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
 %f=zeros(2*(mno),1);
 f=fhat-kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt=mean(diag(kg));%=trace(K)/length(K)
-bcwt = full(bcwt);
+%HY20171206:********************************************************
+%HY20171206: modified by HY to make the code cleaner by removing the
+%equations related to the fixedDofs; since FreeDofs has been used to
+%represent the free boundary nodes, a new term, unfixedDofs, is used to
+%represent all the nodes other than the fixed ones. i.e.
+%unfixedDofs=allDofs - fixedDofs
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+uhat = uhat;
+fred = f(unfixedDofs);
+u_new = Ured\(Lred\fred);
+uhat(unfixedDofs) = u_new;
+
+%HY20171206:********************************************************
+
+%HY20171206: commented by HY
+% bcwt=mean(diag(kg));%=trace(K)/length(K)
+% bcwt = full(bcwt);
+% 
+% f(fixedDofs) = bcwt*uhat(fixedDofs);
+% uhat = U\(L\f); %using LU decomposition
 % uhat2=K\f; 
 
 rhat=kg*uhat; % reaction force

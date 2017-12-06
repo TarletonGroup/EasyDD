@@ -39,7 +39,8 @@ disp('Consistencycheck : Done!');
 disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+    w,h,d,my,mz,mel,unfixedDofs,Kred,Lred,Ured] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
+%HY20171206: new return variables (,unfixedDofs,Kred,Lred,Ured) added in order to use setdiff
 disp('Done! Initializing simulation.');
 
 global USE_GPU;
@@ -98,7 +99,8 @@ while simTime < totalSimTime
     
     %DDD+FEM coupling
     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz);
+                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,unfixedDofs,Kred,Lred,Ured);
+    %HY20171206: new return variables (,unfixedDofs,Kred,Lred,Ured) added in order to use setdiff
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;
