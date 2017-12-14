@@ -1149,8 +1149,6 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   #endif
   // CUDA exit.
   cudaDeviceReset();
-  for(int i = 0; i < n_nodes; i++){free(fx[i]);}
-  free(b_arr[0]); free(dln_node_arr[0]); free(dln_node_arr[1]);
-  for(int i=0; i < n_nodes; i++){free(se_node_arr[i]);}
-  free(ftot_arr);
+  for(int i = 0; i < n_nodes; i++){free(fx[i]); free(se_node_arr[i]);}
+  free(b_arr[0]); free(dln_node_arr[0]); free(dln_node_arr[1]); free(ftot_arr);
 }

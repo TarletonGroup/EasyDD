@@ -30,13 +30,13 @@
 */
 
 /* Work out best parallelisation.
-// Maximum number of threads per block.
-//cudaDeviceProp deviceProp;
-//cudaGetDeviceProperties(&deviceProp, 1);
-// Number of blocks launched.
-// deviceProp.maxGridSize[0], deviceProp.maxGridSize[1], deviceProp.maxGridSize[2]
-// Size of each block launched
-// deviceProp.maxThreadsDim[0], deviceProp.maxThreadsDim[1], deviceProp.maxThreadsDim[2]
+  // Maximum number of threads per block.
+  //cudaDeviceProp deviceProp;
+  //cudaGetDeviceProperties(&deviceProp, 1);
+  // Number of blocks launched.
+  // deviceProp.maxGridSize[0], deviceProp.maxGridSize[1], deviceProp.maxGridSize[2]
+  // Size of each block launched
+  // deviceProp.maxThreadsDim[0], deviceProp.maxThreadsDim[1], deviceProp.maxThreadsDim[2]
 */
 // Testing purposes
 int main(int argc, char **argv){
@@ -64,8 +64,9 @@ int main(int argc, char **argv){
   fscanf(ptr_file, "%i", &n_dln);
   fscanf(ptr_file, "%i", &n_se);
   fscanf(ptr_file, "%i", &threads_per_block);
+  fclose(ptr_file);
   main_dln_cuda_nodal_surface_force_linear_rectangle(n_se, n_dln, threads_per_block, argv);
   printf("\n");
-  fclose(ptr_file);
+
   return 0;
 }

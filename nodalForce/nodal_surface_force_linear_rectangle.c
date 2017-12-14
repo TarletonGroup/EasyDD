@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-//#include <mex.h>
 
 // Calculate atanh because MS Visual Studio is inferior to GCC.
 #ifdef _WIN32
@@ -34,26 +33,6 @@ int main(int argc, char **argv){
   for(int i = 0; i < n_nodes; i++){
     fx[i] = malloc(3*sizeof(double));
   }
-
-/*
-  FILE * ptr_file;
-  printf("Reading input.txt... \n");
-
-  ptr_file =fopen("input.txt", "r");
-  if (ptr_file == NULL){
-    printf("File does not exist.\n");
-  }
-  fscanf(ptr_file, "%lf %lf %lf", &x1[0], &x1[1], &x1[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &x2[0], &x2[1], &x2[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &x3[0], &x3[1], &x3[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &x4[0], &x4[1], &x4[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &x5[0], &x5[1], &x5[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &x6[0], &x6[1], &x6[2] );
-  fscanf(ptr_file, "%lf %lf %lf", &b[0], &b[1], &b[2] );
-  fscanf(ptr_file, "%lf", &mu );
-  fscanf(ptr_file, "%lf", &nu );
-  fscanf(ptr_file, "%lf", &a );
-*/
 
   // Read input.
   FILE * ptr_file;
@@ -135,9 +114,7 @@ int main(int argc, char **argv){
   #endif
 
   //main_nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, mu, nu, a, a_sq, one_m_nu, factor, fx, ftot);
-  for(int i = 0; i < n_nodes; i++){free(fx[i]);}
-  free(b_arr); free(dln_node_arr[0]); free(dln_node_arr[1]);
-  for(int i=0; i < n_nodes; i++){free(se_node_arr[i]);}
-  free(ftot_arr);
+  for(int i = 0; i < n_nodes; i++){free(fx[i]); free(se_node_arr[i]);}
+  free(b_arr); free(dln_node_arr[0]); free(dln_node_arr[1]); free(ftot_arr);
   return 0;
 }

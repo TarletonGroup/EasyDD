@@ -108,12 +108,14 @@ function [node_plane_lbl, node_plane] = extract_node_planes(fem_nodes     , fem_
     %% Looping through the planes to be extracted
     idxl = 1;
     idxi = 1;
+    n_nodes_p_1 = n_nodes + 1;
+    n_nodes_p_2 = n_nodes + 2;
     for i = 1: size(fem_planes, 1)
-        % Assigning control variables for the iteration
+        %% Assigning control variables for the iteration
         plane_idx = fem_planes(i);
-        dim   = surf_node_util(5, plane_idx);
+        dim   = surf_node_util(n_nodes_p_1, plane_idx);
         dim_3 = 3 * dim;
-        coord = surf_node_util(6, plane_idx);
+        coord = surf_node_util(n_nodes_p_2, plane_idx);
         % Set final index of the output array slice containing the nodes
         % for this iteration's plane
         idxm = idxl + dim   - 1;
@@ -142,10 +144,7 @@ function [node_plane_lbl, node_plane] = extract_node_planes(fem_nodes     , fem_
         tmp_nodes_lbl      = reshape(tmp_nodes_lbl ,...
                                      tmp_nodes_lbl_size * n_nodes, 1);
         tmp_nodes_lbl = tmp_nodes_lbl(mask);
-        %% Check if the filtered global labels correspond to the nodes of
-        % the selected plane. If they do, then correspond = 1.
-        %tmp_nodes2 = reshape(fem_nodes(tmp_nodes_lbl,1:3)',n_nodes*dim_3,1);
-        %correspond = ~any((tmp_nodes == tmp_nodes2)==0)
+
         %% Passing data to the slice of the array that contains the nodes labels and coords for every plane
         % Pass the node labels of this iteration to the global array.
         % Set the slice of the tmp_nodes array to be indexed
@@ -172,8 +171,9 @@ function [node_plane_lbl, node_plane] = extract_node_planes(fem_nodes     , fem_
         idxl = idxm + 1;
         clear tmp_nodes; clear tmp_nodes_lbl; clear mask;
     end %for
+    
     %% Cleanup
     clear idxl; clear idxi; clear plane_idx; clear dim; clear dim_3; 
-    clear coord; clear idxm; clear idxf; clear filter; 
-    clear tmp_nodes_lbl_size; clear step; clear step_lbl;
+    clear coord; clear idxm; clear idxf; clear filter; clear tmp_nodes_lbl_size;
+    clear step; clear step_lbl; clear n_nodes_p1; clear n_nodes_p2;
 end %function

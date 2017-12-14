@@ -19,6 +19,7 @@
 #include "serial_forces_lin_rect.h"
 #include "cuda_vector_map_utils.h"
 #include "cuda_forces_lin_rect.h"
+
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]){
   // Node arrays from MATLAB. To be mapped into x_se_arr and then passed to d_x_se_arr.
