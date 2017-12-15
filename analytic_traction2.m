@@ -1,4 +1,4 @@
-function [f_dln] = analytic_traction(...
+function [f_dln] = analytic_traction2(...
                 fem_nodes, fem_node_cnct, dln_nodes  , dln_node_cnct,...
                 fem_dim  , fem_planes   , n_nodes    , gamma        ,...
                 mu, nu, a, use_gpu      , n_threads  , para_scheme  ,...
@@ -172,11 +172,11 @@ function [f_dln] = analytic_traction(...
     %% CUDA C calculation
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
-        if ~exists(n_threads)
+        if ~exist('n_threads', 'var')
             n_threads = 512;
         end %if
         % Provide a default parallelisaion scheme in case none is given.
-        if ~exists(para_scheme)
+        if ~exist('para_scheme', 'var')
             % Parallelise over dislocations.
             para_scheme = 1;
         end %if
@@ -207,7 +207,7 @@ function [f_dln] = analytic_traction(...
     
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Allocate f_dln.
-    % Find the number of nodes for which tractions need to be calculated.
+    % Find the number of nodes for which tractions need to be calculated.282
     n_nodes_t = size(gamma, 1);
     % Allocate the force vector for forces induced by dislocations.
     f_dln = zeros(3*n_nodes_t, 1);
