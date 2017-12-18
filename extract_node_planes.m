@@ -1,4 +1,5 @@
-function [node_plane_lbl, node_plane] = extract_node_planes(fem_nodes     , fem_node_cnct,...
+function [node_plane_lbl, node_plane] = extract_node_planes(...
+                                          fem_nodes     , fem_node_cnct,...
                                           surf_node_util, fem_planes   ,...
                                           n_elem        , n_nodes)
     %%====================================================================%%
@@ -95,9 +96,9 @@ function [node_plane_lbl, node_plane] = extract_node_planes(fem_nodes     , fem_
     %=====================================================================%
     %
     % node_plane := dimension(3*n_elem, n_nodes). It is the slice of the
-    % arraythat holds the nodes of the plane. Only pass the array slice
-    % that corresponds to the current plane of nodes to be extracted,
-    % a la Fortran intent(in out).
+    %   array that holds the nodes of the plane. Only pass the array slice
+    %   that corresponds to the current plane of nodes to be extracted,
+    %   a la Fortran intent(in out).
     %
     %%===================================================================%%
 

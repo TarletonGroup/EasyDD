@@ -42,7 +42,7 @@ function [f_dln] = analytic_traction2(...
     %
     % dln_node_cnct = dimension(:,8). Assumed shape 2D array with 8
     % columns. Describes the node connectivity of the dislocation ensemble,
-    % associated Burgers' vectors and slip planes.
+    % associated Burgers vectors and slip planes.
     %
     % fem_dim := [dim_x; dim_y; dim_z], finite element model dimensions.
     % dim_x := dimension in x-direction, dim_y := dimension in y-direction,
@@ -51,8 +51,8 @@ function [f_dln] = analytic_traction2(...
     % fem_planes := dimension(:). Assumed shape 1D array (maximum length 6)
     % with the faces for which tractions are to be calculated. In order to
     % make it consistent with the FEMcoupler and the analytical forces
-    % exerted by dislocations on free surfaces. The faces re det_fined by the
-    % areas made up of the following nodes in the diagram:
+    % exerted by dislocations on free surfaces. The faces are by default 
+    % defined by the areas made up of the following nodes in the diagram:
     % min(x), yz-plane, nodes [5, 1, 8, 4], face 1
     % max(x), yz-plane, nodes [2, 6, 3, 7], face 2
     % min(y), xz-plane, nodes [6, 5, 7, 8], face 3
@@ -103,7 +103,7 @@ function [f_dln] = analytic_traction2(...
     % follows:
     %   [node_label_initial; ... ; node_label_final;
     %    plane_area; coordinate_number].
-    % Each row corresponds to one plane.
+    % Each row corresponds to a plane.
     %
     % x1x2 := dimension(3*n_dln, 2). The first column has the
     % xyz-coordinates of the x1 nodes (dislocation line nodes) in the force
