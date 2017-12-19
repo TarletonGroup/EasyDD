@@ -47,13 +47,12 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 % hardcoded so that the min(x) yz-plane does not have traction boundary
 % conditions.
 planes = (2:1:6)';
-gamma = [gammat(:,1); gammaMixed(:,1)];
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
                                                planes, 4);
-[idxi, f_dln, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, mno);
-[x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
-[f_dln] = analytic_traction(x3x6, x1x2, b, 4, n_nodes_t, n_se, n_dln,...
-                            3*gamma, idxi, f_dln, MU, NU, a, 0);
+gamma = [gammat(:,1); gammaMixed(:,1)];
+[f_dln_node, f_dln_se,...
+ f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, n_se, mno);
+
                                     
 disp('Done! Initializing simulation.');
 
@@ -111,8 +110,11 @@ while simTime < totalSimTime
     end
     
     %DDD+FEM coupling
-    [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+     %[uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+      %               gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+                         gammau, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime,...
+                         gamma, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, f_dln_se, f_dln);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;

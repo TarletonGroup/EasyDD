@@ -1,6 +1,7 @@
-function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
+function [f_dln_node, f_dln_se,...
+          f_dln, idxi, n_nodes_t] = nodal_force_map(             ...
                                             se_node_label, gamma,...
-                                            n_neighbours , mno)
+                                            n_nodes, n_se, mno)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
@@ -15,7 +16,7 @@ function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
     % map is non-trivial and specific to a simulation for three reasons:
     %   1) the nodes are arranged depending on how gamma is arranged,
     %   2) surface element nodes can be shared by more than one surface
-    %       element (up to n_neighbours),
+    %       element (up to n_nodes),
     %   3) some nodes in a surface element might not have traction boundary
     %       conditions but still have to be accounted for in the force
     %       calculation because the analytical solution requires knowledge
@@ -32,7 +33,7 @@ function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
     % gamma := dimension(:). Assumed shape array that holds the global node
     %   labels for the nodes with traction boundary conditions.
     %
-    % n_neighbours := the maximum number of surface elements that can share
+    % n_nodes := the maximum number of surface elements that can share
     %   a node (in a rectangular grid 4 elements can share a node).
     %
     % mno := (mx+1) * (my+1) * (mz+1) total number of FEM nodes.
@@ -52,7 +53,7 @@ function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
     % Outputs
     %=====================================================================%
     %
-    % idxi := dimension(n_nodes*n_neighbours). Array with the indices where
+    % idxi := dimension(n_nodes*n_nodes). Array with the indices where
     %   a given node in gamma is found in the nodal force array of the
     %   analytical traction solution.
     %
@@ -81,14 +82,19 @@ function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
     %f_dln = zeros(3*n_nodes_t, 1);
     %idxf = (1:1:n_nodes_t)'*3;
     
+    %% Preallocate arrays to speed up DDD FEM coupling.
+    % Allocate force arrays for analytic tractions
+    f_dln_node = zeros(3*n_se, n_nodes);
+    f_dln_se = zeros(3*n_se, 1);
+    % Allocate the force vector to correct the FEM forces.
+    f_dln = zeros(3*mno, 1);
     
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Find the number of nodes for which tractions need to be calculated.
     n_nodes_t = size(gamma, 1);
-    % Allocate the force vector for forces induced by dislocations.
-    f_dln = zeros(3*mno, 1);
+    
     % The maximum number of elements that share a node.
-    idxi = zeros(n_nodes_t * n_neighbours, 1);
+    idxi = zeros(n_nodes_t * n_nodes, 1);
     
     %% Loop through the number of nodes.
     j = 0;

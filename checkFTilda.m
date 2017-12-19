@@ -25,36 +25,6 @@ for mx=min_mx:stp_mx:max_mx
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
     
     
-    %% Testing the backward map
-        planes = [2;1];
-        gamma = [gammat(:,1); gammaMixed(:,1)];
-        [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(...
-                                      xnodes     , nc,...
-                                      [mx;my;mz] , planes,...
-                                      4);
-        [idxi, f_dln, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, mno);
-        [x1x2, b, n_dln] = extract_dislocation_nodes(rn,...
-                                        links);
-        [f_dln] = analytic_traction(               ...
-                                        x3x6 , x1x2,...
-                                        b       , 4       , n_nodes_t,...
-                                        n_se, n_dln, 3*gamma, idxi, f_dln,...
-                                        MU, NU, a, 0);
-        f_dln2 = f_dln;
-        clear f_dln;
-        [f_dln] = analytic_traction2(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
-                xnodes, nc, rn, links,...
-                [mx; my; mz]  , planes   , 4  , gamma, mno, MU, NU, a    ,...
-                0);
-              size(gamma);
-              size(f_dln);
-              isequal(f_dln,f_dln2)
-              
-%               f_dln
-%             size(x3x6_lbl)
-%             size(x3x6)
-%             clear x3x6;
-%             clear x3x6_lbl;
       %%
 %     % FRONT FACE
 %     fmidpoint_element = zeros(mx*mz,3);
@@ -158,6 +128,14 @@ for mx=min_mx:stp_mx:max_mx
     x4_array = reshape(x4_array',sizeRectangleList*3,1);
     x5_array = reshape(x5_array',sizeRectangleList*3,1);
     x6_array = reshape(x6_array',sizeRectangleList*3,1);
+    
+     surf_node_util = [[5; 6; 8; 7; mx*mz; 2], [5; 6; 8; 7; mx*mz; 2]];
+     planes = [2];
+%     [x3x6l, x3x6c, n_se] = extract_surface_nodes(            ...
+%                                       xnodes     , nc,...
+%                                       [mx;my;mz]       , planes   ,...
+%                                       4       , surf_node_util);
+                                  
     time_naive = toc;
     fprintf('Time node extraction naive = %f\n', time_naive)
     
@@ -193,30 +171,50 @@ for mx=min_mx:stp_mx:max_mx
     %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = NodalSurfForceLinearRectangleMexArray(x1_array,x2_array,...
      %             x3_array,x4_array,x5_array,x6_array,...
       %            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+      
+      %% Testing the backward map
+        
+        surf_node_util = [[5; 6; 8; 7; mx*mz; 2], [5; 6; 8; 7; mx*mz; 2]];
+        gamma = [gammat(:,1); gammaMixed(:,1)];
+        [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(...
+                                      xnodes     , nc,...
+                                      [mx;my;mz] , planes,...
+                                      4, surf_node_util);
+        [nodal_force, total_force,...
+         f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, n_se, mno);
+        [x1x2, b, n_dln] = extract_dislocation_nodes(rn,...
+                                        links);
+        [f_dln, total_force] = analytic_traction(               ...
+                                        [x3_array,x4_array,x5_array,x6_array] , x1x2,...
+                                        b       , 4       , n_nodes_t,...
+                                        n_se, n_dln, 3*gamma, idxi,...
+                                        nodal_force, total_force, f_dln,...
+                                        MU, NU, a, 0);
+%         f_dln2 = f_dln;
+%         clear f_dln;
+%         f_dln = analytic_traction2(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
+%                 xnodes, nc, rn, links,...
+%                 [mx; my; mz]  , planes   , 4  , gamma, mno, MU, NU, a    ,...
+%                 0);
+%               size(gamma);
+%               size(f_dln);
+%               isequal(f_dln,f_dln2)
+      
+      
      tic;
-      [fx3_array2,fx4_array2,fx5_array2,fx6_array2,fxtot_array2] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
-        x3_array,x4_array,x5_array,x6_array,...
-        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList,512,1);
-      %cuda_dln_nodal_surface_force_linear_rectangle(x1_array,x2_array,...
-        %x3_array,x4_array,x5_array,x6_array,...
-        %b_array,MU,NU,a,sizeRectangleLi    st,sizeSegmentList,512);
-    time_par = toc;
-    disp(time_par)
-    tic;
-     [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_arr(x1_array,x2_array,...
+      [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
         x3_array,x4_array,x5_array,x6_array,...
         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
     time_lin = toc;
-    disp(time_lin)
-      %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_arr2(x1_array,x2_array,...
-       % x3_array,x4_array,x5_array,x6_array,...
-        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
-      %[fx3_array2,fx4_array2,fx5_array2,fx6_array2,fxtot_array2] = nodal_surface_force_linear_rectangle_arr_unix(x1_array,x2_array,...
-       % x3_array,x4_array,x5_array,x6_array,...
-        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+    
+    tic;
+      %[fx3_array2,fx4_array2,fx5_array2,fx6_array2,fxtot_array2] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
+       % x3_array2,x4_array2,x5_array2,x6_array2,...
+        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
+    time_par = toc;
         
     fmidpoint_elementMEX = reshape(fxtot_array,3,mx*mz)';
-    fmidpoint_elementMEX2 = reshape(fxtot_array2,3,mx*mz)';
+%     fmidpoint_elementMEX2 = reshape(fxtot_array2,3,mx*mz)';
     %fmidpoint_elementMEXd1 = reshape(fxtot_arrayd1,3,mx*mz)';
     %fmidpoint_elementMEXd2 = reshape(fxtot_arrayd2,3,mx*mz)';
     
@@ -263,6 +261,11 @@ for mx=min_mx:stp_mx:max_mx
     Z=reshape(z,mx,mz);
     toc;
       
+    abs_err = abs(ftilda - fmidpoint_elementMEX(:,1));
+    min(abs_err)
+    max(abs_err)
+    mean(abs_err)
+    
     h=figure;   
     subplot(3,2,1);
     
@@ -303,43 +306,43 @@ for mx=min_mx:stp_mx:max_mx
     
     
     
-    g = figure;
-    subplot(3,2,1);
-    contourf(X,Z,reshape(ftilda(:,1),mx,mz));
-    colorvec = [-200 500];
-    caxis(colorvec);
-    %title(['mx = ',num2str(mx)])
-    title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
-    subplot(3,2,2);
-    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,1),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,3);
-    contourf(X,Z,reshape(ftilda(:,2),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,4);
-    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,2),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,5);
-    contourf(X,Z,reshape(ftilda(:,3),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,6);
-    contourf(X,Z,reshape(fmidpoint_elementMEX2(:,3),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    saveas(g, sprintf('fig2_%d_mx.png', mx));
+%     g = figure;
+%     subplot(3,2,1);
+%     contourf(X,Z,reshape(ftilda(:,1),mx,mz));
+%     colorvec = [-200 500];
+%     caxis(colorvec);
+%     %title(['mx = ',num2str(mx)])
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
+%     subplot(3,2,2);
+%     contourf(X,Z,reshape(fmidpoint_elementMEX2(:,1),mx,mz));
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     subplot(3,2,3);
+%     contourf(X,Z,reshape(ftilda(:,2),mx,mz));
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     subplot(3,2,4);
+%     contourf(X,Z,reshape(fmidpoint_elementMEX2(:,2),mx,mz));
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     subplot(3,2,5);
+%     contourf(X,Z,reshape(ftilda(:,3),mx,mz));
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     subplot(3,2,6);
+%     contourf(X,Z,reshape(fmidpoint_elementMEX2(:,3),mx,mz));
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     saveas(g, sprintf('fig2_%d_mx.png', mx));
     %close all
     %err(counter,1)=rms((ftilda(:,1)-fmidpoint_elementMEX(:,1))./fmidpoint_elementMEX(:,1))/(mx*mz);
     %err(counter,2)=rms((ftilda(:,2)-fmidpoint_elementMEX(:,2))./fmidpoint_elementMEX(:,2))/(mx*mz);

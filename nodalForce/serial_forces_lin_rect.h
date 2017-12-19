@@ -11,11 +11,12 @@ double init_point(double *i_vec1, double *i_vec2,
   denom = dot_product(i_vec3, i_vec4, i_vec_size);
   if (denom == 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: init_point: division by zero, dot_product(i_vec3, i_vec4) = %2.14f\n", denom);
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
   }
   result = dot_product(i_vec1, i_vec2, i_vec_size)/denom;
   return result;
 }
+
 
 double seed_single_integral(double a, double b){
   // Single integral seed.
@@ -24,7 +25,7 @@ double seed_single_integral(double a, double b){
   arg = a+b;
   if (arg <= 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: seed_single_integral: log(%2.14f) = %2.14f\n", arg, log(arg));
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
   }
   result = log(arg);
   return result;
@@ -54,9 +55,9 @@ double denom_seed_double_integral(double a, double b,
   result = a*b + c*d;
   if(result == 0.0){
     fprintf(stderr, "nodal_surface_force_linear_rectangle: denom_seed_integral_00m3: division by 0, result = %2.14f\n", result);
-    exit(EXIT_FAILURE);
+    //exit(EXIT_FAILURE);
   }
-  return result;
+return result;
 }
 
 double seed_double_integral(double a, double b, double c, double d, double e,
@@ -220,7 +221,7 @@ void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double 
          t_dot_n_p_x_b_dot_t, t_dot_n_q_x_b_dot_t,
          t_dot_n_p_x_b_dot_t_3, t_dot_n_q_x_b_dot_t_3,
          one_m_nu_1p5_a_sq, a_sq_3;
-
+  int i;
   // Calculate auxiliary local variables.
   one_m_nu_1p5_a_sq = 1.5 * i_one_m_nu * i_a_sq;
   a_sq_3 = 3.0 * i_a_sq;
@@ -240,7 +241,7 @@ void integral_vector(double *i_p, double *i_q, double *i_b, double *i_t, double 
   t_dot_n_p_x_b_dot_t_3 = 3.0 * t_dot_n_p_x_b_dot_t;
   t_dot_n_q_x_b_dot_t_3 = 3.0 * t_dot_n_q_x_b_dot_t;
 
-  for (int i=0; i<3; i++)
+  for (i=0; i<3; i++)
   {
       // Preparing common array factors.
       t_t_x_b_dot_n[i] = i_t  [i]*t_x_b_dot_n;
@@ -273,6 +274,7 @@ double *vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
                                       double *o_force){
   // Calculates the force on a vertex.
   double f[11];
+  int i, j;
   f [0] = i_sch [3] - i_s*i_sch [6] - i_r*i_sch [8] + i_rs*i_sch [0];
   f [1] = i_sch [5] - i_s*i_sch [7] - i_r*i_sch[10] + i_rs*i_sch [2];
   f [2] = i_sch [4] - i_s*i_sch [9] - i_r*i_sch [7] + i_rs*i_sch [1];
@@ -284,8 +286,8 @@ double *vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
   f [8] = i_sch[33] - i_s*i_sch[26] - i_r*i_sch[30] + i_rs*i_sch[25];
   f [9] = i_sch[37] - i_s*i_sch[29] - i_r*i_sch[26] + i_rs*i_sch[24];
   f[10] = i_sch[34] - i_s*i_sch[27] - i_r*i_sch[28] + i_rs*i_sch[19];
-  for (int i = 0; i < 11; i++){
-    for (int j = 0; j < 3; j++){
+  for (i = 0; i < 11; i++){
+    for (j = 0; j < 3; j++){
       o_force[j] += i_vec_int[i][j] * f[i];
     }
   }
@@ -298,40 +300,41 @@ double *vertex_force_linear_rectangle(double *i_sch, double i_vec_int[][3],
 double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
                                    double *i_p, double *i_q, double *i_t,
                                    double i_p_dot_t, double i_q_dot_t, double i_a_sq,
-                                   double *o_sch, int i_num_integrals){
+                                   double *o_sch){//, int i_num_integrals = 38){
   // Sign vector for quick evaluation of integrals via the dot product.
   static double signv[8] = {1.0,-1.0,-1.0,1.0,-1.0,1.0,1.0,-1.0};
   static const double third = 1.0/3.0;
   static const double two_third = 2.0/3.0;
   // Integrals.
   double // Single integrals.
-         a0m1[n_limits], b0m1[n_limits], c0m1[n_limits], a1m1[n_limits], b1m1[n_limits], c1m1[n_limits],
-         a01 [n_limits], b01 [n_limits], c01 [n_limits], a11 [n_limits], b11 [n_limits],
+         a0m1[8], b0m1[8], c0m1[8], a1m1[8], b1m1[8], c1m1[8],
+         a01 [8], b01 [8], c01 [8], a11 [8], b11 [8],
          // Double integrals.
-         d00m3[n_limits], e00m3[n_limits], f00m3[n_limits], d01m3[n_limits], d10m3[n_limits], d11m3[n_limits], e01m3[n_limits], e10m3[n_limits],
-         e11m3[n_limits], f01m3[n_limits], f10m3[n_limits], f11m3[n_limits], d00m1[n_limits], e00m1[n_limits], f00m1[n_limits], d01m1[n_limits],
-         e01m1[n_limits], f01m1[n_limits], d10m1[n_limits], e10m1[n_limits], f10m1[n_limits], d11m1[n_limits], e11m1[n_limits], f11m1[n_limits],
-         d02m3[n_limits], d20m3[n_limits], e20m3[n_limits], f20m3[n_limits], d001 [n_limits], e001 [n_limits], f001 [n_limits], d02m1[n_limits],
-         d20m1[n_limits], e20m1[n_limits], f20m1[n_limits], d12m3[n_limits], d21m3[n_limits], e21m3[n_limits], f21m3[n_limits], d22m3[n_limits],
+         d00m3[8], e00m3[8], f00m3[8], d01m3[8], d10m3[8], d11m3[8], e01m3[8], e10m3[8],
+         e11m3[8], f01m3[8], f10m3[8], f11m3[8], d00m1[8], e00m1[8], f00m1[8], d01m1[8],
+         e01m1[8], f01m1[8], d10m1[8], e10m1[8], f10m1[8], d11m1[8], e11m1[8], f11m1[8],
+         d02m3[8], d20m3[8], e20m3[8], f20m3[8], d001 [8], e001 [8], f001 [8], d02m1[8],
+         d20m1[8], e20m1[8], f20m1[8], d12m3[8], d21m3[8], e21m3[8], f21m3[8], d22m3[8],
          // Triple integrals
-         h [38][n_limits], h001m1[n_limits], h010m1[n_limits], h100m1[n_limits], h021m3[n_limits], h201m3[n_limits], h000m1[n_limits];
+         h[38][8] // Windows is dumb -.- .
+		 //h [i_num_integrals][8]
+		 , h001m1[8], h010m1[8], h100m1[8], h021m3[8], h201m3[8], h000m1[8];
  /*
    y^2, r^2, s^2 coordinates
    y*(p dot t), y*(q dot t), r*(p dot t), r*(q dot t)
     r dot p   ,  r dot q   ,  r dot t
    (r dot p)^2, (r dot q)^2, (r dot t)^2
  */
- double y_sq[n_limits], r_sq[n_limits], s_sq[n_limits],
-        y_p_dot_t[n_limits], y_q_dot_t[n_limits], r_p_dot_t[n_limits], s_q_dot_t[n_limits],
-        r_dot_p[n_limits], r_dot_q[n_limits], r_dot_t[n_limits],
-        r_dot_p_sq[n_limits], r_dot_q_sq[n_limits], r_dot_t_sq[n_limits];
+ double y_sq[8], r_sq[8], s_sq[8],
+        y_p_dot_t[8], y_q_dot_t[8], r_p_dot_t[8], s_q_dot_t[8],
+        r_dot_p[8], r_dot_q[8], r_dot_t[8],
+        r_dot_p_sq[8], r_dot_q_sq[8], r_dot_t_sq[8];
   /*
    ra = sqrt((r_vec dot r_vec) + a**2) from non-singular dislocation theory, there are 8 r_vec, thus 8 ra's.
    ra_sq = ra^2 (element-wise squaring)
    ra_c_o_3 = 1/3 * ra^3 (element-wise cubing and division)
   */
-  double ra[n_limits], ra_sq[n_limits], ra_c_o_3[n_limits];
-  // Vector R from x1 to x3, x4, x5, x6 and x2 to x3, x4, x5, x6. 8 vectors with 3 components each.
+  double ra[8], ra_sq[8], ra_c_o_3[8];
   double r_vec[8][3];
   /*
    Auxiliary constants to reduce computational cost.
@@ -360,6 +363,7 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
             one_o_one_m_p_dot_t_sq_m_q_dot_t_sq,
         trd_one_o_one_m_p_dot_t_sq_m_q_dot_t_sq,
         p_dot_t_q_dot_t;
+  int i, j;
   // Auxiliary scalars.
   two_p_dot_t = 2.0*i_p_dot_t;
   two_q_dot_t = 2.0*i_q_dot_t;
@@ -375,12 +379,12 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
   trd_one_o_one_m_p_dot_t_sq_m_q_dot_t_sq = third * one_o_one_m_p_dot_t_sq_m_q_dot_t_sq;
   // Auxiliary arrays.
   // Calculate r for all 8 combinations (from x1 to x3, x4, x5, x6 and x2 to x3, x4, x5, x6).
-  for (int i = 0; i < n_limits; i++){
-    for (int j = 0; j < 3; j++){
+  for (i = 0; i < 8; i++){
+    for (j = 0; j < 3; j++){
       r_vec[i][j] = i_r[i] * i_p[j] + i_s[i] * i_q[j] + i_y[i] * i_t[j];
     }
   }
-  for (int i = 0; i < n_limits; i++){
+  for (i = 0; i < 8; i++){
     r_sq      [i] = i_r[i] * i_r[i];
     s_sq      [i] = i_s[i] * i_s[i];
     y_sq      [i] = i_y[i] * i_y[i];
@@ -399,7 +403,7 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     s_q_dot_t [i] = i_s[i] * i_q_dot_t;
   }
   // Calculate integrals.
-  for (int i = 0; i < n_limits; i++){
+  for (i = 0; i < 8; i++){
     // Linear seed integrals.
     a0m1[i] = seed_single_integral(ra[i], r_dot_p[i]); // checked
     b0m1[i] = seed_single_integral(ra[i], r_dot_q[i]); // checked
@@ -552,15 +556,16 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     h[35][i] = trd_one_o_one_m_p_dot_t_sq_m_q_dot_t_sq * integral_type_12(2.0*one_m_p_dot_t_sq, h[3][i], -i_q_dot_t, h[5][i], p_dot_t_q_dot_t, h021m3[i], y_q_dot_t[i], d12m3[i], -p_dot_t_q_dot_t*i_r[i], f21m3[i], -one_m_p_dot_t_sq, s_sq[i], e11m3[i]); // checked
   }
   // Evaluating the integrals.
-  for (int i = 0; i<i_num_integrals; i++){
-    o_sch[i] = dot_product(h[i], signv, n_limits);
+  for (i = 0; i<38; i++){
+    o_sch[i] = dot_product(h[i], signv, 8);
   }
   return o_sch;
 }
 
 void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
                                      double *i_rp, double *i_sp, double i_factor,
-                                     double *o_nodal_force[n_nodes], double *o_total_force){
+                                     double *o_nodal_force[4], double *o_total_force){
+  int i;
   // Calculating nodal forces
   // x3.
   vertex_force_linear_rectangle(i_sch, i_vec_int, i_rp[1], i_sp[1], i_rp[1]*i_sp[1],  i_factor, o_nodal_force[0]);
@@ -570,50 +575,53 @@ void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
   vertex_force_linear_rectangle(i_sch, i_vec_int, i_rp[1], i_sp[0], i_rp[1]*i_sp[0], -i_factor, o_nodal_force[2]);
   // x5
   vertex_force_linear_rectangle(i_sch, i_vec_int, i_rp[0], i_sp[0], i_rp[0]*i_sp[0],  i_factor, o_nodal_force[3]);
-  for (int i = 0; i < n_nodes; i++){
+  for (i = 0; i < 4; i++){
     o_total_force[0] += o_nodal_force[i][0];
     o_total_force[1] += o_nodal_force[i][1];
     o_total_force[2] += o_nodal_force[i][2];
   }
 }
 
-void init_force(double *nodal_force[n_nodes], double *total_force){
+void init_force(double *nodal_force[4], double *total_force){
   // Sets forces to zero.
-  for (int i = 0; i < n_nodes; i++){
-    for (int j = 0; j < 3; j++){
+  int i, j;
+  for (i = 0; i < 4; i++){
+    for (j = 0; j < 3; j++){
       nodal_force[i][j] = 0.0;
     }
   }
-  for (int i = 0; i < 3; i++){
+  for (i = 0; i < 3; i++){
     total_force[i] = 0.0;
   }
 }
 
-void add_force(double *p_nodal_force[n_nodes], double *p_total_force, double *nodal_force[n_nodes], double *total_force){
+void add_force(double *p_nodal_force[4], double *p_total_force, double *nodal_force[4], double *total_force){
   // Adds forces for averaging purposes later on.
-  for (int i = 0; i < n_nodes; i++){
-    for (int j = 0; j < 3; j++){
+  int i, j;
+  for (i = 0; i < 4; i++){
+    for (j = 0; j < 3; j++){
       nodal_force[i][j] += p_nodal_force[i][j];
     }
   }
-  for (int i = 0; i < 3; i++){
+  for (i = 0; i < 3; i++){
     total_force[i] += p_total_force[i];
   }
 }
 
-void mean_force(double *nodal_force[n_nodes], double *total_force, int n_samples){
+void mean_force(double *nodal_force[4], double *total_force, int n_samples){
   // Sets forces to zero.
-  for (int i = 0; i < n_nodes; i++){
-    for (int j = 0; j < 3; j++){
+  int i, j;
+  for (i = 0; i < 4; i++){
+    for (j = 0; j < 3; j++){
       nodal_force[i][j] = nodal_force[i][j]/n_samples;
     }
   }
-  for (int i = 0; i < 3; i++){
+  for (i = 0; i < 3; i++){
     total_force[i] = total_force[i]/n_samples;
   }
 }
 
-void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
+void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[4], double *total_force){
   // Vertices of the dislocation segment and a linear rectangular surface.
   /*
           x5 -------------------- x6
@@ -638,7 +646,7 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   // r, s limits
   double rp[2], sp[2];
   //  y, r, s coordinates
-  double y[n_limits], r[n_limits], s[n_limits];
+  double y[8], r[8], s[8];
   // Vectors for the integrals.
   double vec_int[11][3];
   // Scalar value of the integrals.
@@ -646,6 +654,7 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   //  Auxiliary constants to reduce computational cost.
   //  p dot t, q dot t
   double p_dot_t, q_dot_t;
+  int i;
   // Set forces to zero.
   init_force(nodal_force, total_force);
   // Build unit vectors t.
@@ -659,12 +668,12 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   cross_product(p, t, p_x_t);
   cross_product(q, t, q_x_t);
   // Vectors between x3 and x1, and x6 and x2.
-  for (int i = 0; i < 3; i++){
+  for (i = 0; i < 3; i++){
     r_lim[0][i] = x3[i] - x1[i];
     r_lim[1][i] = x6[i] - x2[i];
   }
   // Integral bounds for y, r, s.
-  for (int i = 0; i < 2; i++){
+  for (i = 0; i < 2; i++){
     rp[i] = init_point(r_lim[i], q_x_t, p, q_x_t, 3);
     sp[i] = init_point(r_lim[i], p_x_t, q, p_x_t, 3);
   }
@@ -678,56 +687,13 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   // Calculate vectors for integrals.
   integral_vector(p, q, b, t, n, one_m_nu, a_sq, vec_int);
   // Calculate integrals.
-  integrals_linear_rectangle(r, s, y, p, q, t, p_dot_t, q_dot_t, a_sq, sch, 38);
+  integrals_linear_rectangle(r, s, y, p, q, t, p_dot_t, q_dot_t, a_sq, sch);//, 38);
   // Calculate nodal forces.
   compute_forces_linear_rectangle(sch, vec_int, rp, sp, factor, nodal_force, total_force);
+  //printf("total_force[x, y, z] = [%2.14f, %2.14f, %2.14f]\n", total_force[0], total_force[1], total_force[2]);
 }
 
-void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *t, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
-  /*
-    Forces
-    nodal_force[0][] = F_x3[x, y, z], nodal_force[1][] = F_x4[x, y, z],
-    nodal_force[2][] = F_x5[x, y, z], nodal_force[3][] = F_x6[x, y, z]
-    total_force[x, y, z] = F_x3[x, y, z] + F_x4[x, y, z] + F_x5[x, y, z] + F_x6[x, y, z]
-  */
-  // Modulus of p and q.
-  double rot_centre[3], rot_x1[3], rot_x2[3];
-  double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
-  int rotation;
-  rotation = 3;
-  // Initialise force to zero.
-  init_force(nodal_force, total_force);
-
-  for (int i = 0; i < n_nodes; i++){
-    p_nodal_force[i] = (double *) malloc(3 * sizeof(double));
-  }
-  double angle = 0.01*pi/180.;
-  int j;
-  cross_product(t, n, t_x_n);
-  mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
-  for (int i = 0; i < 3; i++){
-    // Halfway between x1 and x2. x1 + (x2-x1)/2
-    rot_centre[i] = 0.5*(x1[i] + x2[i]);
-    t_x_n[i] = t_x_n[i]/mag_t_x_n;
-  }
-  for (int i = 0; i < rotation; i++){
-    j = i+1;
-    arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x1, rot_x1);
-    arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x2, rot_x2);
-    nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
-    add_force(p_nodal_force, p_total_force, nodal_force, total_force);
-    arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x1, rot_x1);
-    arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x2, rot_x2);
-    nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
-    add_force(p_nodal_force, p_total_force, nodal_force, total_force);
-  }
-  mean_force(nodal_force, total_force, rotation*2);
-  for (int i = 0; i < n_nodes; i++){
-    free(p_nodal_force[i]);
-  }
-}
-
-void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
+void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[4], double *total_force){
   /*
     Forces
     nodal_force[0][] = F_x3[x, y, z], nodal_force[1][] = F_x4[x, y, z],
@@ -738,9 +704,12 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   double p[3], q[3], n[3], t[3];
   // Modulus of p and q.
   double p_norm, q_norm, t_dot_n;
+  double l_factor;
   double rot_centre[3], rot_x1[3], rot_x2[3];
-  double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
+  double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[4];
+  double angle = 0.01*pi/180.;
   int rotation;
+  int i, j;
   rotation = 3;
   // Vectors
   init_vector(x1, x2, 3, t);
@@ -749,55 +718,44 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   cross_product(p, q, n);
   normalise_vector(n, 3, n);
   t_dot_n = dot_product(t, n, 3);
-  #ifdef debug2
-    printf("p = %f %f %f\n", p[0], p[1], p[2]);
-    printf("q = %f %f %f\n", q[0], q[1], q[2]);
-    printf("n = %f %f %f\n", n[0], n[1], n[2]);
-    printf("b = %f %f %f\n", b[0], b[1], b[2]);
-  #endif
+  // Auxiliary variables.
+  l_factor = factor/p_norm/q_norm;
   if(t_dot_n != 0.0){
-    #ifdef debug3
-      clock_t begin = clock();
-    #endif
-    nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, nodal_force, total_force);
-    #ifdef debug3
-      clock_t end = clock();
-      double time_spent = (double)(end - begin) * 1000.0 / CLOCKS_PER_SEC ;
-      printf("time (ms) = %2.14f\n", time_spent);
-    #endif
+    nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
   }
   else{
-    for (int i = 0; i < n_nodes; i++){
-      p_nodal_force[i] = (double *) malloc(3*sizeof(double));
+    for (i = 0; i < 4; i++){
+      p_nodal_force[i] = malloc(3*sizeof(double));
     }
-    double angle = 0.01*pi/180;
-    int j;
     cross_product(t, n, t_x_n);
     mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
-    for (int i = 0; i < 3; i++){
+    for (i = 0; i < 3; i++){
       // Halfway between x1 and x2. x1 + (x2-x1)/2
       rot_centre[i] = 0.5*(x1[i] + x2[i]);
       t_x_n[i] = t_x_n[i]/mag_t_x_n;
     }
     //FILE *fp;
-    //fp = fopen("./tests/test.txt", "w");
-    for (int i = 0; i < rotation; i++){
+    //fp = fopen("./tests/test2.txt", "w");
+    for (i = 0; i < rotation; i++){
       j = i+1;
       arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x1, rot_x1);
       arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x2, rot_x2);
-      nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
+      nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, p_nodal_force, p_total_force);
+      //printf("theta  = %f\nrot_x1 = [%f, %f, %f]\nrot_x2 = [%f, %f, %f]\nx1 = [%f, %f, %f]\nx2 = [%f, %f, %f]\n", j*angle, rot_x1[0], rot_x1[1], rot_x1[2], rot_x2[0], rot_x2[1], rot_x2[2], x1[0], x1[1], x1[2], x2[0], x2[1], x2[2]);
       //fprintf(fp, "%3f %2.14f %2.14f %2.14f\n", j*angle*180./pi, p_total_force[0], p_total_force[1], p_total_force[2]);
       add_force(p_nodal_force, p_total_force, nodal_force, total_force);
       arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x1, rot_x1);
       arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x2, rot_x2);
-      nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
+      nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, p_nodal_force, p_total_force);
+      //printf("theta  = %f\nrot_x1 = [%f, %f, %f]\nrot_x2 = [%f, %f, %f]\nx1 = [%f, %f, %f]\nx2 = [%f, %f, %f]\n", j*angle, rot_x1[0], rot_x1[1], rot_x1[2], rot_x2[0], rot_x2[1], rot_x2[2], x1[0], x1[1], x1[2], x2[0], x2[1], x2[2]);
       //fprintf(fp, "%3.6f %2.14f %2.14f %2.14f\n", -j*angle*180./pi, p_total_force[0], p_total_force[1], p_total_force[2]);
       add_force(p_nodal_force, p_total_force, nodal_force, total_force);
     }
     //fclose(fp);
     mean_force(nodal_force, total_force, rotation*2);
-    for (int i = 0; i < n_nodes; i++){
+    for (i = 0; i < 4; i++){
       free(p_nodal_force[i]);
     }
   }
+  //printf("total_force[x, y, z] = [%2.14f, %2.14f, %2.14f]\n", total_force[0], total_force[1], total_force[2]);
 }

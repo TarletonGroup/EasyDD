@@ -11,14 +11,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mex.h>
+
+#include "vector_utils.h"
+#include "serial_forces_lin_rect.h"
+
 // Calculate atanh because MS Visual Studio is inferior to GCC.
 #ifdef _WIN32
   double atanh( double r ){
     return 0.5 * (log(1+r) - log(1-r));
   }
 #endif
-#include "vector_utils.h"
-#include "serial_forces_lin_rect.h"
 
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]){

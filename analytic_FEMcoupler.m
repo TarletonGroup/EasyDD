@@ -1,5 +1,5 @@
-function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t)
+function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t, gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, f_dln_node, f_dln_se, f_dln)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -56,11 +56,22 @@ uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
 
 fhat=zeros(3*(mno),1); 
 
-gamma=[gammat;gammaMixed];
+gamma_dln=[gammat;gammaMixed];
 
+[x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
+f_dln = analytic_traction(               ...
+                                x3x6 , x1x2,...
+                                b       , n_nodes, n_nodes_t,...
+                                n_se, n_dln, 3*gamma_dln, idxi,...
+                                f_dln_node, f_dln_se, f_dln,...
+                                MU, NU, a, 0);
 %ftilda = zeros(3*mno,1);
-ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);
+ftilda = traction(gamma_dln,segments,xnodes, mno, a, MU, NU);
 
+abs_err = abs(ftilda - f_dln);
+min(abs_err)
+max(abs_err)
+mean(abs_err)
 %%
 %ftilda=zeros(3*mno,1); %ET uncomment later!
 
