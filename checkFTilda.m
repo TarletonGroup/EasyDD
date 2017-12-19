@@ -10,8 +10,8 @@ run ./Inputs/inputCheck.m
 
 counter=1;
 error = [0 0 0];
-min_mx = 10;
-max_mx = 10;
+min_mx = 30;
+max_mx = 30;
 stp_mx = 10;
 for mx=min_mx:stp_mx:max_mx
 
@@ -26,26 +26,25 @@ for mx=min_mx:stp_mx:max_mx
     
     
     %% Testing the backward map
-        planes = [6;3;2;1;5;4];
-        snodes = [Sleft];
+        planes = [2;1];
         gamma = [gammat(:,1); gammaMixed(:,1)];
         [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(...
                                       xnodes     , nc,...
                                       [mx;my;mz] , planes,...
                                       4);
-        [idxf, idxi, f_dln, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4);
+        [idxi, f_dln, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, mno);
         [x1x2, b, n_dln] = extract_dislocation_nodes(rn,...
                                         links);
         [f_dln] = analytic_traction(               ...
                                         x3x6 , x1x2,...
                                         b       , 4       , n_nodes_t,...
-                                        n_se, n_dln, idxf, idxi, f_dln,...
+                                        n_se, n_dln, 3*gamma, idxi, f_dln,...
                                         MU, NU, a, 0);
         f_dln2 = f_dln;
         clear f_dln;
         [f_dln] = analytic_traction2(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
                 xnodes, nc, rn, links,...
-                [mx; my; mz]  , planes   , 4  , gamma, MU, NU, a    ,...
+                [mx; my; mz]  , planes   , 4  , gamma, mno, MU, NU, a    ,...
                 0);
               size(gamma);
               size(f_dln);
@@ -341,7 +340,7 @@ for mx=min_mx:stp_mx:max_mx
     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     saveas(g, sprintf('fig2_%d_mx.png', mx));
-    close all
+    %close all
     %err(counter,1)=rms((ftilda(:,1)-fmidpoint_elementMEX(:,1))./fmidpoint_elementMEX(:,1))/(mx*mz);
     %err(counter,2)=rms((ftilda(:,2)-fmidpoint_elementMEX(:,2))./fmidpoint_elementMEX(:,2))/(mx*mz);
     %err(counter,3)=rms((ftilda(:,3)-fmidpoint_elementMEX(:,3))./fmidpoint_elementMEX(:,3))/(mx*mz);

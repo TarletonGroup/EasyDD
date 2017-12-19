@@ -1,5 +1,6 @@
-function [idxf, idxi, f_dln, n_nodes_t] = nodal_force_map(...
-                                            se_node_label, gamma, n_neighbours)
+function [idxi, f_dln, n_nodes_t] = nodal_force_map(       ...
+                                            se_node_label, gamma,...
+                                            n_neighbours , mno)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
@@ -34,6 +35,8 @@ function [idxf, idxi, f_dln, n_nodes_t] = nodal_force_map(...
     % n_neighbours := the maximum number of surface elements that can share
     %   a node (in a rectangular grid 4 elements can share a node).
     %
+    % mno := (mx+1) * (my+1) * (mz+1) total number of FEM nodes.
+    %
     %=====================================================================%
     % Dummy variables
     %=====================================================================%
@@ -48,10 +51,6 @@ function [idxf, idxi, f_dln, n_nodes_t] = nodal_force_map(...
     %=====================================================================%
     % Outputs
     %=====================================================================%
-    %
-    % idxf := dimension(n_nodes_t). Precomputed array of indices
-    %   corresponding to the z-coordinates of the finite element node force 
-    %   array (f_dln is ordered the same).
     %
     % idxi := dimension(n_nodes*n_neighbours). Array with the indices where
     %   a given node in gamma is found in the nodal force array of the
@@ -68,20 +67,30 @@ function [idxf, idxi, f_dln, n_nodes_t] = nodal_force_map(...
     %
     %%===================================================================%%
     
-    %% Map analytical nodal forces into a useful form for the force superposition scheme.
-    % Find the number of nodes for which tractions need to be calculated.
-    n_nodes_t = size(gamma, 1);
-    % Allocate the force vector for forces induced by dislocations.
-    f_dln = zeros(3*n_nodes_t, 1);
-    % The maximum number of elements that share a node.
-    idxi = zeros(n_nodes_t * n_neighbours, 1);
+    %% This is more memory efficient (and perhaps more computationally
+    %   efficient) but it stops us from naively adding f_dln to its FEM 
+    %   counterpart. Instead we use 3*gamma to index f_dln directly and 
+    %   allocate f_dln to be the size of its FEM counterpart. If we move to
+    %   this model then we need to output idxf and use that as the idxf
+    %   variable in the analytic traction calculation.
     % The FEM forces are given in the same node order as gamma, so this
     % finds the index of the nodal forces corresponding to gamma(i).
     % Multiplied by 3 because the nodes have 3 coordinates. This lands 
     % idxi on the index which corresponds to the z-coordinate of node 
     % gamma(i).
-    idxf = (1:1:n_nodes_t)'*3;
-    % Loop through the number of nodes.
+    %f_dln = zeros(3*n_nodes_t, 1);
+    %idxf = (1:1:n_nodes_t)'*3;
+    
+    
+    %% Map analytical nodal forces into a useful form for the force superposition scheme.
+    % Find the number of nodes for which tractions need to be calculated.
+    n_nodes_t = size(gamma, 1);
+    % Allocate the force vector for forces induced by dislocations.
+    f_dln = zeros(3*mno, 1);
+    % The maximum number of elements that share a node.
+    idxi = zeros(n_nodes_t * n_neighbours, 1);
+    
+    %% Loop through the number of nodes.
     j = 0;
     for i = 1: n_nodes_t
         % Find the indices of the node labels corresponding to the node

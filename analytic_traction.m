@@ -64,10 +64,12 @@ function [f_dln] = analytic_traction(                                   ...
     %
     % n_dln := number of dislocation line segments
     %
-    % idxf := dimension(n_nodes_t*3). 1D array containing the indices of
-    %   the force array used to account for the forces exerted by the 
-    %   dislocation ensemble on the finite element nodes. It is needed to
-    %   map the analytical solutions' forces to the right index.
+    % idxf := dimension(:). 1D array containing the indices of the force
+    %   array used to account for the forces exerted by the dislocation 
+    %   ensemble on the finite element nodes. It is needed to map the 
+    %   analytical solutions' forces to the right index. It is usually
+    %   equal to gamma*3 because only the nodes with traction boundary
+    %   conditions are needed.
     %
     % idxi := dimension(n_nodes_t*n_nodes). 1D assumed shape array 
     %   containing the global label indices of the nodes whose tractions 

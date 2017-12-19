@@ -1,7 +1,7 @@
 function [f_dln] = analytic_traction2(...
                 fem_nodes, fem_node_cnct, dln_nodes  , dln_node_cnct,...
                 fem_dim  , fem_planes   , n_nodes    , gamma        ,...
-                mu, nu, a, use_gpu      , n_threads  , para_scheme  ,...
+                mno, mu, nu, a, use_gpu , n_threads  , para_scheme  ,...
                 surf_node_util)
     %%===================================================================%%
     %---------------------------------------------------------------------%
@@ -210,7 +210,8 @@ function [f_dln] = analytic_traction2(...
     % Find the number of nodes for which tractions need to be calculated.282
     n_nodes_t = size(gamma, 1);
     % Allocate the force vector for forces induced by dislocations.
-    f_dln = zeros(3*n_nodes_t, 1);
+    %f_dln = zeros(3*n_nodes_t, 1);
+    f_dln = zeros(3*mno,1);
     % Loop through the number of nodes.
     for i = 1: n_nodes_t
         % Find the indices of the node labels corresponding to the node
@@ -223,7 +224,8 @@ function [f_dln] = analytic_traction2(...
         % Multiplied by 3 because the nodes have 3 coordinates. This lands 
         % idxi on the index which corresponds to the z-coordinate of node 
         % gamma(i).
-        idxf = i*3;
+        % idxf = i*3;
+        idxf = gamma(i)*3;
         % Loop through coordinates.
         for j = 2:-1:0
             % The index is displaced by -2, -1, 0, corresponding to the

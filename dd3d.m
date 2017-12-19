@@ -39,7 +39,22 @@ disp('Consistencycheck : Done!');
 disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
+
+%% Addition by Daniel Celis Garza 12/19/2017.
+% Precomputing variables needed to couple tractions induced by dislocations
+% to FEM. Generate the list of planes to be extracted. The FEM coupler is 
+% hardcoded so that the min(x) yz-plane does not have traction boundary
+% conditions.
+planes = (2:1:6)';
+gamma = [gammat(:,1); gammaMixed(:,1)];
+[x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
+                                               planes, 4);
+[idxi, f_dln, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, mno);
+[x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
+[f_dln] = analytic_traction(x3x6, x1x2, b, 4, n_nodes_t, n_se, n_dln,...
+                            3*gamma, idxi, f_dln, MU, NU, a, 0);
+                                    
 disp('Done! Initializing simulation.');
 
 global USE_GPU;
