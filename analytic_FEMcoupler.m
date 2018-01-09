@@ -1,9 +1,11 @@
-function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t, gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, f_dln_node, f_dln_se, f_dln)
+function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+    gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,t,...
+    gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
+    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
-% f = fhat + ftilda
+% f = f_hat + ftilda
 
 segments = constructsegmentlist(rn,links);
 
@@ -13,14 +15,13 @@ Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
 Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debuggin
 u=zeros(3*(mno),1);
-gamma=[gammau;gammaMixed];
 
-u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
+u(3*gamma_mixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
 
 uhat=zeros(3*mno,1);
 utilda=zeros(3*mno,1); 
 
-gn = gamma(:,1); % global node number
+gn = gamma_disp(:,1); % global node number
 x0 = xnodes(gn,1:3); % field point
 point_array_length = size(x0,1);
 segments_array_length = size(segments,1);
@@ -53,43 +54,67 @@ if any(isnan(utilda))
 end
 
 uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
-
-fhat=zeros(3*(mno),1); 
-
-gamma_dln=[gammat;gammaMixed];
-
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
-f_dln = analytic_traction(               ...
-                                x3x6 , x1x2,...
-                                b       , n_nodes, n_nodes_t,...
-                                n_se, n_dln, 3*gamma_dln, idxi,...
-                                f_dln_node, f_dln_se, f_dln,...
-                                MU, NU, a, 0);
-%ftilda = zeros(3*mno,1);
-ftilda = traction(gamma_dln,segments,xnodes, mno, a, MU, NU);
+f_dln(:) = 0;
+f_hat(:) = 0;
+[f_dln,~] = analytic_traction(x3x6 , x1x2, b, n_nodes, n_nodes_t,...
+                        n_se, n_dln, 3*gamma_dln, idxi,...
+                        f_dln_node, f_dln_se, f_dln,...
+                        MU, NU, a, use_gpu, n_threads, para_scheme);
+%f_dln = - f_dln;
+% any(isnan(f_dln))
+% any(isinf(f_dln))
+fhat=zeros(3*mno,1);
+fhat2=zeros(3*mno,1);
 
-abs_err = abs(ftilda - f_dln);
-min(abs_err)
-max(abs_err)
-mean(abs_err)
+ftilda = traction([gammat; gamma_mixed],segments,xnodes, mno, a, MU, NU);
+
 %%
-%ftilda=zeros(3*mno,1); %ET uncomment later!
+% f_hat(freeDofs) = -f_dln(freeDofs);% no applied forces
+fhat2(freeDofs) = f_dln(freeDofs);% no applied forces
+fhat (freeDofs) = -ftilda(freeDofs);% no applied forces
 
-fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
-
+% plot(rel_err, '.')
 %f=zeros(2*(mno),1);
-f=fhat-kg(:,fixedDofs)*uhat(fixedDofs);
+% f_hat = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
+f2    = fhat2-kg(:,fixedDofs)*uhat(fixedDofs);
+f     = fhat -kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt=mean(diag(kg));%=trace(K)/length(K)
+bcwt =mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
 
+% f_hat(fixedDofs) = bcwt*uhat(fixedDofs);
+% uhat = U\(L\f_hat); %using LU decomposition
+% uhat2=K\f;
+f2(fixedDofs) = bcwt*uhat(fixedDofs);
+uhat2 = U\(L\f2); %using LU decomposition
 f(fixedDofs) = bcwt*uhat(fixedDofs);
 uhat = U\(L\f); %using LU decomposition
-% uhat2=K\f; 
 
+rhat2=kg*uhat2;
 rhat=kg*uhat; % reaction force
 
-fend = rhat(3*gammaMixed(:,1))+ftilda(3*gammaMixed(:,1));
+fend2 = rhat2(3*gamma_mixed(:,1))-f_dln(3*gamma_mixed(:,1));
+fend2 = sum(fend2);
+fend = rhat(3*gamma_mixed(:,1))+ftilda(3*gamma_mixed(:,1));
 fend = sum(fend);
 
+%%
+ idx = f_dln ~= 0;
+ tf_dln = f_dln(idx);
+ tftilda = ftilda(idx);
+ idx2 = tftilda ~= 0;
+ tf_dln2 = tf_dln(idx2);
+ tftilda2 = tftilda(idx2);
+ abs_err = tftilda2 + tf_dln2;
+ rel_err = (tftilda2 + tf_dln2)./tf_dln2;
+ min(rel_err)
+ max(rel_err)
+ mean(rel_err)
+ 
+ fig1 = figure;
+ subplot(1,1,1)
+ plot(rel_err, '.')
+%  xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+%  ylabel('Force Relative Error, $\frac{F_{\mathrm{n}}-F_{\mathrm{a}}}{F_{\mathrm{a}}}$', 'Interpreter', 'latex');
 end

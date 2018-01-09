@@ -147,11 +147,11 @@ function [f_dln, f_dln_se] = analytic_traction(                                 
     % Parallel CUDA C calculation.
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
-        if ~exists(n_threads)
+        if ~exist('n_threads', 'var')
             n_threads = 512;
         end %if
         % Provide a default parallelisaion scheme in case none is given.
-        if ~exists(para_scheme)
+        if ~exist('para_scheme', 'var')
             % Parallelise over dislocations.
             para_scheme = 1;
         end %if

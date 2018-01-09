@@ -46,13 +46,33 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 % to FEM. Generate the list of planes to be extracted. The FEM coupler is 
 % hardcoded so that the min(x) yz-plane does not have traction boundary
 % conditions.
-planes = (2:1:6)';
+f_hat = zeros(3*mno, 1);
+
+planes = [3;4];%(2:1:6)';
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
                                                planes, 4);
-gamma = [gammat(:,1); gammaMixed(:,1)];
+gamma_dln = [gammat(:,1); gammaMixed(:,1)];
 [f_dln_node, f_dln_se,...
- f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, n_se, mno);
+ f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
 
+use_gpu = 0;
+% Parallel CUDA C flags.
+if use_gpu == 1
+    % Provide a default number of threads in case none is given.
+    if ~exist('n_threads', 'var')
+        n_threads = 512;
+    end %if
+    % Provide a default parallelisaion scheme in case none is given.
+    if ~exist('para_scheme', 'var')
+        % Parallelise over dislocations.
+        para_scheme = 1;
+    end %if
+else
+    n_threads = 0;
+    para_scheme = 0;
+end %if
+
+gamma_disp = [gammau; gammaMixed];
                                     
 disp('Done! Initializing simulation.');
 
@@ -112,9 +132,11 @@ while simTime < totalSimTime
     %DDD+FEM coupling
      %[uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
       %               gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
-     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                         gammau, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime,...
-                         gamma, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, f_dln_se, f_dln);
+    
+     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+                         gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
+                         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
+                         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;

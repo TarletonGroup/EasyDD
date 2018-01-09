@@ -5,13 +5,13 @@
 %
 % mexcuda COMPFLAGS="$COMPFLAGS -arch=sm_50 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex.cu -Dsc
 
-run ./Inputs/inputCheck.m
+% run ./Inputs/inputCheck.m
 % run source_generator.m
-
+%run ./Inputs/input111_Cu.m
 counter=1;
 error = [0 0 0];
-min_mx = 30;
-max_mx = 30;
+min_mx = 10;
+max_mx = 10;
 stp_mx = 10;
 for mx=min_mx:stp_mx:max_mx
 
@@ -174,22 +174,22 @@ for mx=min_mx:stp_mx:max_mx
       
       %% Testing the backward map
         
-        surf_node_util = [[5; 6; 8; 7; mx*mz; 2], [5; 6; 8; 7; mx*mz; 2]];
-        gamma = [gammat(:,1); gammaMixed(:,1)];
-        [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(...
-                                      xnodes     , nc,...
-                                      [mx;my;mz] , planes,...
-                                      4, surf_node_util);
-        [nodal_force, total_force,...
-         f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, n_se, mno);
-        [x1x2, b, n_dln] = extract_dislocation_nodes(rn,...
-                                        links);
-        [f_dln, total_force] = analytic_traction(               ...
-                                        [x3_array,x4_array,x5_array,x6_array] , x1x2,...
-                                        b       , 4       , n_nodes_t,...
-                                        n_se, n_dln, 3*gamma, idxi,...
-                                        nodal_force, total_force, f_dln,...
-                                        MU, NU, a, 0);
+%         surf_node_util = [[5; 6; 8; 7; mx*mz; 2], [5; 6; 8; 7; mx*mz; 2]];
+%         gamma = [gammat(:,1); gammaMixed(:,1)];
+%         [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(...
+%                                       xnodes     , nc,...
+%                                       [mx;my;mz] , planes,...
+%                                       4, surf_node_util);
+%         [nodal_force, total_force,...
+%          f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma, 4, n_se, mno);
+%         [x1x2, b, n_dln] = extract_dislocation_nodes(rn,...
+%                                         links);
+%         [f_dln, total_force] = analytic_traction(               ...
+%                                         [x3_array,x4_array,x5_array,x6_array] , x1x2,...
+%                                         b       , 4       , n_nodes_t,...
+%                                         n_se, n_dln, 3*gamma, idxi,...
+%                                         nodal_force, total_force, f_dln,...
+%                                         MU, NU, a, 0);
 %         f_dln2 = f_dln;
 %         clear f_dln;
 %         f_dln = analytic_traction2(...%Stop,Sbot,Sleft,Sright,Sfront,Sback,gammaMixed,     ...
@@ -199,8 +199,21 @@ for mx=min_mx:stp_mx:max_mx
 %               size(gamma);
 %               size(f_dln);
 %               isequal(f_dln,f_dln2)
-      
-      
+ 
+    f_hat = zeros(3*mno, 1);
+
+    planes = [3];%(2:1:6)';
+    [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
+                                                   planes, 4);
+    gamma_dln = [gammat(:,1); gammaMixed(:,1)];
+    [f_dln_node, f_dln_se,...
+     f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
+    gamma_disp = [gammau; gammaMixed];
+%     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+%                          gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
+%                          gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
+%                          f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme);
+
      tic;
       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
         x3_array,x4_array,x5_array,x6_array,...
@@ -260,50 +273,84 @@ for mx=min_mx:stp_mx:max_mx
     Y=reshape(y,mx,mz);
     Z=reshape(z,mx,mz);
     toc;
-      
-    abs_err = abs(ftilda - fmidpoint_elementMEX(:,1));
-    min(abs_err)
-    max(abs_err)
-    mean(abs_err)
+    
+    fig1 = figure;
+    
+    subplot(3,1,1)
+    idx = fmidpoint_elementMEX(:,1) ~= 0;
+    tf_dln = fmidpoint_elementMEX(idx,1);
+    tftilda = ftilda(idx);
+    rel_err = (tftilda - tf_dln)./tf_dln;
+    min_rel_err = min(rel_err);
+    max_rel_err = max(rel_err);
+    mean_rel_err = mean(rel_err);
+    plot(rel_err, '.')
+%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+%     ylabel('Relative Error, $F_{x}$', 'Interpreter', 'latex');
+    
+    subplot(3,1,2)
+    idx = fmidpoint_elementMEX(:,2) ~= 0;
+    tf_dln = fmidpoint_elementMEX(idx,2);
+    tftilda = ftilda(idx);
+    rel_err = (tftilda - tf_dln)./tf_dln;
+    min_rel_err = min(rel_err);
+    max_rel_err = max(rel_err);
+    mean_rel_err = mean(rel_err);
+    plot(rel_err, '.')
+%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+%     ylabel('Relative Error, $F_{y}$', 'Interpreter', 'latex');
+    
+    subplot(3,1,3)
+    idx = fmidpoint_elementMEX(:,3) ~= 0;
+    tf_dln = fmidpoint_elementMEX(idx,3);
+    tftilda = ftilda(idx);
+    rel_err = (tftilda - tf_dln)./tf_dln;
+    min_rel_err = min(rel_err);
+    max_rel_err = max(rel_err);
+    mean_rel_err = mean(rel_err);
+    plot(rel_err, '.')
+%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+%     ylabel('Relative Error, $F_{z}$', 'Interpreter', 'latex');
+%     saveas(fig1, 'error', 'epsc');
     
     h=figure;   
     subplot(3,2,1);
     
     contourf(X,Z,reshape(ftilda(:,1),mx,mz));
-    colorvec = [-200 500];
+    colorvec = [-100 100];
     caxis(colorvec);
     %title(['mx = ',num2str(mx)])
-    title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
     subplot(3,2,2);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,1),mx,mz));
     caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,3);
     contourf(X,Z,reshape(ftilda(:,2),mx,mz));
     caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,4);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,2),mx,mz));
     caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,5);
     contourf(X,Z,reshape(ftilda(:,3),mx,mz));
     caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,6);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,3),mx,mz));
-    caxis(colorvec);
-    title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    
+%     caxis(colorvec);
+%     title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
+%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+%     saveas(h, 'contour', 'epsc');
     
     
 %     g = figure;

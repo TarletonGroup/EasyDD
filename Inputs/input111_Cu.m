@@ -27,7 +27,7 @@ amag=3.61e-4;
 mumag = 48E3; % MPa only used for plotting  
 
 CRYSTAL_STRUCTURE = 'fcc';
-NUM_SOURCES = 50;
+NUM_SOURCES = 10;
 DIST_SOURCE = 0.5/amag;
 
 %% FEM PARAMETERS
@@ -37,7 +37,7 @@ dx=12.3/amag; %12.3micron
 dy=3.58/amag; %3.58micron
 dz=2.2458/amag; %2.2458micron
 
-mx=50; % number of elements along beam length
+mx=10; % number of elements along beam length
 loading=1; 
 vertices = [0,0,0;...
             dx,0,0;...
@@ -108,7 +108,7 @@ integrator='int_trapezoid';
 %integrator='int_trapezoid_stoc'; %in development
 a=lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 0.5*a; 
+rann = 0.5*a;
 rntol = 0.5*rann; % need to do convergence studies on all these parameters
 rmax = lmax;
 
