@@ -77,12 +77,15 @@ for i=1:rn_size
     if rnnew(i,end) ~= 65
         continue;
     end
-
+    
     %estimate surface centroid nearest to point
     [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
     
     %find surface normal associated with centroid
     Index(i)=index;
+    
+    %move exited node to surface
+    [rnnew] = movetosurf(rnnew,linksnew,i,vertices);
     
     %extend far away
     rnnew = extend(rnnew,linksnew,i,index,fn);
@@ -363,4 +366,32 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index
                     linksnew(end,6:8)=linksnew(connectivitynew(n0,2*ii),6:8);
                 end
              end
+end
+
+function [rnnew] = movetosurf(rnnew,linksnew,i,vertices)
+%     faces = [1,2,3,4;                                             %Faces of cuboid as defined by vertices
+%              1,2,5,6;
+%              1,3,5,7;
+%              2,4,6,8;
+%              3,4,7,8;
+%              5,6,7,8];
+%     
+%     vec = [rnnew(linksnew(linksnew(:,1)==i,2),1:3)-rnnew(i,1:3);rnnew(linksnew(linksnew(:,2)==i,1),1:3)-rnnew(i,1:3)];
+%     vec = sum(vec,1)/size(vec,1);
+%     line = [rnnew(i,1:3),vec];
+%     surfpts = intersectLineMesh3d(line, vertices, faces);
+%     [~,point_id] = min((surfpts(:,1)-rnnew(i,1)).^2+(surfpts(:,2)-rnnew(i,2)).^2+(surfpts(:,3)-rnnew(i,3)).^2);
+%     newsurfNode = surfpts(point_id,:);
+%     rnnew(i,1:3) = newsurfNode;
+    connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,5]);rnnew(linksnew(linksnew(:,2)==i,1),[1:3,5])];
+    connodes = connodes(connodes(:,4)~=67,1:3);
+    vec=zeros(size(connodes,1),size(connodes,2));
+    
+    for j=1:size(connodes,1)
+       vec(j,1:3)=connodes(j,1:3)-rnnew(i,1:3); 
+    end
+    
+    vec = sum(vec,1)/size(vec,1);
+    rnnew(i,1:3) = rnnew(i,1:3)+vec;
+    
 end

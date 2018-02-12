@@ -10,7 +10,7 @@ function [rn,links] = checkGenerator101(NUM_SOURCES,DIST_SOURCE,CRYSTAL_STRUCTUR
 %     disp('Crystal structure not recognized. Aborting');
 %     return;
 % end
-bufferfactor = 0.6% > 1/2 
+bufferfactor = 0.6;% > 1/2 
 %NB Sources are idealised as squares...
 Xmin = 0+bufferfactor*DIST_SOURCE;
 Xmax = dx*0.75-bufferfactor*DIST_SOURCE;
