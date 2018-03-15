@@ -43,7 +43,8 @@ function [coords, burgers, n_dln] = extract_dislocation_nodes(...
     %
     %%===================================================================%%
     %% Generate dislocation line segments.
-    dln   = constructsegmentlist(dln_nodes, dln_node_cnct)';
+    %dln   = constructsegmentlist(dln_nodes, dln_node_cnct)';
+    dln = construct_segment_list_analytic_tractions(dln_nodes, dln_node_cnct)';
     n_dln = size(dln, 2);
 
     %% Extract dislocation line nodes and burgers vectors.

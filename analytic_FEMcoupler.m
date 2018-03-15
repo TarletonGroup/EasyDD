@@ -13,7 +13,7 @@ segments = constructsegmentlist(rn,links);
 Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
 
 Ubar = Udot*t;
-%Ubar = 0.1*1E4; for debuggin
+%Ubar = 0.1*1E4; for debucontourfggin
 u=zeros(3*(mno),1);
 
 u(3*gamma_mixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  

@@ -558,7 +558,7 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     // if(r_dot_p[i]<=0.0) mexPrintf("r_dot_p[%d] = %f\n", i, r_dot_p[i]);
     // if(r_dot_q[i]<=0.0) mexPrintf("r_dot_q[%d] = %f\n", i, r_dot_q[i]);
     // if(r_dot_t[i]<=0.0) mexPrintf("r_dot_t[%d] = %f\n", i, r_dot_t[i]);
-    if(ra[i] + r_dot_p[i] <= 0.0) mexPrintf("r_vec[%d] = %f %f %f, i_p = %f %f %f\n", i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_p[0], i_p[1], i_p[2]);
+    if(ra[i] + r_dot_p[i] <= 0.0) mexPrintf("ra[%d] = %f, r_vec[%d] = %f %f %f, i_p = %f %f %f\n", i, ra[i], i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_p[0], i_p[1], i_p[2]);
     if(ra[i] + r_dot_q[i] <= 0.0) mexPrintf("r_vec[%d] = %f %f %f, i_q = %f %f %f\n", i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_q[0], i_q[1], i_q[2]);
     if(ra[i] + r_dot_t[i] <= 0.0) mexPrintf("r_vec[%d] = %f %f %f, i_t = %f %f %f\n", i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_t[0], i_t[1], i_t[2]);
     a0m1[i] = seed_single_integral(ra[i], r_dot_p[i]); // checked

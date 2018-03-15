@@ -281,75 +281,87 @@ for mx=min_mx:stp_mx:max_mx
     tf_dln = fmidpoint_elementMEX(idx,1);
     tftilda = ftilda(idx);
     rel_err = (tftilda - tf_dln)./tf_dln;
-    min_rel_err = min(rel_err);
-    max_rel_err = max(rel_err);
-    mean_rel_err = mean(rel_err);
+    min_rel_err = min(rel_err)
+    max_rel_err = max(rel_err)
+    mean_rel_err = mean(rel_err)
     plot(rel_err, '.')
-%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
-%     ylabel('Relative Error, $F_{x}$', 'Interpreter', 'latex');
+    xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+    ylabel('Relative Error, $F_{x}$', 'Interpreter', 'latex');
+    xlim([0, size(rel_err,1)])
+    ylim([min_rel_err,max_rel_err])
     
     subplot(3,1,2)
     idx = fmidpoint_elementMEX(:,2) ~= 0;
     tf_dln = fmidpoint_elementMEX(idx,2);
     tftilda = ftilda(idx);
     rel_err = (tftilda - tf_dln)./tf_dln;
-    min_rel_err = min(rel_err);
-    max_rel_err = max(rel_err);
-    mean_rel_err = mean(rel_err);
+    min_rel_err = min(rel_err)
+    max_rel_err = max(rel_err)
+    mean_rel_err = mean(rel_err)
     plot(rel_err, '.')
-%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
-%     ylabel('Relative Error, $F_{y}$', 'Interpreter', 'latex');
+    xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+    ylabel('Relative Error, $F_{y}$', 'Interpreter', 'latex');
+    xlim([0, size(rel_err,1)])
+    ylim([min_rel_err,max_rel_err])
     
     subplot(3,1,3)
     idx = fmidpoint_elementMEX(:,3) ~= 0;
     tf_dln = fmidpoint_elementMEX(idx,3);
     tftilda = ftilda(idx);
     rel_err = (tftilda - tf_dln)./tf_dln;
-    min_rel_err = min(rel_err);
-    max_rel_err = max(rel_err);
-    mean_rel_err = mean(rel_err);
+    min_rel_err = min(rel_err)
+    max_rel_err = max(rel_err)
+    mean_rel_err = mean(rel_err)
     plot(rel_err, '.')
-%     xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
-%     ylabel('Relative Error, $F_{z}$', 'Interpreter', 'latex');
+    xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
+    ylabel('Relative Error, $F_{z}$', 'Interpreter', 'latex');
+    xlim([0, size(rel_err,1)])
+    ylim([min_rel_err,max_rel_err])
 %     saveas(fig1, 'error', 'epsc');
     
-    h=figure;   
+    h=figure;
     subplot(3,2,1);
     
     contourf(X,Z,reshape(ftilda(:,1),mx,mz));
     colorvec = [-100 100];
     caxis(colorvec);
-    %title(['mx = ',num2str(mx)])
-%     title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
+    colorbar
+    title(['mx = ',num2str(mx)])
+    title('$\mathbf{f}^{\mathrm{Numerical}}_x$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
     subplot(3,2,2);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,1),mx,mz));
     caxis(colorvec);
-%     title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
-%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    colorbar
+    title('$\mathbf{f}^{\mathrm{Analytical}}_x$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,3);
     contourf(X,Z,reshape(ftilda(:,2),mx,mz));
     caxis(colorvec);
-%     title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    colorbar
+    title('$\mathbf{f}^{\mathrm{Numerical}}_y$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,4);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,2),mx,mz));
     caxis(colorvec);
-%     title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
-%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    colorbar
+    title('$\mathbf{f}^{\mathrm{Analytical}}_y$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,5);
     contourf(X,Z,reshape(ftilda(:,3),mx,mz));
     caxis(colorvec);
-%     title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    colorbar
+    title('$\mathbf{f}^{\mathrm{Numerical}}_z$', 'Interpreter', 'latex');
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
     subplot(3,2,6);
     contourf(X,Z,reshape(fmidpoint_elementMEX(:,3),mx,mz));
-%     caxis(colorvec);
-%     title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
-%     ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-%     xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    caxis(colorvec);
+    colorbar
+    title('$\mathbf{f}^{\mathrm{Analytical}}_z$', 'Interpreter', 'latex');
+    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
+    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
 %     saveas(h, 'contour', 'epsc');
     
     

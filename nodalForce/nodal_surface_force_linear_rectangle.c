@@ -109,7 +109,7 @@ int main(int argc, char **argv){
   }
   #ifdef debug
     for (int i = 0; i < n_se; i++){
-      printf("ftot_arr[%d] = [%2.14f, %2.14f, %2.14f]\n", i, ftot_arr[3*i], ftot_arr[3*i+1], ftot_arr[3*i+2]);
+      printf("ftot_arr[%d] = [%f, %f, %f]\n", i, ftot_arr[3*i], ftot_arr[3*i+1], ftot_arr[3*i+2]);
     }
   #endif
 
