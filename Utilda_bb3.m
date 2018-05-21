@@ -123,11 +123,11 @@ for i=1:segnum
           end
     end
     
+end
+
     Ux=Utilda(:,1);                                                     %Organises outputs
     Uy=Utilda(:,2);
     Uz=Utilda(:,3);
-end
-
 end
 
 function [u] = displacement_et_el(p,A,B,b,nu)

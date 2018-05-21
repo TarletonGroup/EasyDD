@@ -121,8 +121,7 @@ while simTime < totalSimTime
         fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n',...
             curstep,dt,printnode,vn(printnode,1),vn(printnode,2),vn(printnode,3));
     elseif (mod(curstep,printfreq)==0)
-        fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n',...
-            curstep,dt,printnode);
+        
     end
     
      if(mod(curstep,plotfreq)==0)

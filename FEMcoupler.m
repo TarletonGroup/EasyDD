@@ -9,6 +9,7 @@ segments = constructsegmentlist(rn,links);
 
 %Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
 Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
+% Udot = dx*1e-5; %HY
 
 Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debuggin

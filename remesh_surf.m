@@ -45,6 +45,20 @@ for n=1:L1
     end
 end
 
+%Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
+for n=1:L1
+   if rnnew(n,end)==65 && rnnew(n,1)<=0
+       vec=[0,0,0];
+       connumb=connectivitynew(n,1);
+       for m=1:connumb
+           vec=vec+rnnew(linksnew(connectivitynew(n,m+1),connectivitynew(n,m+2)),1:3)-rnnew(n,1:3);
+       end
+       vec=rnnew(n,1).*(vec/vec(1,1));
+       rnnew(n,1:3)=rnnew(n,1:3)-vec;
+       rnnew(n,end)=7;
+   end
+end
+
 %Create surface nodes for newly exited nodes
 for n=1:L1
     n0=nodelist(n); % the node id which is currently considered.
@@ -85,7 +99,7 @@ for i=1:rn_size
     Index(i)=index;
     
     %move exited node to surface
-    [rnnew] = movetosurf(rnnew,linksnew,i,vertices);
+    %[rnnew] = movetosurf(rnnew,linksnew,i,vertices);
     
     %extend far away
     rnnew = extend(rnnew,linksnew,i,index,fn);
