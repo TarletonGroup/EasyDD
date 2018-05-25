@@ -64,21 +64,22 @@ f_hat(:) = 0;
 %f_dln = - f_dln;
 % any(isnan(f_dln))
 % any(isinf(f_dln))
-fhat=zeros(3*mno,1);
-fhat2=zeros(3*mno,1);
+%fhat=zeros(3*mno,1);
+%% fhat2 replaced by f_hat in the rest of the code.
+%fhat2=zeros(3*mno,1);
 
-ftilda = traction([gammat; gamma_mixed],segments,xnodes, mno, a, MU, NU);
+%ftilda = traction([gammat; gamma_mixed],segments,xnodes, mno, a, MU, NU);
 
 %%
 % f_hat(freeDofs) = -f_dln(freeDofs);% no applied forces
-fhat2(freeDofs) = f_dln(freeDofs);% no applied forces
-fhat (freeDofs) = -ftilda(freeDofs);% no applied forces
+f_hat(freeDofs) = f_dln(freeDofs);% no applied forces
+%fhat (freeDofs) = -ftilda(freeDofs);% no applied forces
 
 % plot(rel_err, '.')
 %f=zeros(2*(mno),1);
 % f_hat = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
-f2    = fhat2-kg(:,fixedDofs)*uhat(fixedDofs);
-f     = fhat -kg(:,fixedDofs)*uhat(fixedDofs);
+f2    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
+%f     = fhat -kg(:,fixedDofs)*uhat(fixedDofs);
 
 bcwt =mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
@@ -88,33 +89,37 @@ bcwt = full(bcwt);
 % uhat2=K\f;
 f2(fixedDofs) = bcwt*uhat(fixedDofs);
 uhat2 = U\(L\f2); %using LU decomposition
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+%f(fixedDofs) = bcwt*uhat(fixedDofs);
+%uhat = U\(L\f); %using LU decomposition
 
 rhat2=kg*uhat2;
-rhat=kg*uhat; % reaction force
+%rhat=kg*uhat; % reaction force
 
-fend2 = rhat2(3*gamma_mixed(:,1))-f_dln(3*gamma_mixed(:,1));
-fend2 = sum(fend2);
-fend = rhat(3*gamma_mixed(:,1))+ftilda(3*gamma_mixed(:,1));
+%% The next two lines used to be fend2 instead of fend. Changed it so Bruce
+%% can run simulations with my traction code. This whole function needs to 
+%% be edited further to remove unused variables and optimise it.
+fend = rhat2(3*gamma_mixed(:,1))-f_dln(3*gamma_mixed(:,1));
 fend = sum(fend);
-
 %%
- idx = f_dln ~= 0;
- tf_dln = f_dln(idx);
- tftilda = ftilda(idx);
- idx2 = tftilda ~= 0;
- tf_dln2 = tf_dln(idx2);
- tftilda2 = tftilda(idx2);
- abs_err = tftilda2 + tf_dln2;
- rel_err = (tftilda2 + tf_dln2)./tf_dln2;
- min(rel_err)
- max(rel_err)
- mean(rel_err)
+%fend = rhat(3*gamma_mixed(:,1))+ftilda(3*gamma_mixed(:,1));
+%fend = sum(fend);
+
+%% for plotting diferences between analtical and numerical traction
+% idx = f_dln ~= 0;
+% tf_dln = f_dln(idx);
+% tftilda = ftilda(idx);
+% idx2 = tftilda ~= 0;
+% tf_dln2 = tf_dln(idx2);
+% tftilda2 = tftilda(idx2);
+% abs_err = tftilda2 + tf_dln2;
+% rel_err = (tftilda2 + tf_dln2)./tf_dln2;
+% min(rel_err)
+% max(rel_err)
+% mean(rel_err)
  
- fig1 = figure;
- subplot(1,1,1)
- plot(rel_err, '.')
+% fig1 = figure;
+% subplot(1,1,1)
+% plot(rel_err, '.')
 %  xlabel('Surface Node, arbitrary ordering' , 'Interpreter', 'latex');
 %  ylabel('Force Relative Error, $\frac{F_{\mathrm{n}}-F_{\mathrm{a}}}{F_{\mathrm{a}}}$', 'Interpreter', 'latex');
 end
