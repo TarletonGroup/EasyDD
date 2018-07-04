@@ -1,4 +1,4 @@
-%%=======================================================================%%
+%=========================================================================%
 %-------------------------------------------------------------------------%
 % Daniel Celis Garza
 % 04/07/2018
@@ -85,9 +85,7 @@
 % Runtime parameters.
 %
 % savefreq := save frequency of the .mat file.
- 
-
-%%=======================================================================%%
+%=========================================================================%
 
 clear all;
 close all;
@@ -166,12 +164,13 @@ printnode = 2;
 viewangle = [30,60];
 
 % Dislocation node and segment generator.
-[rn, links] = prismatic_bcc_generator(n_source, d_source, crys_struct, dx, dy, dz, p_lim, l_source);
+[rn, links] = prismatic_bcc_generator(n_source, d_source, crys_struct, ...
+                                      a_m, dx, dy, dz, plim, l_source);
 
 % Meshing parameters.
 maxconnections = 4; 
-lmax = 0.1/amag;
-lmin = 0.02/amag;
+lmax = 0.1/a_m;
+lmin = 0.02/a_m;
 areamin = lmin*lmin*sin(60/180*pi)*0.5; 
 areamax = 20*areamin;
 
