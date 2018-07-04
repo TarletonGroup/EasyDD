@@ -14,10 +14,18 @@
 
 // #include "vector_utils.h"
 // #include "serial_forces_lin_rect.h"
+#ifdef _WIN32
+/* this function calculates atanh since MS visual studio can't do it!*/
+double atanh( double r ) {
+    return 0.5*(log(1+r) - log(1-r));
+}
+#endif
+
 double dot_product(double *i_vec1, double *i_vec2, int i_vec_size){
   // Returns the dot product of i_vec1, i_vec2.
   double result = 0.0;
-  for (int i = 0; i < i_vec_size; i++){
+  int i;
+  for (i = 0; i < i_vec_size; i++){
     result += i_vec1[i]*i_vec2[i];
   }
   return result;
@@ -45,6 +53,7 @@ double *normalise_vector(double *i_vec, int i_vec_size,
                          double *o_vec){
   // Returns a normalised i_vec to o_vec.
   double mag_vec = 0.0;
+  int    i;
   mag_vec = dot_product(i_vec, i_vec, i_vec_size);
   // Check magnitude is not zero.
   if (mag_vec == 0.0){
@@ -52,7 +61,7 @@ double *normalise_vector(double *i_vec, int i_vec_size,
     // exit(EXIT_FAILURE);
   }
   mag_vec = sqrt(mag_vec);
-  for(int i = 0; i < i_vec_size; i++){
+  for(i = 0; i < i_vec_size; i++){
     o_vec[i] = i_vec[i]/mag_vec;
   }
   return o_vec;
@@ -67,6 +76,7 @@ void normalise_vector2(double *i_vec, int i_vec_size,
     double i_vec[size], o_vec[size], magnitude;
     normalise_vector2(i_vec, size, o_vec, &magnitude);
   */
+  int i;
   *o_mag_vec = dot_product(i_vec, i_vec, i_vec_size);
   // Check magnitude is not zero.
   if (*o_mag_vec == 0.0){
@@ -74,7 +84,7 @@ void normalise_vector2(double *i_vec, int i_vec_size,
     // exit(EXIT_FAILURE);
   }
   *o_mag_vec = sqrt(*o_mag_vec);
-  for(int i = 0; i < i_vec_size; i++){
+  for(i = 0; i < i_vec_size; i++){
     o_vec[i] = i_vec[i]/ *o_mag_vec;
   }
 }
@@ -83,11 +93,12 @@ double *arbitrary_rotation_matrix_3d(double i_theta, double *i_rot_centre, doubl
   // Rotates i_point an angle of i_theta about the unit vector i_rot_axis passing through the point i_rot_centre..
   double u_sq, v_sq, w_sq, au, bv, cw, m_ux_m_vy_m_wz, costheta, one_m_costheta, sintheta;
   double mag_rot_axis;
+  int i;
   // Always assume the user is stupid and check whether i_rot_axis is normalised, if it's not normalise it.
   mag_rot_axis = dot_product(i_rot_axis, i_rot_axis, 3);
   if(mag_rot_axis != 1.0){
     mag_rot_axis = sqrt(mag_rot_axis);
-    for (int i = 0; i < 3; i++){
+    for (i = 0; i < 3; i++){
       i_rot_axis[i] /= mag_rot_axis;
     }
   }
@@ -120,7 +131,8 @@ double *arbitrary_rotation_matrix_3d(double i_theta, double *i_rot_centre, doubl
 double *build_vector(double *i_x1, double *i_x2, int i_vec_size,
                      double *o_vec){
   // Returns a vector o_vec which translates the point i_x1 to i_x2.
-  for (int i = 0; i < i_vec_size; i++){
+  int i;
+  for (i = 0; i < i_vec_size; i++){
     o_vec[i] = i_x2[i] - i_x1[i];
   }
   return o_vec;
@@ -149,7 +161,7 @@ void init_vector2(double *i_x1  , double *i_x2, int i_vec_size,
 
 const int n_nodes  = 4;
 const int n_limits = 8;
-const double pi = 4.0 * atan(1.0);
+const double pi = 3.1415926535897932384626433832795028841971693993751;
 
 double init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
@@ -915,14 +927,6 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   }
   //printf("total_force[x, y, z] = [%f, %f, %f]\n", total_force[0], total_force[1], total_force[2]);
 }
-
-
-// Calculate atanh because MS Visual Studio is inferior to GCC.
-#ifdef _WIN32
-  double atanh( double r ){
-    return 0.5 * (log(1+r) - log(1-r));
-  }
-#endif
 
 void mexFunction(int nlhs, mxArray *plhs[],
                  int nrhs, const mxArray *prhs[]){
