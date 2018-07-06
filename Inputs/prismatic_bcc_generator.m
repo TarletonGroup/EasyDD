@@ -18,7 +18,7 @@ else
     return;
 end
 
-% BCC Slip systems.
+%% BCC Slip systems.
 ALLslips = [1 0 1 -1 1 1;
             1 0 1 1 1 -1;
             1 0 -1 1 1 1;
@@ -26,11 +26,57 @@ ALLslips = [1 0 1 -1 1 1;
             1 1 0 -1 1 1;
             1 1 0 1 -1 1;
             1 -1 0 1 1 1;
-            1 -1 0 1 1 -1
+            1 -1 0 1 1 -1;
             0 1 1 1 -1 1;
             0 1 1 1 1 -1;
             0 1 -1 1 1 1;
             0 1 -1 -1 1 1;];
+%% Dislocation with external segments.
+i = 1; %to 8
+% Slip plane and bugers vector.
+slip_n = ALLslips(i,1:3);
+b_vec  = ALLslips(i,4:6);
+
+% seg_t1 is the in-plane segment. seg_t2 is the out of plane segment.
+seg_t1 = cross(slip_n, b_vec);
+seg_t1 = seg_t1/norm(seg_t1);
+seg_t2 = slip_n;
+seg_t2 = seg_t2/norm(seg_t2);
+
+% Midpoint of the cantilever. Dislocation will pass through it.
+dx = 100;
+dy = 100/2;
+dz = 100/4;
+mid = [0.5*dx 0.5*dy 0.5*dz];
+
+% Intersect seg_1t with plane.
+p_0 = [    0 0.5*dy 0.5*dz;... % midpoint of min(x), yz-plane, face 1
+          dx 0.5*dy 0.5*dz;... % midpoint of max(x), yz-plane, face 2
+      0.5*dx      0 0.5*dz;... % midpoint of min(y), xz-plane, face 4
+      0.5*dx     dy 0.5*dz;... % midpoint of max(y), xz-plane, face 3
+      0.5*dx 0.5*dy      0;... % midpoint of min(z), xy-plane, face 5
+      0.5*dx 0.5*dy    dz];    % midpoint of max(z), xy-plane, face 6
+l_0 = mid;
+
+vertices = [0,0,0;...
+            dx,0,0;...
+            0,dy,0;...
+            dx,dy,0;...
+            0,0,dz;...
+            dx,0,dz;...
+            0,dy,dz;...
+            dx,dy,dz];
+        
+normals = [-1  0  0;... % min(x), yz-plane, face 1
+            1  0  0;... % max(x), yz-plane, face 2
+            0 -1  0;... % min(y), xz-plane, face 4
+            0  1  0;... % max(y), xz-plane, face 3
+            0  0 -1;... % min(z), xy-plane, face 5
+            0  0  1];   % max(z), xy-plane, face 6
+% d = dot(p_0 - l_0, normal)/dot(l, normal)
+d = dot((p_0(1,:) - l_0), normals(1,:))/dot(normals(2,:),normals(1,:))
+d*normals(1,:) + l_0
+
 
 %% Create inscribed prism where sources will be generated in the cantilever. 
 buffer = 1;% > 1/2 
