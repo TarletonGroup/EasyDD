@@ -117,8 +117,6 @@ dx = 12/a_m;
 dy = 3/a_m;
 dz = 3/a_m;
 
-mx = 50;
-
 vertices = [0 , 0 , 0  ;...
             dx, 0 , 0  ;...
             0 , dy, 0  ;...
@@ -127,7 +125,13 @@ vertices = [0 , 0 , 0  ;...
             dx, 0 , dz ;...
             0 , dy, dz ;...
             dx, dy, dz];
-
+        
+fem_n = [-1  0  0;... % min(x), yz-plane, face 1
+            1  0  0;... % max(x), yz-plane, face 2
+            0 -1  0;... % min(y), xz-plane, face 4
+            0  1  0;... % max(y), xz-plane, face 3
+            0  0 -1;... % min(z), xy-plane, face 5
+            0  0  1];   % max(z), xy-plane, face 6
 % Loading type.
 loading = 1;
 
@@ -164,8 +168,8 @@ printnode = 2;
 viewangle = [30,60];
 
 % Dislocation node and segment generator.
-[rn, links] = prismatic_bcc_generator(n_source, d_source, crys_struct, ...
-                                      a_m, dx, dy, dz, plim, l_source);
+slips = [3];
+[rn, links] = prismatic_bcc_generator(slips, dx, dy, dz, vertices, fem_n);
 
 % Meshing parameters.
 maxconnections = 4; 
@@ -205,3 +209,5 @@ rann   = 0.5*a;
 rntol  = 0.5*rann;
 rmax   = lmax;
 maxSeg = lmax;
+
+%plotnodes(rn,links,0,vertices)
