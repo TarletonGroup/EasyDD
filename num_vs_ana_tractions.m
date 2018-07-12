@@ -7,8 +7,8 @@
 clear all
 close all
 run ./Inputs/i_prismatic_bcc.m
-min_mx = 20;
-max_mx = 20;
+min_mx = 30;
+max_mx = 30;
 stp_mx = 10;
 
 fig0 = plotnodes(rn,links,0,vertices)
@@ -21,31 +21,16 @@ for mx = min_mx: stp_mx: max_mx
 
     sizeSegmentList = size(segments,1);
     
-    %% Analytical.
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
     b_array  = reshape(segments(:,3:5)',sizeSegmentList*3,1);  
     
+    %% Analytical.
+    face = 1;
     [dim, x3_array, x4_array, ...
      x5_array, x6_array, midpoint_element] = ...
-                            get_face_nodes(1, mx, my, mz, xnodes, nc);
+                            get_face_nodes(face, mx, my, mz, xnodes, nc);
       sizeRectangleList = dim(1);
-%     sizeRectangleList = mx*mz;
-%     [x3_array, x4_array, ...
-%      x5_array, x6_array] = establish_se(sizeRectangleList);
-%     
-%     for i=1:sizeRectangleList
-%         x3x6 = xnodes(nc(i,[5,6,8,7]),1:3);
-%         x3_array(i,1:3) = x3x6(1,1:3);
-%         x4_array(i,1:3) = x3x6(2,1:3);
-%         x5_array(i,1:3) = x3x6(3,1:3);
-%         x6_array(i,1:3) = x3x6(4,1:3);
-%     end
-%     
-%     [x3_array, x4_array,...
-%      x5_array, x6_array] = reshape_se(x3_array, x4_array, ...
-%                                       x5_array, x6_array, ...
-%                                       sizeRectangleList);
 
     %% Serial
     tic;
@@ -67,169 +52,21 @@ for mx = min_mx: stp_mx: max_mx
 %     ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
     
     %% Numerical
-%     midpoint_element = zeros(mx*mz,3);
-%     for p=1:mx*mz
-%        x3x6 = xnodes(nc(p,[5,6,8,7]),1:3);
-%        midpoint_element(p,1:3) = mean(x3x6,1);
-%     end %for
-    tic;
-    % min(y) xz plane
-    gamma = gammat(gammat(:,4) == -1,:); % face normal = [0 -1 0];
-    area = zeros(mx*mz,1) + gamma(1,2);
-    normal = gamma(1,3:5);
-    lseg = size(segments,1);
-    lgrid = mx*mz;
-    p1x = segments(:,6);
-    p1y = segments(:,7);
-    p1z = segments(:,8);
-    p2x = segments(:,9);
-    p2y = segments(:,10);
-    p2z = segments(:,11);
-    bx = segments(:,3);
-    by = segments(:,4);
-    bz = segments(:,5);
-    x = midpoint_element(:,1);
-    y = midpoint_element(:,2);
-    z = midpoint_element(:,3);
-    tic;
-    [sxx, syy, szz, sxy, syz, sxz] = StressDueToSegs(lgrid, lseg,...
-                                                  x, y, z,...
-                                                  p1x,p1y,p1z,...
-                                                  p2x,p2y,p2z,...
-                                                  bx,by,bz,...
-                                                  a,MU,NU); 
-    Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
-    Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
-    Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
-    ATx = area.*Tx;
-    ATy = area.*Ty;
-    ATz = area.*Tz;
-    ftilda_n = [ATx,ATy,ATz];
-    time_n = toc;
-    
-    %% Plotting.
-    X = reshape(x,mx,mz);
-    Y = reshape(y,mx,mz);
-    Z = reshape(z,mx,mz);
-    
-    fig1 = figure;
-    rel_err = (ftilda_n - ftilda_a_lin)./ftilda_a_lin;
-    rel_err(isnan(rel_err)) = 0;
-    
-    subplot(3,1,1)
-    min_rel_err = min(rel_err(:,1))
-    max_rel_err = max(rel_err(:,1))
-    mean_rel_err = mean(rel_err(:,1))
-    contourf(X,Z,reshape(rel_err(:,1),mx,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{x}}$','Interpreter','latex');
-    ylabel('$z$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,2)
-    min_rel_err = min(rel_err(:,2))
-    max_rel_err = max(rel_err(:,2))
-    mean_rel_err = mean(rel_err(:,2))
-    contourf(X,Z,reshape(rel_err(:,2),mx,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{y}}$','Interpreter','latex');
-    ylabel('$z$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,3)
-    min_rel_err = min(rel_err(:,3))
-    max_rel_err = max(rel_err(:,3))
-    mean_rel_err = mean(rel_err(:,3))
-    contourf(X,Z,reshape(rel_err(:,3),mx,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{z}}$','Interpreter','latex');
-    ylabel('$z$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    
-    
-    h=figure;
-    subplot(3,2,1);
-    
-    contourf(X,Z,reshape(ftilda_n(:,1),mx,mz));
-%     colorvec = [-0.06 0.06];
-%     caxis(colorvec);
-    colorbar
-    title(['mx = ',num2str(mx)])
-    title('$\mathbf{f}^{\mathrm{N}}_x$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
-    subplot(3,2,2);
-    contourf(X,Z,reshape(ftilda_a_lin(:,1),mx,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_x$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,3);
-    contourf(X,Z,reshape(ftilda_n(:,2),mx,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_y$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,4);
-    contourf(X,Z,reshape(ftilda_a_lin(:,2),mx,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_y$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,5);
-    contourf(X,Z,reshape(ftilda_n(:,3),mx,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_z$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,6);
-    contourf(X,Z,reshape(ftilda_a_lin(:,3),mx,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_z$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    saveas(h, sprintf('contour%d',mx), 'epsc');
+    [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
+
+    %% Plotting
+    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
     
     %% Use the xy plane for min z as the other benchmark
     clear x3_array x4_array x5_array x6_array;
     clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
     clear ftilda_a midpoint_element rel_err;
     
-    midpoint_element = zeros(mx*my,3);
-    sizeRectangleList = mx*my;
-
-    x3_array=zeros(sizeRectangleList,3);
-    x4_array=zeros(sizeRectangleList,3);
-    x5_array=zeros(sizeRectangleList,3);
-    x6_array=zeros(sizeRectangleList,3);
-
-idx = 1;
-for i = 1: my
-    cntr = (i-1)*mx*mz;
-    for j = 1: mx
-        x3x6 = xnodes(nc(cntr + j,[8, 7, 4, 3]),1:3);
-        x3_array(idx,1:3) = x3x6(1,1:3);
-        x4_array(idx,1:3) = x3x6(2,1:3);
-        x5_array(idx,1:3) = x3x6(3,1:3);
-        x6_array(idx,1:3) = x3x6(4,1:3);
-        midpoint_element(idx,1:3) = mean(x3x6,1);
-        idx = idx + 1;
-    end %for 
-end %for
-
-x3_array = reshape(x3_array',sizeRectangleList*3,1); %x,y,z for each node
-x4_array = reshape(x4_array',sizeRectangleList*3,1);
-x5_array = reshape(x5_array',sizeRectangleList*3,1);
-x6_array = reshape(x6_array',sizeRectangleList*3,1);
+    face = 2;
+    [dim, x3_array, x4_array, ...
+     x5_array, x6_array, midpoint_element] = ...
+                            get_face_nodes(face, mx, my, mz, xnodes, nc);
+      sizeRectangleList = dim(1);
 
      tic;
       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
@@ -244,161 +81,22 @@ x6_array = reshape(x6_array',sizeRectangleList*3,1);
         %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
 %     time_par = toc; 
     
-    %%
-    tic;
-    %choose front face
-    gamma = gammat(gammat(:,5) == 1,:); %face=[0 0 1];
-    area = zeros(mx*my,1) + gamma(1,2);
-    normal = gamma(1,3:5);
-    lseg = size(segments,1);
-    lgrid = mx*my;
-    p1x = segments(:,6);
-    p1y = segments(:,7);
-    p1z = segments(:,8);
-    p2x = segments(:,9);
-    p2y = segments(:,10);
-    p2z = segments(:,11);
-    bx = segments(:,3);
-    by = segments(:,4);
-    bz = segments(:,5);
-    x = midpoint_element(:,1);
-    y = midpoint_element(:,2);
-    z = midpoint_element(:,3);
-    [sxx, syy, szz, sxy, syz, sxz] = StressDueToSegs(lgrid, lseg,...
-                                                  x, y, z,...
-                                                  p1x,p1y,p1z,...
-                                                  p2x,p2y,p2z,...
-                                                  bx,by,bz,...
-                                                  a,MU,NU); 
-    Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
-    Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
-    Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
-    ATx = area.*Tx;
-    ATy = area.*Ty;
-    ATz = area.*Tz;
-    ftilda_n = [ATx,ATy,ATz];
+    %% Numerical
+    [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
 
-    X=reshape(x,mx,my);
-    Y=reshape(y,mx,my);
-    Z=reshape(z,mx,my);
-    toc;
-    
-    fig1 = figure;
-    rel_err = (ftilda_n - ftilda_a_lin)./ftilda_a_lin;
-    rel_err(isnan(rel_err)) = 0;
-    
-    subplot(3,1,1)
-    min_rel_err = min(rel_err(:,1))
-    max_rel_err = max(rel_err(:,1))
-    mean_rel_err = mean(rel_err(:,1))
-    contourf(X,Y,reshape(rel_err(:,1),mx,my));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{x}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,2)
-    min_rel_err = min(rel_err(:,2))
-    max_rel_err = max(rel_err(:,2))
-    mean_rel_err = mean(rel_err(:,2))
-    contourf(X,Y,reshape(rel_err(:,2),mx,my));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{y}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,3)
-    min_rel_err = min(rel_err(:,3))
-    max_rel_err = max(rel_err(:,3))
-    mean_rel_err = mean(rel_err(:,3))
-    contourf(X,Y,reshape(rel_err(:,3),mx,my));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{z}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    h=figure;
-    subplot(3,2,1);
-    
-    contourf(X,Y,reshape(ftilda_n(:,1),mx,my));
-%     colorvec = [-0.06 0.06];
-%     caxis(colorvec);
-    colorbar
-    title(['mx = ',num2str(mx)])
-    title('$\mathbf{f}^{\mathrm{N}}_x$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
-    subplot(3,2,2);
-    contourf(X,Y,reshape(ftilda_a_lin(:,1),mx,my));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_x$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,3);
-    contourf(X,Y,reshape(ftilda_n(:,2),mx,my));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_y$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,4);
-    contourf(X,Y,reshape(ftilda_a_lin(:,2),mx,my));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_y$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,5);
-    contourf(X,Y,reshape(ftilda_n(:,3),mx,my));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_z$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,6);
-    contourf(X,Y,reshape(ftilda_a_lin(:,3),mx,my));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_z$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    saveas(h, sprintf('contour%d',mx), 'epsc');
-    
+    %% Plotting
+    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
+ 
     %% Use the yz plane for min z as the other benchmark
     clear x3_array x4_array x5_array x6_array;
     clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
     clear ftilda_a midpoint_element rel_err;
     
-    midpoint_element = zeros(my*mz,3);
-    sizeRectangleList = my*mz;
-
-    x3_array=zeros(sizeRectangleList,3);
-    x4_array=zeros(sizeRectangleList,3);
-    x5_array=zeros(sizeRectangleList,3);
-    x6_array=zeros(sizeRectangleList,3);
-
-idx = 1;
-for i = 1: my
-    cntr = (i-1)*mx*mz;
-    for j = 1: mz
-        x3x6 = xnodes(nc(cntr + j*mx,[6, 2, 7, 3]),1:3);
-        x3_array(idx,1:3) = x3x6(1,1:3);
-        x4_array(idx,1:3) = x3x6(2,1:3);
-        x5_array(idx,1:3) = x3x6(3,1:3);
-        x6_array(idx,1:3) = x3x6(4,1:3);
-        midpoint_element(idx,1:3) = mean(x3x6,1);
-        idx = idx + 1;
-    end %for
-end %for
-
-x3_array = reshape(x3_array',sizeRectangleList*3,1); %x,y,z for each node
-x4_array = reshape(x4_array',sizeRectangleList*3,1);
-x5_array = reshape(x5_array',sizeRectangleList*3,1);
-x6_array = reshape(x6_array',sizeRectangleList*3,1);
+    face = 3;
+    [dim, x3_array, x4_array, ...
+     x5_array, x6_array, midpoint_element] = ...
+                            get_face_nodes(face, mx, my, mz, xnodes, nc);
+      sizeRectangleList = dim(1);
 
      tic;
       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
@@ -413,132 +111,11 @@ x6_array = reshape(x6_array',sizeRectangleList*3,1);
         %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
 %     time_par = toc; 
     
-    %%
-    tic;
-    %choose front face
-    gamma = gammat(gammat(:,3) == 1,:); %face=[-1 0 0];
-    area = zeros(my*mz,1) + gamma(1,2);
-    normal = gamma(1,3:5);
-    lseg = size(segments,1);
-    lgrid = my*mz;
-    p1x = segments(:,6);
-    p1y = segments(:,7);
-    p1z = segments(:,8);
-    p2x = segments(:,9);
-    p2y = segments(:,10);
-    p2z = segments(:,11);
-    bx = segments(:,3);
-    by = segments(:,4);
-    bz = segments(:,5);
-    % x = xnodes(nodes,1);
-    % y = xnodes(nodes,2);
-    % z = xnodes(nodes,3);
-    x = midpoint_element(:,1);
-    y = midpoint_element(:,2);
-    z = midpoint_element(:,3);
-    [sxx, syy, szz, sxy, syz, sxz] = StressDueToSegs(lgrid, lseg,...
-                                                  x, y, z,...
-                                                  p1x,p1y,p1z,...
-                                                  p2x,p2y,p2z,...
-                                                  bx,by,bz,...
-                                                  a,MU,NU); 
-    Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
-    Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
-    Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
-    ATx = area.*Tx;
-    ATy = area.*Ty;
-    ATz = area.*Tz;
-    ftilda_n = [ATx,ATy,ATz];
-
-    X=reshape(x,my,mz);
-    Y=reshape(y,my,mz);
-    Z=reshape(z,my,mz);
-    toc;
+    %% Numerical
+    [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
     
-    fig1 = figure;
-    rel_err = (ftilda_n - ftilda_a_lin)./ftilda_a_lin;
-    rel_err(isnan(rel_err)) = 0;
-    
-    subplot(3,1,1)
-    min_rel_err = min(rel_err(:,1))
-    max_rel_err = max(rel_err(:,1))
-    mean_rel_err = mean(rel_err(:,1))
-    contourf(Y,Z,reshape(rel_err(:,1),my,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{x}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,2)
-    min_rel_err = min(rel_err(:,2))
-    max_rel_err = max(rel_err(:,2))
-    mean_rel_err = mean(rel_err(:,2))
-    contourf(Y,Z,reshape(rel_err(:,2),my,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{y}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    subplot(3,1,3)
-    min_rel_err = min(rel_err(:,3))
-    max_rel_err = max(rel_err(:,3))
-    mean_rel_err = mean(rel_err(:,3))
-    contourf(Y,Z,reshape(rel_err(:,3),my,mz));
-    colorvec = [min_rel_err max_rel_err];
-    caxis(colorvec);
-    colorbar
-    title('Relative Error, $\mathbf{F_{z}}$','Interpreter','latex');
-    ylabel('$y$','Interpreter','latex');
-    xlabel('$x$', 'Interpreter', 'latex');
-    
-    h=figure;
-    subplot(3,2,1);
-    
-    contourf(Y,Z,reshape(ftilda_n(:,1),my,mz));
-%     colorvec = [-0.06 0.06];
-%     caxis(colorvec);
-    colorbar
-    title(['mx = ',num2str(mx)])
-    title('$\mathbf{f}^{\mathrm{N}}_x$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex');
-    subplot(3,2,2);
-    contourf(Y,Z,reshape(ftilda_a_lin(:,1),my,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_x$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,3);
-    contourf(Y,Z,reshape(ftilda_n(:,2),my,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_y$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,4);
-    contourf(Y,Z,reshape(ftilda_a_lin(:,2),my,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_y$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,5);
-    contourf(Y,Z,reshape(ftilda_n(:,3),my,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{N}}_z$', 'Interpreter', 'latex');
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    subplot(3,2,6);
-    contourf(Y,Z,reshape(ftilda_a_lin(:,3),my,mz));
-%     caxis(colorvec);
-    colorbar
-    title('$\mathbf{f}^{\mathrm{A}}_z$', 'Interpreter', 'latex');
-    ylabel('$z\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    xlabel('$x\, (\mu\mathrm{m})$', 'Interpreter', 'latex')
-    saveas(h, sprintf('contour%d',mx), 'epsc');
+    %% Plotting
+    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
 end %for
 
 function [x3, x4, x5, x6, xmid] = establish_se(length)
@@ -605,4 +182,122 @@ function [dim, x3, x4, x5, x6, xmid] = get_face_nodes(face, mx, my, mz, xnodes, 
         end %for
     end %if
     [x3, x4, x5, x6] = reshape_se(x3, x4, x5, x6, dim(1));
+end %function
+
+function [f_dln, x, y ,z] = f_dln_num(face, dim, gammat, segments, xmid, a, MU, NU)
+    if face == 1
+        idx = 4;
+        val = -1;
+    elseif face == 2
+        idx = 5;
+        val = 1;
+    elseif face == 3
+        idx = 3;
+        val = 1;
+    end %if
+    gamma = gammat(gammat(:, idx) == val,:);
+    area = zeros(dim(1),1) + gamma(1,2);
+    normal = gamma(1,3:5);
+    lseg = size(segments,1);
+    lgrid = dim(1);
+    p1x = segments(:,6);
+    p1y = segments(:,7);
+    p1z = segments(:,8);
+    p2x = segments(:,9);
+    p2y = segments(:,10);
+    p2z = segments(:,11);
+    bx = segments(:,3);
+    by = segments(:,4);
+    bz = segments(:,5);
+    x = xmid(:,1);
+    y = xmid(:,2);
+    z = xmid(:,3);
+    [sxx, syy, szz, sxy, syz, sxz] = StressDueToSegs(lgrid, lseg,...
+                                                  x, y, z,...
+                                                  p1x,p1y,p1z,...
+                                                  p2x,p2y,p2z,...
+                                                  bx,by,bz,...
+                                                  a,MU,NU); 
+    Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
+    Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
+    Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
+    ATx = area.*Tx;
+    ATy = area.*Ty;
+    ATz = area.*Tz;
+    f_dln = [ATx,ATy,ATz];
+end %function
+
+function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
+    
+    if face == 1
+        axis1 = reshape(x, dim(2), dim(3));
+        axis2 = reshape(z, dim(2), dim(3));
+        str_label  = ['x'; 'z'];
+    elseif face == 2
+        axis1 = reshape(x, dim(2), dim(3));
+        axis2 = reshape(y, dim(2), dim(3));
+        str_label  = ['x'; 'y'];
+    elseif face == 3
+        axis1 = reshape(y, dim(2), dim(3));
+        axis2 = reshape(z, dim(2), dim(3));
+        str_label  = ['y'; 'z'];
+    end %if
+    
+    str_dim = ['x'; 'y'; 'z'];
+    
+    rel_err = (f_dln_n - f_dln_a)./f_dln_a;
+    rel_err(isnan(rel_err)) = 0;
+    
+    error_cntr = figure;
+    for i = 1: 3
+        subplot(3, 1, i);
+        
+        contourf(axis1, axis2, reshape(rel_err(:, i), dim(2), dim(3)));
+        
+        min_rel_err  = min (rel_err(:, i));
+        max_rel_err  = max (rel_err(:, i));
+        colorvec = [min_rel_err max_rel_err];
+        caxis(colorvec);
+        colorbar
+        
+        title(sprintf('Relative Error, $F_{%s}$', str_dim(i)),'Interpreter','latex');
+        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        axis equal
+    end %for
+    
+    f_dln_n_fig = figure;
+    for i = 1: 3
+        subplot(3, 1, i);
+        
+        contourf(axis1, axis2, reshape(f_dln_n(:, i), dim(2), dim(3)));
+        
+        mean_rel_err = mean(rel_err(:, i));
+        colorvec = [min(f_dln_n(:, i))/(mean_rel_err + 1) max(f_dln_n(:, i))/(mean_rel_err + 1)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
+        caxis(colorvec);
+        colorbar
+        
+        title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
+        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        axis equal
+    end %for
+    
+    f_dln_a_fig = figure;
+    for i = 1: 3
+        subplot(3, 1, i);
+        
+        contourf(axis1, axis2, reshape(f_dln_a(:, i), dim(2), dim(3)));
+        
+        mean_rel_err = mean(rel_err(:, i));
+        colorvec = [min(f_dln_n(:, i))/(mean_rel_err + 1) max(f_dln_n(:, i))/(mean_rel_err + 1)];
+        caxis(colorvec);
+        colorbar
+        
+        title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
+        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        axis equal
+    end %for
+    
 end %function
