@@ -1,14 +1,16 @@
 %Check that left face of cantilever has same ftilda_n for FEM and analytical.
 %clear all;
 % %load a test condition
-% setenv('MW_NVCC_PATH','C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v7.5\bin')
-%
-% mexcuda COMPFLAGS="$COMPFLAGS -arch=sm_50 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex.cu -Dsc
+% setenv('MW_NVCC_PATH','C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v9.0\bin')
+% mexcuda COMPFLAGS="$COMPFLAGS -arch=sm_70 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex_cuda.cu
+% The above should work, but doesn't this is a known matlab issue. I
+% fixed it by following the instructions found here:
+% https://devtalk.nvidia.com/default/topic/1027876/cuda-programming-and-performance/why-does-atomicadd-not-work-with-doubles-as-input-/post/5228325/#5228325
 clear all
 close all
 run ./Inputs/i_prismatic_bcc.m
-min_mx = 30;
-max_mx = 30;
+min_mx = 20;
+max_mx = 20;
 stp_mx = 10;
 
 fig0 = plotnodes(rn,links,0,vertices)
@@ -43,13 +45,16 @@ for mx = min_mx: stp_mx: max_mx
     time_a_lin = toc;
     ftilda_a_lin = reshape(fxtot_array, 3, mx*mz)';
     
-%     %% Parallel
-%     tic;
-      %[fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
-       % x3_array,x4_array,x5_array,x6_array,...
-        %b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
-%     time_a_par = toc;
-%     ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
+    %% Parallel
+    tic;
+      [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
+       x3_array,x4_array,x5_array,x6_array,...
+        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1);
+    time_a_par = toc;
+    ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
+    
+    max(ftilda_a_lin - ftilda_a_par)
+    min(ftilda_a_lin - ftilda_a_par)
     
     %% Numerical
     [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
@@ -273,7 +278,7 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         contourf(axis1, axis2, reshape(f_dln_n(:, i), dim(2), dim(3)));
         
         mean_rel_err = mean(rel_err(:, i));
-        colorvec = [min(f_dln_n(:, i))/(mean_rel_err + 1) max(f_dln_n(:, i))/(mean_rel_err + 1)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
+        colorvec = [min(f_dln_n(:, i))*(mean_rel_err + 1) max(f_dln_n(:, i))*(mean_rel_err + 1)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
         
@@ -290,7 +295,7 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         contourf(axis1, axis2, reshape(f_dln_a(:, i), dim(2), dim(3)));
         
         mean_rel_err = mean(rel_err(:, i));
-        colorvec = [min(f_dln_n(:, i))/(mean_rel_err + 1) max(f_dln_n(:, i))/(mean_rel_err + 1)];
+        colorvec = [min(f_dln_n(:, i))*(mean_rel_err + 1) max(f_dln_n(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
         

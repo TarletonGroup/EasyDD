@@ -443,7 +443,11 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
     // Loop over coordinates.
     for (int j = 0; j < 3; j++){
       // Displace the output index to point at the j'th coordinate of the i'th node of the idx'th surface element.
-      atomicAdd_dbl(&o_g_fx_arr[idxf + j*n_se_n_nodes], i_nodal_force[i][j]);
+      #if __CUDA_ARCH__ < 600
+        atomicAdd_dbl(&o_g_fx_arr[idxf + j*n_se_n_nodes], i_nodal_force[i][j]);
+      #else
+        atomicAdd(&o_g_fx_arr[idxf + j*n_se_n_nodes], i_nodal_force[i][j]);
+      #endif
     }
     // Advance the output index to point at the (i+1)'th node of the first coordinate of the idx'th surface element.
     idxf += i_n_se;
@@ -452,7 +456,11 @@ __device__ void add_force_thread_device(double i_nodal_force[][3], double *i_tot
   // Loop over coordinates.
   idxf = idx;
   for (int i = 0; i < 3; i++){
-    atomicAdd_dbl(&o_g_ftot_arr[idxf], i_total_force[i]);
+    #if __CUDA_ARCH__ < 600
+        atomicAdd_dbl(&o_g_ftot_arr[idxf], i_total_force[i]);
+    #else
+        atomicAdd(&o_g_ftot_arr[idxf], i_total_force[i]);
+    #endif
     // Advance the output index to point at the (i+1)'th coordinate of the idx'th surface element.
     idxf += i_n_se;
   }
@@ -491,7 +499,11 @@ __device__ void dln_add_force_thread_device(double i_nodal_force[][3], double *i
     // Loop over coordinates.
     for (int j = 0; j < 3; j++){
       // Displace the output index to point at the j'th coordinate of the i'th node of the idx'th surface element.
-      atomicAdd_dbl(&o_g_fx_arr[idxf + idxa + j], i_nodal_force[i][j]);
+      #if __CUDA_ARCH__ < 600
+        atomicAdd_dbl(&o_g_fx_arr[idxf + idxa + j], i_nodal_force[i][j]);
+      #else
+        atomicAdd(&o_g_fx_arr[idxf + idxa + j], i_nodal_force[i][j]);
+      #endif
     }
     idxa += 3;
   }
@@ -499,7 +511,11 @@ __device__ void dln_add_force_thread_device(double i_nodal_force[][3], double *i
   // Loop over coordinates.
   idxa = 3*idx;
   for (int i= 0; i < 3; i++){
-    atomicAdd_dbl(&o_g_ftot_arr[idxa + i], i_total_force[i]);
+    #if __CUDA_ARCH__ < 600
+        atomicAdd_dbl(&o_g_ftot_arr[idxa + i], i_total_force[i]);
+    #else
+        atomicAdd(&o_g_ftot_arr[idxa + i], i_total_force[i]);
+    #endif
   }
 }
 

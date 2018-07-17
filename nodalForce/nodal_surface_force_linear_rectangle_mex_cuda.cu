@@ -121,12 +121,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
   fx_arr[3] = (double *) mxGetPr(plhs[3]);
   ftot_arr  = (double *) mxGetPr(plhs[4]);
   threads_per_block = (int) mxGetScalar(prhs[12]);
-  blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
   // CUDA
   if(para_scheme == 1){
+    blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
     dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   }
   else{
+    blocks_per_grid   = (n_se + threads_per_block - 1) / threads_per_block;
     se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   }
   // Host code is executed asynchronously from the kernel execution.
@@ -134,8 +135,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
   free(x_se_arr); free(x_dln_arr); free(x_b_arr);
   x_fx_arr   = (double *) malloc(3 * n_se * n_nodes * sizeof(double));
   // Special case, where dislocation line is parallel with surface element.
-  // Add compiler glag -Dsc when wanting to deal with the special case.
-  #ifdef sc
+  // Default behaviour is we take special cases into account.
+  // Add the custom compiler flag -Dsc at the end of the compilation
+  // command when wanting to ignore with the special case.
+  #ifndef sc
     int idx1, idx2;
     // Initialise forces.
     for (int i = 0; i < n_nodes; i++){
@@ -207,8 +210,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
   #endif
 
   // This code snippet ignores the special case where dislocation lines are parallel to the surface element.
-  // It is only compiled if the flag for the special case is not present.
-  #ifndef sc
+  // It is only compiled if the flag -Dsc for the special case is present.
+  #ifdef sc
   // Synchronously copy forces from device to host.
   checkCudaErrors( cudaMemcpy(x_fx_arr, d_fx_arr, 3 * n_se * n_nodes * sizeof(double), cudaMemcpyDeviceToHost) );
     if(para_scheme == 1){
