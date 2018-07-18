@@ -9,12 +9,15 @@
 clear all
 close all
 run ./Inputs/i_prismatic_bcc.m
-min_mx = 20;
-max_mx = 20;
+min_mx = 10;
+max_mx = 100;
 stp_mx = 10;
 
-fig0 = plotnodes(rn,links,0,vertices)
+% fig0 = plotnodes(rn,links,0,vertices)
 for mx = min_mx: stp_mx: max_mx
+    clear x3_array x4_array x5_array x6_array;
+    clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
+    clear ftilda_a midpoint_element rel_err;
     %% FEM
     segments = constructsegmentlist(rn,links);
     [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
@@ -46,21 +49,23 @@ for mx = min_mx: stp_mx: max_mx
     ftilda_a_lin = reshape(fxtot_array, 3, mx*mz)';
     
     %% Parallel
-    tic;
-      [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
-       x3_array,x4_array,x5_array,x6_array,...
-        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1);
-    time_a_par = toc;
-    ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
-    
-    max(ftilda_a_lin - ftilda_a_par)
-    min(ftilda_a_lin - ftilda_a_par)
+%     tic;
+%       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
+%        x3_array,x4_array,x5_array,x6_array,...
+%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 20, 1);
+%     time_a_par = toc;
+%     ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
+%     
+%     max(ftilda_a_lin - ftilda_a_par)
+%     min(ftilda_a_lin - ftilda_a_par)
+%     time_a_lin/time_a_par
     
     %% Numerical
     [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
 
     %% Plotting
-    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
+    save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
+%     plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
     
     %% Use the xy plane for min z as the other benchmark
     clear x3_array x4_array x5_array x6_array;
@@ -90,7 +95,8 @@ for mx = min_mx: stp_mx: max_mx
     [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
 
     %% Plotting
-    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
+    save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
+%     plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
  
     %% Use the yz plane for min z as the other benchmark
     clear x3_array x4_array x5_array x6_array;
@@ -120,9 +126,39 @@ for mx = min_mx: stp_mx: max_mx
     [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
     
     %% Plotting
-    plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
+    save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
+%     plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z)
 end %for
 
+%% Plot
+min_face = 1;
+stp_face = 1;
+max_face = 3;
+n_plots = (max_mx - min_mx)/stp_mx;
+rms_rel_err_val = zeros(max_face, (max_mx - min_mx)/stp_mx, 3);
+cntr = 1;
+for face = min_face: stp_face: max_face
+    for mx = 100: stp_mx: max_mx
+        load(sprintf('mx=%d_face=%d', mx, face));
+        rms_rel_err_val(face, cntr, :) = ...
+                        plot_figs(face, dim, ftilda_n, ftilda_a_lin, ...
+                        midpoint_element(:, 1), midpoint_element(:, 2),...
+                        midpoint_element(:, 3));
+        cntr = cntr + 1;
+    end %for
+end %for
+x = min_mx: stp_mx: max_mx;
+
+n_plots = n_plots+1;
+for face = min_face: stp_face: max_face
+    init = 1 + (face-min_face)*n_plots;
+    fin = init + n_plots - 1;
+    Y = [rms_rel_err_val(face, init: fin, 1); rms_rel_err_val(face, init: fin, 2); rms_rel_err_val(face, init: fin, 3)];
+    rms_fig = figure;
+    plot(x, Y)
+    legend({'$x$', '$y$', '$z$'}, 'Interpreter', 'latex');
+end %for
+%%
 function [x3, x4, x5, x6, xmid] = establish_se(length)
     x3   = zeros(length, 3);
     x4   = zeros(length, 3);
@@ -232,7 +268,7 @@ function [f_dln, x, y ,z] = f_dln_num(face, dim, gammat, segments, xmid, a, MU, 
     f_dln = [ATx,ATy,ATz];
 end %function
 
-function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
+function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
     
     if face == 1
         axis1 = reshape(x, dim(2), dim(3));
@@ -253,7 +289,7 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
     rel_err = (f_dln_n - f_dln_a)./f_dln_a;
     rel_err(isnan(rel_err)) = 0;
     
-    error_cntr = figure;
+    error_cntr = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
         
@@ -271,14 +307,14 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         axis equal
     end %for
     
-    f_dln_n_fig = figure;
+    f_dln_n_fig = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
         
         contourf(axis1, axis2, reshape(f_dln_n(:, i), dim(2), dim(3)));
         
         mean_rel_err = mean(rel_err(:, i));
-        colorvec = [min(f_dln_n(:, i))*(mean_rel_err + 1) max(f_dln_n(:, i))*(mean_rel_err + 1)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
+        colorvec = [min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
         
@@ -288,14 +324,14 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         axis equal
     end %for
     
-    f_dln_a_fig = figure;
+    f_dln_a_fig = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
         
         contourf(axis1, axis2, reshape(f_dln_a(:, i), dim(2), dim(3)));
         
         mean_rel_err = mean(rel_err(:, i));
-        colorvec = [min(f_dln_n(:, i))*(mean_rel_err + 1) max(f_dln_n(:, i))*(mean_rel_err + 1)];
+        colorvec = [min(f_dln_n(:, i))/(mean_rel_err + 1) max(f_dln_n(:, i))/(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
         
@@ -305,4 +341,5 @@ function plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         axis equal
     end %for
     
+    rms_rel_err = rms(rel_err);
 end %function
