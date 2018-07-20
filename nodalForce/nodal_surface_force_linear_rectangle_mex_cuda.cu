@@ -142,6 +142,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     int idx1, idx2;
     // Initialise forces.
     for (int i = 0; i < n_nodes; i++){
+	  fx[i] = (double * ) malloc(3*sizeof(double));
       for (int j = 0; j < 3*n_se; j++){
         fx_arr[i][j] = 0.0;
       }
