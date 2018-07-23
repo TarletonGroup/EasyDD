@@ -55,12 +55,12 @@ gamma_dln = [gammat(:,1); gammaMixed(:,1)];
 [f_dln_node, f_dln_se,...
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
 
-use_gpu = 0;
+use_gpu = 1;
 % Parallel CUDA C flags.
 if use_gpu == 1
     % Provide a default number of threads in case none is given.
     if ~exist('n_threads', 'var')
-        n_threads = 512;
+        n_threads = 256;
     end %if
     % Provide a default parallelisaion scheme in case none is given.
     if ~exist('para_scheme', 'var')
@@ -120,7 +120,7 @@ while simTime < totalSimTime
         plotCounter=plotCounter+1;
         plotCounterString=num2str(plotCounter,'%03d');
         %saveas(plotHandle,plotCounterString,'png')
-        save(plotCounterString,'rn','links','fend','Ubar','simTime');
+        %save(plotCounterString,'rn','links','fend','Ubar','simTime');
         %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
         %plotnodes(rn,links,plim,vertices);view(viewangle);
         %zlim([-100 100])
@@ -248,7 +248,10 @@ while simTime < totalSimTime
         
  end
 
-save restart;
+%save restart;
+if (mod(curstep, 100) == 0)
+    save(sprintf('dcg_20_07_18_gpu_%d_%d', n_threads, curstep));
+end
 disp('completed')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
