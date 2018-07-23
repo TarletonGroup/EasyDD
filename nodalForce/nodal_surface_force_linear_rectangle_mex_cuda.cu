@@ -228,7 +228,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
       free(x_ftot_arr);
     }
   #endif
-
+	for (int i = 0; i < n_nodes; i++){
+		free(fx[i]);
+	}
    free(x_fx_arr);
   // CUDA exit.
   cudaDeviceReset();

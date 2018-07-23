@@ -582,10 +582,10 @@ void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
   }
 }
 
-void init_force(double *nodal_force[4], double *total_force){
+void init_force(double *nodal_force[n_nodes], double *total_force){
   // Sets forces to zero.
   int i, j;
-  for (i = 0; i < 4; i++){
+  for (i = 0; i < n_nodes; i++){
     for (j = 0; j < 3; j++){
       nodal_force[i][j] = 0.0;
     }
@@ -768,6 +768,8 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
     nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
   }
   else{
+	// Initialise force to zero.
+	init_force(nodal_force, total_force);
     for (i = 0; i < 4; i++){
       p_nodal_force[i] = (double *) malloc(3*sizeof(double));
     }

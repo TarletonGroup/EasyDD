@@ -685,7 +685,7 @@ __device__ double *cuda_normalise_vector(double *i_vec, int i_vec_size,
   // Check magnitude is not zero.
   if (mag_vec == 0.0){
     //printf("ERROR: nodal_surface_force_linear_rectangle: normalise_vector: mag_vec = 0: A vector cannot have magnitude 0\n");
-    asm("trap;");
+    //asm("trap;");
   }
   mag_vec = sqrt(mag_vec);
   for(int i = 0; i < i_vec_size; i++){
@@ -707,7 +707,7 @@ __device__ void cuda_normalise_vector2(double *i_vec, int i_vec_size,
   // Check magnitude is not zero.
   if (*o_mag_vec == 0.0){
     //printf("ERROR: nodal_surface_force_linear_rectangle: normalise_vector2: o_mag_vec = 0: A vector cannot have magnitude 0\n");
-    asm("trap;");
+    //asm("trap;");
   }
   *o_mag_vec = sqrt(*o_mag_vec);
   for(int i = 0; i < i_vec_size; i++){

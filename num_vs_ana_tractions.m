@@ -29,75 +29,74 @@ for mx = min_mx: stp_mx: max_mx
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
     b_array  = reshape(segments(:,3:5)',sizeSegmentList*3,1);  
-    
-%     %% Analytical.
-%     face = 1;
+    for face = 1: 1: 3
+        %% Analytical.
+        [dim, x3_array, x4_array, ...
+         x5_array, x6_array, midpoint_element] = ...
+                                get_face_nodes(face, mx, my, mz, xnodes, nc);
+          sizeRectangleList = dim(1);
+
+        %% Serial
+        tic;
+        [fx3_array, fx4_array, ...
+         fx5_array, fx6_array, ...
+         fxtot_array] = ...
+           nodal_surface_force_linear_rectangle_mex(x1_array, x2_array, ...
+              x3_array, x4_array, x5_array, x6_array, b_array, MU, NU, a, ...
+              sizeRectangleList, sizeSegmentList);
+        time_a_lin = toc;
+        ftilda_a_lin = reshape(fxtot_array, 3, dim(1))';
+
+        % Parallel
+        tic;
+          [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
+           x3_array,x4_array,x5_array,x6_array,...
+            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1);
+        time_a_par = toc;
+        ftilda_a_par = reshape(fxtot_array,3,dim(1))';
+
+        max(ftilda_a_lin - ftilda_a_par)
+        min(ftilda_a_lin - ftilda_a_par)
+        time_a_lin/time_a_par
+
+        % Numerical
+        [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
+
+        % Plotting
+%         save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
+%         plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
+    end %for
+    %% Use the xy plane for min z as the other benchmark
+%     clear x3_array x4_array x5_array x6_array;
+%     clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
+%     clear ftilda_a midpoint_element rel_err;
+%     
+%     face = 2;
 %     [dim, x3_array, x4_array, ...
 %      x5_array, x6_array, midpoint_element] = ...
 %                             get_face_nodes(face, mx, my, mz, xnodes, nc);
 %       sizeRectangleList = dim(1);
 % 
-%     %% Serial
-%     tic;
-%     [fx3_array, fx4_array, ...
-%      fx5_array, fx6_array, ...
-%      fxtot_array] = ...
-%        nodal_surface_force_linear_rectangle_mex(x1_array, x2_array, ...
-%           x3_array, x4_array, x5_array, x6_array, b_array, MU, NU, a, ...
-%           sizeRectangleList, sizeSegmentList);
-%     time_a_lin = toc;
-%     ftilda_a_lin = reshape(fxtot_array, 3, mx*mz)';
+%      tic;
+%       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
+%         x3_array,x4_array,x5_array,x6_array,...
+%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
+%     time_lin = toc;
+%     ftilda_a_lin = reshape(fxtot_array,3,mx*my)';
 %     
-%     % Parallel
 %     tic;
 %       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
 %        x3_array,x4_array,x5_array,x6_array,...
-%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
-%     time_a_par = toc;
-%     ftilda_a_par = reshape(fxtot_array,3,mx*mz)';
+%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 256, 1);
+%     time_par = toc;
+%     ftilda_a_par = reshape(fxtot_array,3,mx*my)';
 %     
 %     max(ftilda_a_lin - ftilda_a_par)
 %     min(ftilda_a_lin - ftilda_a_par)
-%     time_a_lin/time_a_par
-    
-    %% Numerical
+%     time_lin/time_par
+%     
+%     %% Numerical
 %     [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
-
-    % Plotting
-%     save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
-%     plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
-    
-    %% Use the xy plane for min z as the other benchmark
-    clear x3_array x4_array x5_array x6_array;
-    clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
-    clear ftilda_a midpoint_element rel_err;
-    
-    face = 2;
-    [dim, x3_array, x4_array, ...
-     x5_array, x6_array, midpoint_element] = ...
-                            get_face_nodes(face, mx, my, mz, xnodes, nc);
-      sizeRectangleList = dim(1);
-
-     tic;
-      [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex(x1_array,x2_array,...
-        x3_array,x4_array,x5_array,x6_array,...
-        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList);
-    time_lin = toc;
-    ftilda_a_lin = reshape(fxtot_array,3,mx*my)';
-    
-    tic;
-      [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
-       x3_array,x4_array,x5_array,x6_array,...
-        b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 256, 1);
-    time_par = toc;
-    ftilda_a_par = reshape(fxtot_array,3,mx*my)';
-    
-    max(ftilda_a_lin - ftilda_a_par)
-    min(ftilda_a_lin - ftilda_a_par)
-    time_lin/time_par
-    
-    %% Numerical
-    [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
 
     %% Plotting
 %     save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_n', 'dim', 'face', 'midpoint_element')
@@ -124,7 +123,7 @@ for mx = min_mx: stp_mx: max_mx
 %     tic;
 %       [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
 %        x3_array,x4_array,x5_array,x6_array,...
-%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 512, 1);
+%         b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 256, 1);
 %     time_par = toc; 
 %     ftilda_a_par = reshape(fxtot_array,3,my*mz)';
 %     
