@@ -32,7 +32,7 @@ mumag = 82E3; % MPa only used for plotting
 CRYSTAL_STRUCTURE = 'bcc';
 NUM_SOURCES = 10;
 DIST_SOURCE = 0.2/amag;
-LENGTH_SOURCE = 400*LENGTH_b;
+LENGTH_SOURCE = 80*LENGTH_b;
 
 %% FEM PARAMETERS
 %Cantilever
@@ -59,7 +59,7 @@ vertices = [0,0,0;...
 %% DDLab PARAMETERS
 
 %Edge and screw glide and climb mobility parameters
-mobility='Hmobbcc1'; 
+mobility='mobbcc1'; 
 global Bscrew Bedge Beclimb Bline
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
@@ -176,5 +176,8 @@ links00 = links;
 
 
 tpause = 1.8E10;
+
+n_threads = 256;
+para_scheme = 1;
 
 save('dcg_20_07_18')

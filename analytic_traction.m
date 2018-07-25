@@ -148,7 +148,7 @@ function [f_dln, f_dln_se] = analytic_traction(                                 
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
         if ~exist('n_threads', 'var')
-            n_threads = 512;
+            n_threads = 256;
         end %if
         % Provide a default parallelisaion scheme in case none is given.
         if ~exist('para_scheme', 'var')
