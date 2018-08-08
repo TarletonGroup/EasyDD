@@ -48,7 +48,7 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 % conditions.
 f_hat = zeros(3*mno, 1);
 
-planes = [3;4];%(2:1:6)';
+planes = (1:1:6)';
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
                                                planes, 4);
 gamma_dln = [gammat(:,1); gammaMixed(:,1)];
@@ -189,27 +189,27 @@ while simTime < totalSimTime
     if (docollision) 
         %collision detection and handling
          
-              %COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
-              %it requires a GPU device
-              %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
-%                [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMarielle(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-%                rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-%              
-%                   if colliding_segments == 1 %scan and update dislocation structure.
-%                         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-%                         collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-%                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
-%                   end
+%               COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
+%               it requires a GPU device
+%               it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
+               [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+               rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+             
+                  if colliding_segments == 1 %scan and update dislocation structure.
+                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+                        collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+                        fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
+                  end
        
 %              INTIAL COLLISION
-             [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-             rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-             if colliding_segments == 1 %scan and update dislocation structure.
-
-                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-             end
+%              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+%              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+%              if colliding_segments == 1 %scan and update dislocation structure.
+% 
+%                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+%                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+%                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+%              end
     end
     
     if (doremesh) %do virtual re-meshing first

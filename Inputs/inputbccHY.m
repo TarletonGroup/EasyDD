@@ -32,7 +32,7 @@ mumag = 82E3; % MPa only used for plotting
 CRYSTAL_STRUCTURE = 'bcc';
 NUM_SOURCES = 10;
 DIST_SOURCE = 0.2/amag;
-LENGTH_SOURCE = 80*LENGTH_b;
+LENGTH_SOURCE = 500*LENGTH_b;
 
 %% FEM PARAMETERS
 %Cantilever

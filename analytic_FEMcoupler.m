@@ -55,25 +55,28 @@ end
 
 uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
-f_dln(:) = 0;
-f_hat(:) = 0;
+f_dln(:,1) = 0;
+f_hat(:,1) = 0;
 [f_dln,~] = analytic_traction(x3x6 , x1x2, b, n_nodes, n_nodes_t,...
                         n_se, n_dln, 3*gamma_dln, idxi,...
                         f_dln_node, f_dln_se, f_dln,...
-                        MU, NU, a, use_gpu, n_threads, para_scheme);
+                        MU, NU, a, use_gpu, n_threads, para_scheme);% added to check something
+                    
 %f_dln = - f_dln;
 % any(isnan(f_dln))
 % any(isinf(f_dln))
 %fhat=zeros(3*mno,1);
 %% fhat2 replaced by f_hat in the rest of the code.
-%fhat2=zeros(3*mno,1);
+% fhatn=zeros(3*mno,1);
 
-%ftilda = traction([gammat; gamma_mixed],segments,xnodes, mno, a, MU, NU);
+% ftilda = traction([gammat; gamma_mixed],segments,xnodes, mno, a, MU, NU);
 
 %%
 % f_hat(freeDofs) = -f_dln(freeDofs);% no applied forces
-f_hat(freeDofs) = f_dln(freeDofs);% no applied forces
-%fhat (freeDofs) = -ftilda(freeDofs);% no applied forces
+f_hat(freeDofs) = f_dln(freeDofs)';% no applied forces
+% fhatn(freeDofs) = -ftilda(freeDofs);% no applied forces
+
+% plot(f_hat - fhatn)
 
 % plot(rel_err, '.')
 %f=zeros(2*(mno),1);

@@ -17,56 +17,85 @@ x5 = [-1  1 0];
 x6 = [ 1  1 0];
 
 % There seems to be a factor of 3 missing from the analytical solutions.
-x1 = [0 0 1];
-x2 = [0 0 1E6];
+x1i = [0 0 0];
+x2i = [0 0 1];
 b  = [1 0 0];
 
 % Gauss-Legrende quadrature seems to be numerically unstable w.r.t. 
 % the number of quadrature points for this problem. I've tried with other 
 % dislocation lines and they have different behaviours.
 
+
+
 % There seems to be a factor of 3 missing from the analytical solutions.
-pts = 101;
-[fx3n, fx4n, fx5n, fx6n, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, pts);
 
-[fx3a, fx4a, ...
- fx5a, fx6a, ...
- ftota] = ...
-   nodal_surface_force_linear_rectangle_mex(x1, x2, ...
-      x3, x4, x5, x6, b, mu, nu, a, 1, 1);
- fx3a = fx3a';
- fx4a = fx4a';
- fx5a = fx5a';
- fx6a = fx6a';
- ftota = ftota'
- ftotn
- 
- ex3 = (fx3n - fx3a)./fx3a;
- ex4 = (fx4n - fx4a)./fx4a;
- ex5 = (fx5n - fx5a)./fx5a;
- ex6 = (fx6n - fx6a)./fx6a;
- extot = (ftotn - ftota)./ftota;
- 
- ex3(isnan(ex3)) = 0;
- ex4(isnan(ex4)) = 0;
- ex5(isnan(ex5)) = 0;
- ex6(isnan(ex6)) = 0;
- extot(isnan(extot)) = 0;
- 
- ex3(isinf(ex3)) = 0;
- ex4(isinf(ex4)) = 0;
- ex5(isinf(ex5)) = 0;
- ex6(isinf(ex6)) = 0;
- extot(isinf(extot)) = 0;
-%  
-%  ex3
-%  ex4
-%  ex5
-%  ex6
-%  extot
+n_q  = [1; 2; 10; 11; 100; 101; 500; 501; 1000; 1001; 1500; 1501];
+dist = [0; 1E-6; 1E-5; 1E-4; 1E-3; 1E-2; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6];
+save("parameters.mat")
+% Cycle gauss points
+for i = 1: size(n_q)
+    [q, w] = lgwt(n_q(i), -1, 1);
+    quad = [q, w];
+    for j = 1: size(dist)
+        x1 = x1i;
+        x1(1,3) = x1(1,3) + dist(j);
+        x2i = x1;
+        for k = 1: size(dist)
+            x2(1,3) = x2i(1,3) + dist(k);
+            if dist(k) == 0
+                x2(1,3) = x2(1,3) + a;
+            end %if
+            [~, ~, ~, ~, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad);
+            if i == 1
+                [~, ~, ~, ~, ftota] = ...
+                    nodal_surface_force_linear_rectangle_mex(x1, x2, ...
+                                    x3, x4, x5, x6, b, mu, nu, a, 1, 1);
+                ftota = ftota';
+                save(sprintf("a_%f_%f.mat", x1(1,3), x2(1,3)), "ftota")
+            end %if
+            save(sprintf("n_%d_%f_%f.mat", n_q(i), x1(1,3), x2(1,3)), "ftotn")
+        end %for
+    end %for
+end %for
+% cntr = 0;
+% for i = 1: size(dist)
+%     x1(1, 3) = x1i(1, 3) + dist(i);
+%     for j = 1: size(dist)
+%         x2(1, 3) = x2i(1, 3) + dist(j);
+%         if (x1(1,3) == x2(1,3))
+%             continue
+%         end %if
+%         [fx3a, fx4a, fx5a, fx6a, ftota] = ...
+%             nodal_surface_force_linear_rectangle_mex(x1, x2, ...
+%                             x3, x4, x5, x6, b, mu, nu, a, 1, 1);
+%             fx3a = fx3a';
+%             fx4a = fx4a';
+%             fx5a = fx5a';
+%             fx6a = fx6a';
+%             ftota = ftota';
+%         for k = 1: size(n_q)
+%             [q, w] = lgwt(n_q(k), -1, 1);
+%             quad = [q, w];
+%             [fx3n, fx4n, fx5n, fx6n, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad);
+%             
+%             ex3 = error(fx3a, fx3n);
+%             ex4 = error(fx4a, fx4n);
+%             ex5 = error(fx5a, fx5n);
+%             ex6 = error(fx6a, fx6n);
+%             extot = error(ftota, ftotn);
+%             
+%             cntr = cntr + 1;
+%             save(sprintf("%d", cntr));
+%         end %for
+%     end %for
+% end %for
 
-% pts = 1;
-% [fx3, fx4, fx5, fx6, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, n, mu, nu, a, pts)
+function err = error(analytical, numerical)
+    diff = numerical - analytical;
+    diff(diff < 1E-10) = 0;
+    err = diff./analytical;
+    err(isnan(err)) = 0;
+end %function
 
 function [N1, N2, N3, N4] = shape_func(s1, s2)
     N1 = 0.25*(1-s1)*(1-s2);
@@ -75,7 +104,7 @@ function [N1, N2, N3, N4] = shape_func(s1, s2)
     N4 = 0.25*(1-s1)*(1+s2);
 end %function
 
-function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, n_q)
+function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad)
      n = cross(x4-x3, x5-x3);
      n = n/norm(n);
 
@@ -91,14 +120,14 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
      fx4 = zeros(1,3);
      ftot = zeros(1,3);
      
-     [q, w] = lgwt(n_q, -1, 1);
+     n_q = size(quad, 1);
      
      for i = 1: n_q
-         y = q(i);
-         wy = w(i);
+         y  = quad(i, 1);
+         wy = quad(i, 2);
          for j = 1: n_q
-             x = q(j);
-             wx = w(j);
+             x  = quad(j, 1);
+             wx = quad(j, 2);
              [N1, N2, N3, N4] = shape_func(x, y);
              
              [sxx, syy, szz,...
@@ -121,39 +150,6 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
          end %for
      end %for
      ftot = fx1 + fx2 + fx3 + fx4;
-     
-    
-%     gamma = gammat(gammat(:, idx) == val,:);
-%     area = zeros(dim(1),1) + gamma(1,2);
-%     gamma(1,2)
-%     normal = gamma(1,3:5);
-%     lseg = size(segments,1);
-%     lgrid = dim(1);
-%     p1x = segments(:,6);
-%     p1y = segments(:,7);
-%     p1z = segments(:,8);
-%     p2x = segments(:,9);
-%     p2y = segments(:,10);
-%     p2z = segments(:,11);
-%     bx = segments(:,3);
-%     by = segments(:,4);
-%     bz = segments(:,5);
-%     x = xmid(:,1);
-%     y = xmid(:,2);
-%     z = xmid(:,3);
-%     [sxx, syy, szz, sxy, syz, sxz] = StressDueToSegs(lgrid, lseg,...
-%                                                   x, y, z,...
-%                                                   p1x,p1y,p1z,...
-%                                                   p2x,p2y,p2z,...
-%                                                   bx,by,bz,...
-%                                                   a,MU,NU); 
-%     Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
-%     Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
-%     Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
-%     ATx = area.*Tx;
-%     ATy = area.*Ty;
-%     ATz = area.*Tz;
-%     f_dln = [ATx,ATy,ATz];
 end %function
 
 function [x, w] = lgwt(N,a,b)
