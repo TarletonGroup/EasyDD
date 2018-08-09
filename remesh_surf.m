@@ -51,11 +51,14 @@ for n=1:L1
        vec=[0,0,0];
        connumb=connectivitynew(n,1);
        for m=1:connumb
-           vec=vec+rnnew(linksnew(connectivitynew(n,m+1),connectivitynew(n,m+2)),1:3)-rnnew(n,1:3);
+           vec=vec+rnnew(linksnew(connectivitynew(n,2*m),3-connectivitynew(n,2*m+1)),1:3)-rnnew(n,1:3);
        end
        vec=rnnew(n,1).*(vec/vec(1,1));
        rnnew(n,1:3)=rnnew(n,1:3)-vec;
        rnnew(n,end)=7;
+       if any(isnan(rnnew(n,1:3)))
+           pause;
+       end
    end
 end
 

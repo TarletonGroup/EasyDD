@@ -121,6 +121,10 @@ for i=1:segnum
           else                                                        %For external segments, close internal loop with normal closure point and calculate displacement for external loop with temporary closure point
               Utilda(j,:)=Utilda(j,:)+displacement_et_plas(p,Aprime',Bprime',C',b')+displacement_et_plas(p,Aprime',A',Ctemp',b')+displacement_et_plas(p,A',B',Ctemp',b')+displacement_et_plas(p,B',Bprime',Ctemp',b')+displacement_et_plas(p,Bprime',Aprime',Ctemp',b');
           end
+          
+          if any(isnan(Utilda(j,:)))
+              pause
+          end
     end
     
 end

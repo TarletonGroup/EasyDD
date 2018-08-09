@@ -22,7 +22,7 @@
 %  mex mobbcc1mex.c
 %  mex displacementmex_et.c
 %  mex CreateInputMex.c %CollisionMarielle
-%  mex CollisionCheckerMexMarielle.c %CollisionMarielle 
+%  mex CollisionCheckerMexMariellebis.c %CollisionMarielle 
 %   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
@@ -77,6 +77,15 @@ Fend=zeros(1e6,1); fend=[];
 U_bar=zeros(1e6,1); Ubar=[];
 t=zeros(1e6,1); simTime=0;
 %%
+gamma=[gammau;gammaMixed];
+utilda_0=zeros(3*mno,1);
+gn = gamma(:,1);
+[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+
+utilda_0(3*gn -2) = Ux;
+utilda_0(3*gn -1) = Uy;
+utilda_0(3*gn   ) = Uz;
+%%
 while simTime < totalSimTime
     
     % frame recording
@@ -98,7 +107,7 @@ while simTime < totalSimTime
     
     %DDD+FEM coupling
     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz);
+                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,utilda_0);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;
@@ -120,6 +129,8 @@ while simTime < totalSimTime
     if(mod(curstep,printfreq)==0) && not(isempty(vn))
         fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n',...
             curstep,dt,printnode,vn(printnode,1),vn(printnode,2),vn(printnode,3));
+        close all;
+        save restart_temp
     elseif (mod(curstep,printfreq)==0)
         fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n',...
             curstep,dt,printnode);
@@ -158,24 +169,24 @@ while simTime < totalSimTime
               %COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
               %it requires a GPU device
               %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
-%                [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMarielle(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-%                rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-%              
-%                   if colliding_segments == 1 %scan and update dislocation structure.
-%                         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-%                         collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-%                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
-%                   end
+               [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+               rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+             
+                  if colliding_segments == 1 %scan and update dislocation structure.
+                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+                        collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+                        fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
+                  end
        
 %              INTIAL COLLISION
-             [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-             rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-             if colliding_segments == 1 %scan and update dislocation structure.
-
-                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-             end
+%              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+%              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+%              if colliding_segments == 1 %scan and update dislocation structure.
+% 
+%                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+%                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+%                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+%              end
     end
     
     if (doremesh) %do virtual re-meshing first

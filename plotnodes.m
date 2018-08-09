@@ -3,8 +3,8 @@ function [output]=plotnodes(rn,links,plim,vertices)
 %only those nodes within [-plim,plim] in x,y,z directions are plotted
 figure(1);
 clf
-%amag = 3.18e-4; %lattice vector BCC W, in microns
-amag=1;
+amag = 3.18e-4; %lattice vector BCC W, in microns
+% amag=1;
 plot3(0,0,0); hold on;
 LINKMAX=length(links(:,1));
 for i=1:LINKMAX,
