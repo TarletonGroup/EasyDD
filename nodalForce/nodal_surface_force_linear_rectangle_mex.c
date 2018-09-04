@@ -570,9 +570,22 @@ double *integrals_linear_rectangle(double *i_r, double *i_s, double *i_y,
     // if(r_dot_p[i]<=0.0) mexPrintf("r_dot_p[%d] = %f\n", i, r_dot_p[i]);
     // if(r_dot_q[i]<=0.0) mexPrintf("r_dot_q[%d] = %f\n", i, r_dot_q[i]);
     // if(r_dot_t[i]<=0.0) mexPrintf("r_dot_t[%d] = %f\n", i, r_dot_t[i]);
-    if(ra[i] + r_dot_p[i] <= 0.0) mexPrintf("ra[%d] = %f, r_vec[%d] = %f %f %f, i_p = %f %f %f\n", i, ra[i], i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_p[0], i_p[1], i_p[2]);
-    if(ra[i] + r_dot_q[i] <= 0.0) mexPrintf("r_vec[%d] = %f %f %f, i_q = %f %f %f\n", i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_q[0], i_q[1], i_q[2]);
-    if(ra[i] + r_dot_t[i] <= 0.0) mexPrintf("r_vec[%d] = %f %f %f, i_t = %f %f %f\n", i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_t[0], i_t[1], i_t[2]);
+//     if(ra[i] + r_dot_p[i] <= 0.0)
+//     {
+//         mexPrintf("r_vec[%d]\t= i_r * i_p + "
+//                                "i_s * i_q + "
+//                                "i_y * i_t \n"
+//                   "[%f, %f, %f]\t= %e * [%f, %f, %f] + "
+//                                   "%e * [%f, %f, %f] + "
+//                                   "%e * [%f, %f, %f] \n", 
+//                                   i, r_vec[i][0], r_vec[i][1], r_vec[i][2], 
+//                                   i_r[i], i_p[0], i_p[1], i_p[2],
+//                                   i_s[i], i_q[0], i_q[1], i_q[2],
+//                                   i_y[i], i_t[0], i_t[1], i_t[2]);
+//     }
+    if(ra[i] + r_dot_p[i] <= 0.0) mexPrintf("ra[%d] = %f, r_vec[%d] = [%f %f %f], i_p = [%f %f %f]\n", i, ra[i], i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_p[0], i_p[1], i_p[2]);
+    if(ra[i] + r_dot_q[i] <= 0.0) mexPrintf("ra[%d] = %f, r_vec[%d] = [%f %f %f], i_q = [%f %f %f]\n", i, ra[i], i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_q[0], i_q[1], i_q[2]);
+    if(ra[i] + r_dot_t[i] <= 0.0) mexPrintf("ra[%d] = %f, r_vec[%d] = [%f %f %f], i_t = [%f %f %f]\n", i, ra[i], i, r_vec[i][0], r_vec[i][1], r_vec[i][2], i_t[0], i_t[1], i_t[2]);
     a0m1[i] = seed_single_integral(ra[i], r_dot_p[i]); // checked
     b0m1[i] = seed_single_integral(ra[i], r_dot_q[i]); // checked
     c0m1[i] = seed_single_integral(ra[i], r_dot_t[i]); // checked
@@ -852,6 +865,27 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   r[4] = r[5] = r[6] = r[7] = rp[0];
   s[0] = s[1] = s[4] = s[5] = sp[1];
   s[2] = s[3] = s[6] = s[7] = sp[0];
+//   for (i = 0; i < 2; i++)
+//   {
+//       if (rp[i] >= 1e15 || rp[i] <= -1e15)
+//       {
+//           mexPrintf("r_lim[%d] = [%e, %e, %e]\n", i, r_lim[i][0], r_lim[i][1], r_lim[i][2]);
+//           mexPrintf("q x t = [%e, %e, %e]\n", q_x_t[0], q_x_t[1], q_x_t[2]);
+//           mexPrintf("p = [%e, %e, %e]\n", p[0], p[1], p[2]);
+//       }
+//       if (sp[i] >= 1e15 || sp[i] <= -1e15)
+//       {
+//           mexPrintf("r_lim[%d] = [%e, %e, %e]\n", i, r_lim[i][0], r_lim[i][1], r_lim[i][2]);
+//           mexPrintf("q x t = [%e, %e, %e]\n", p_x_t[0], p_x_t[1], p_x_t[2]);
+//           mexPrintf("p = [%e, %e, %e]\n", q[0], q[1], q[2]);
+//       }
+//       if (y[1-i] >= 1e15 || y[1-i] <= -1e15)
+//       {
+//           mexPrintf("r_lim[%d] = [%e, %e, %e]\n", i, r_lim[i][0], r_lim[i][1], r_lim[i][2]);
+//           mexPrintf("t = [%e, %e, %e]\n", t[0], t[1], t[2]);
+//           mexPrintf("n = [%e, %e, %e]\n", n[0], n[1], n[2]);
+//       }
+//   }
   // Calculate vectors for integrals.
   integral_vector(p, q, b, t, n, one_m_nu, a_sq, vec_int);
   // Calculate integrals.
@@ -875,10 +909,10 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   double l_factor;
   double rot_centre[3], rot_x1[3], rot_x2[3];
   double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[4];
-  double angle = 0.01*pi/180.;
+  double angle = pi/180.;
   int rotation;
-  int i, j;
-  rotation = 3;
+  int i;
+  rotation = 4;
   // Vectors
   init_vector(x1, x2, 3, t);
   init_vector2(x3, x4, 3, p, &p_norm);
@@ -888,7 +922,7 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   t_dot_n = dot_product(t, n, 3);
   // Auxiliary variables.
   l_factor = factor/p_norm/q_norm;
-  if(t_dot_n != 0.0){
+  if(abs(t_dot_n) > 1e-14){
     nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
   }
   else{
@@ -899,6 +933,7 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
     }
     cross_product(t, n, t_x_n);
     mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
+    
     for (i = 0; i < 3; i++){
       // Halfway between x1 and x2. x1 + (x2-x1)/2
       rot_centre[i] = 0.5*(x1[i] + x2[i]);
@@ -906,16 +941,15 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
     }
     //FILE *fp;
     //fp = fopen("./tests/test2.txt", "w");
-    for (i = 0; i < rotation; i++){
-      j = i+1;
-      arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x1, rot_x1);
-      arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x2, rot_x2);
+    for (i = 1; i < rotation + 1; i++){
+      arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x1, rot_x1);
+      arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x2, rot_x2);
       nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, p_nodal_force, p_total_force);
-      //printf("theta  = %f\nrot_x1 = [%f, %f, %f]\nrot_x2 = [%f, %f, %f]\nx1 = [%f, %f, %f]\nx2 = [%f, %f, %f]\n", j*angle, rot_x1[0], rot_x1[1], rot_x1[2], rot_x2[0], rot_x2[1], rot_x2[2], x1[0], x1[1], x1[2], x2[0], x2[1], x2[2]);
+      //mexPrintf("theta  = %.15f\nrot_x1 = [%f, %f, %f]\nrot_x2 = [%f, %f, %f]\nx1 = [%f, %f, %f]\nx2 = [%f, %f, %f]\n", j*angle, rot_x1[0], rot_x1[1], rot_x1[2], rot_x2[0], rot_x2[1], rot_x2[2], x1[0], x1[1], x1[2], x2[0], x2[1], x2[2]);
       //mexPrintf(fp, "%f %f %f %f\n", j*angle*180./pi, p_total_force[0], p_total_force[1], p_total_force[2]);
       add_force(p_nodal_force, p_total_force, nodal_force, total_force);
-      arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x1, rot_x1);
-      arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x2, rot_x2);
+      arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x1, rot_x1);
+      arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x2, rot_x2);
       nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, p_nodal_force, p_total_force);
       //printf("theta  = %f\nrot_x1 = [%f, %f, %f]\nrot_x2 = [%f, %f, %f]\nx1 = [%f, %f, %f]\nx2 = [%f, %f, %f]\n", j*angle, rot_x1[0], rot_x1[1], rot_x1[2], rot_x2[0], rot_x2[1], rot_x2[2], x1[0], x1[1], x1[2], x2[0], x2[1], x2[2]);
       //mexPrintf(fp, "%3.6f %f %f %f\n", -j*angle*180./pi, p_total_force[0], p_total_force[1], p_total_force[2]);

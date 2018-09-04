@@ -704,15 +704,14 @@ void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double
   double rot_centre[3], rot_x1[3], rot_x2[3];
   double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
   int rotation;
-  rotation = 3;
+  rotation = 4;
   // Initialise force to zero.
   init_force(nodal_force, total_force);
 
   for (int i = 0; i < n_nodes; i++){
     p_nodal_force[i] = (double *) malloc(3 * sizeof(double));
   }
-  double angle = 0.01*pi/180.;
-  int j;
+  double angle = pi/180.;
   cross_product(t, n, t_x_n);
   mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
   for (int i = 0; i < 3; i++){
@@ -720,14 +719,13 @@ void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double
     rot_centre[i] = 0.5*(x1[i] + x2[i]);
     t_x_n[i] = t_x_n[i]/mag_t_x_n;
   }
-  for (int i = 0; i < rotation; i++){
-    j = i+1;
-    arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x1, rot_x1);
-    arbitrary_rotation_matrix_3d(j*angle, rot_centre, t_x_n, x2, rot_x2);
+  for (int i = 1; i < rotation + 1; i++){
+    arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x1, rot_x1);
+    arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x2, rot_x2);
     nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
     add_force(p_nodal_force, p_total_force, nodal_force, total_force);
-    arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x1, rot_x1);
-    arbitrary_rotation_matrix_3d(-j*angle, rot_centre, t_x_n, x2, rot_x2);
+    arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x1, rot_x1);
+    arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x2, rot_x2);
     nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
     add_force(p_nodal_force, p_total_force, nodal_force, total_force);
   }

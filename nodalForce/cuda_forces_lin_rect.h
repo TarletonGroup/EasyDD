@@ -1,3 +1,5 @@
+const double eps = 1e-14;
+
 __device__ double cuda_init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
                   int     i_vec_size){
@@ -573,7 +575,7 @@ __device__ void cuda_compute_forces_linear_rectangle(double *i_sch, double i_vec
 }
 
 // Device constants.
-__constant__ double d_mu, d_nu, d_a, d_a_sq, d_one_m_nu, d_factor;
+__constant__ double d_mu, d_nu, d_a, d_a_sq, d_one_m_nu, d_factor, d_eps;
 
 __global__ void se_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, double *g_se_arr, double *g_b_arr, double *g_fx_arr, double *g_ftot_arr, int n_se, int n_dln){
   double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3];
@@ -624,7 +626,7 @@ __global__ void se_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, 
       cuda_init_vector2(x3, x5, 3, q, &q_norm);
       cuda_cross_product(p, q, n);
       // Only register results where t dot n is different to zero. The special case will be treated outside the parallel code outside in the serial portion of the code. This is due to warp branching, which means all code branches are evaluated but changes in memory are modified only for those instructions whose branch conditions have been met. Having the special case here means having to execute every instruction of every branch, severly hindering performance. The branching is up here in case this changes in the future.
-      if (cuda_dot_product(t, n, 3) != 0.0){
+      if (abs(cuda_dot_product(t, n, 3)) > d_eps){
         cuda_normalise_vector(n, 3, n);
         // Local factor.
         l_factor = d_factor/p_norm/q_norm;
@@ -717,7 +719,7 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr,
       cuda_init_vector2(x3, x5, 3, q, &q_norm);
       cuda_cross_product(p, q, n);
       // Only register results where t dot n is different to zero. The special case will be treated outside the parallel code outside in the serial portion of the code. This is due to warp branching, which means all code branches are evaluated but changes in memory are modified only for those instructions whose branch conditions have been met. Having the special case here means having to execute every instruction of every branch, severly hindering performance. The branching is up here in case this changes in the future.
-      if (cuda_dot_product(t, n, 3) != 0.0){
+      if (abs(cuda_dot_product(t, n, 3)) > d_eps){
         cuda_normalise_vector(n, 3, n);
         // Local factor.
         l_factor = d_factor/p_norm/q_norm;
@@ -782,7 +784,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
   int blocks_per_grid;
   int idx1, idx2;
-
+  cudaSetDevice(0);
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
@@ -857,6 +859,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_a_sq    , &a_sq    , sizeof(a_sq)) );
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor  , &factor  , sizeof(factor)) );
+  checkCudaErrors( cudaMemcpyToSymbolAsync(d_eps     , &eps     , sizeof(eps)) );
   blocks_per_grid = (n_se + threads_per_block - 1)/threads_per_block;
   se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   #ifdef debug2
@@ -905,7 +908,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
       init_vector2(x3, x5, 3, q, &q_norm);
       cross_product(p, q, n);
       normalise_vector(n, 3, n);
-      if (dot_product(t, n, 3) == 0.0){
+      if (abs(dot_product(t, n, 3)) > eps){
         nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
         // Add the force contributions for segment j to the surface element i.
         for (int k = 0; k < 3; k++){
@@ -978,7 +981,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   int blocks_per_grid;
   //int n_se, n_dln;
   int idx1, idx2;
-
+  cudaSetDevice(0);
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
@@ -1053,6 +1056,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_a_sq    , &a_sq    , sizeof(a_sq)) );
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_one_m_nu, &one_m_nu, sizeof(one_m_nu)) );
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor  , &factor  , sizeof(factor)) );
+  checkCudaErrors( cudaMemcpyToSymbolAsync(d_eps     , &eps     , sizeof(eps)) );
   // Change this to be automated with CUDA's automatic estimation.
   blocks_per_grid = (n_dln + threads_per_block - 1)/threads_per_block;
   // CUDA
@@ -1104,7 +1108,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
       init_vector2(x3, x5, 3, q, &q_norm);
       cross_product(p, q, n);
       normalise_vector(n, 3, n);
-      if (dot_product(t, n, 3) == 0.0){
+      if (abs(dot_product(t, n, 3)) > eps){
         nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
         // Add the force contributions for segment j to the surface element i.
         for (int k = 0; k < 3; k++){

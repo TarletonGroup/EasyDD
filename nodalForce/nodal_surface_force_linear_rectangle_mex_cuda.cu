@@ -45,6 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   int threads_per_block, blocks_per_grid, n_se, n_dln, para_scheme;
   //int debug = 1;
   //while(debug == 1){}
+  cudaSetDevice(0);
   // Stagger cuda function calls to take advantage of asynchronous calls.
   // If memory becomes an issue, make copying x_dln_arr, x_se_arr and x_b_arr to the device a synchronous operation and free the pointers straight after.
   n_se = (int) mxGetScalar(prhs[10]);
@@ -109,6 +110,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_a_sq, &a_sq, sizeof(a_sq)) );
   factor   = 0.25*mu/pi/one_m_nu;
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor, &factor, sizeof(factor)) );
+  checkCudaErrors( cudaMemcpyToSymbolAsync(d_eps   , &eps     , sizeof(eps)) );
   // Link force arrays to MATLAB.
   plhs[0] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[1] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
