@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mex.h>
+#define eps 1e-6
 
 // #include "vector_utils.h"
 // #include "serial_forces_lin_rect.h"
@@ -922,7 +923,7 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   t_dot_n = dot_product(t, n, 3);
   // Auxiliary variables.
   l_factor = factor/p_norm/q_norm;
-  if(abs(t_dot_n) > 1e-14){
+  if(fabs(t_dot_n) > eps){
     nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
   }
   else{
@@ -961,6 +962,17 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
       free(p_nodal_force[i]);
     }
   }
+  /*
+  for (i = 0; i < 3; i++){
+	  if (fabs(total_force[i]) > 1e6 && fabs(t_dot_n) > 1e-6)
+		{
+			nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
+			//return;
+		}
+  }
+  */
+
+  
   //printf("total_force[x, y, z] = [%f, %f, %f]\n", total_force[0], total_force[1], total_force[2]);
 }
 
@@ -1041,6 +1053,20 @@ void mexFunction(int nlhs, mxArray *plhs[],
         fx_arr[2][idx1+k] += fx[2][k];
         fx_arr[3][idx1+k] += fx[3][k];
         ftot_arr [idx1+k] += ftot[k];
+		/*
+		if (fabs(ftot_arr[idx1+k]) > 1e7)
+		{
+			printf("se  = %f\n", (float) idx1/3);
+			printf("dln = %f\n", (float) idx2/3);
+			printf("x1 = %f,\t %f,\t %f\n", x1[0], x1[1], x1[2]);
+			printf("x2 = %f,\t %f,\t %f\n", x2[0], x2[1], x2[2]);
+			printf("x3 = %f,\t %f,\t %f\n", x3[0], x3[1], x3[2]);
+			printf("x4 = %f,\t %f,\t %f\n", x4[0], x4[1], x4[2]);
+			printf("x5 = %f,\t %f,\t %f\n", x5[0], x5[1], x5[2]);
+			printf("x6 = %f,\t %f,\t %f\n", x6[0], x6[1], x6[2]);
+			//return;
+		}
+		*/
       }
       idx2 += 3;
     }

@@ -1,4 +1,4 @@
-const double eps = 1e-14;
+const double eps = 1e-6;
 
 __device__ double cuda_init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
@@ -626,7 +626,7 @@ __global__ void se_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr, 
       cuda_init_vector2(x3, x5, 3, q, &q_norm);
       cuda_cross_product(p, q, n);
       // Only register results where t dot n is different to zero. The special case will be treated outside the parallel code outside in the serial portion of the code. This is due to warp branching, which means all code branches are evaluated but changes in memory are modified only for those instructions whose branch conditions have been met. Having the special case here means having to execute every instruction of every branch, severly hindering performance. The branching is up here in case this changes in the future.
-      if (abs(cuda_dot_product(t, n, 3)) > d_eps){
+      if (fabs(cuda_dot_product(t, n, 3)) > d_eps){
         cuda_normalise_vector(n, 3, n);
         // Local factor.
         l_factor = d_factor/p_norm/q_norm;
@@ -719,7 +719,7 @@ __global__ void dln_cuda_nodal_surface_force_linear_rectangle(double *g_dln_arr,
       cuda_init_vector2(x3, x5, 3, q, &q_norm);
       cuda_cross_product(p, q, n);
       // Only register results where t dot n is different to zero. The special case will be treated outside the parallel code outside in the serial portion of the code. This is due to warp branching, which means all code branches are evaluated but changes in memory are modified only for those instructions whose branch conditions have been met. Having the special case here means having to execute every instruction of every branch, severly hindering performance. The branching is up here in case this changes in the future.
-      if (abs(cuda_dot_product(t, n, 3)) > d_eps){
+      if (fabs(cuda_dot_product(t, n, 3)) > d_eps){
         cuda_normalise_vector(n, 3, n);
         // Local factor.
         l_factor = d_factor/p_norm/q_norm;
@@ -908,7 +908,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
       init_vector2(x3, x5, 3, q, &q_norm);
       cross_product(p, q, n);
       normalise_vector(n, 3, n);
-      if (abs(dot_product(t, n, 3)) > eps){
+      if (fabs(dot_product(t, n, 3)) <= eps){
         nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
         // Add the force contributions for segment j to the surface element i.
         for (int k = 0; k < 3; k++){
@@ -1108,7 +1108,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
       init_vector2(x3, x5, 3, q, &q_norm);
       cross_product(p, q, n);
       normalise_vector(n, 3, n);
-      if (abs(dot_product(t, n, 3)) > eps){
+      if (fabs(dot_product(t, n, 3)) <= eps){
         nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
         // Add the force contributions for segment j to the surface element i.
         for (int k = 0; k < 3; k++){
