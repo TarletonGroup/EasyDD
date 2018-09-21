@@ -92,7 +92,7 @@ MU = 1;
 NU = 0.29;
 
 %Plotting
-plotfreq=1000; 
+plotfreq=500; 
 savefreq=10; 
 plim=12/amag; %12microns
 % viewangle=[0,0]; 
@@ -176,7 +176,7 @@ links00 = links;
 
 
 tpause = 1.8E10;
-
+use_gpu = 1;
 n_threads = 256;
 para_scheme = 1;
 

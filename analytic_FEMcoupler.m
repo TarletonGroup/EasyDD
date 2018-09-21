@@ -1,7 +1,7 @@
 function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
     gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,t,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
-    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme)
+    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps)
 
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -9,8 +9,8 @@ function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L
 
 segments = constructsegmentlist(rn,links);
 
-%Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
-Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
+Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
+%Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
 
 Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debucontourfggin
@@ -61,7 +61,7 @@ f_hat(:,1) = 0;
 [f_dln,~] = analytic_traction(x3x6 , x1x2, b, n_nodes, n_nodes_t,...
                         n_se, n_dln, 3*gamma_dln, idxi,...
                         f_dln_node, f_dln_se, f_dln,...
-                        MU, NU, a, use_gpu, n_threads, para_scheme);% added to check something
+                        MU, NU, a, use_gpu, n_threads, para_scheme, eps);% added to check something
 
 f_hat(freeDofs) = f_dln(freeDofs)';% no applied forces
 

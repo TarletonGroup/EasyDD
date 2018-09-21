@@ -65,6 +65,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   se_node_arr[3] = (double *) mxGetPr(prhs[5]);
   b_arr[0] = (double *) mxGetPr(prhs[6]);
   para_scheme = (int) mxGetScalar(prhs[13]);
+  eps         = (double) mxGetScalar(prhs[14]);
   // Map dislocation node arrays to 1D array for parallelisation.
   if(para_scheme == 1){
     x_dln_arr = element_host_device_map(dln_node_arr, n_dln, 2);
@@ -175,7 +176,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
         init_vector2(x3, x5, 3, q, &q_norm);
         cross_product(p, q, n);
         normalise_vector(n, 3, n);
-        if (dot_product(t, n, 3) == 0.0){
+        if (fabs(dot_product(t, n, 3)) <= eps){
           nodal_surface_force_linear_rectangle_special(x1, x2, x3, x4, x5, x6, b, t, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor/p_norm/q_norm, fx, ftot);
           // Add the force contributions for segment j to the surface element i.
           for (int k = 0; k < 3; k++){

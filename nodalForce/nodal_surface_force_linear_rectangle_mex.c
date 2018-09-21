@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mex.h>
-#define eps 1e-6
 
 // #include "vector_utils.h"
 // #include "serial_forces_lin_rect.h"
@@ -896,7 +895,7 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   //printf("total_force[x, y, z] = [%f, %f, %f]\n", total_force[0], total_force[1], total_force[2]);
 }
 
-void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[4], double *total_force){
+void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[4], double *total_force, double eps){
   /*
     Forces
     nodal_force[0][] = F_x3[x, y, z], nodal_force[1][] = F_x4[x, y, z],
@@ -990,6 +989,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   double b[3];
   double *fx[4];
   double ftot[3];
+  double eps = 1e-6;
   int i, j, k, idx1, idx2;
   //int debug = 1;
   //do {} while( debug == 1 );
@@ -1006,6 +1006,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   a  = mxGetScalar(prhs[9]);
   num_surface_elements = mxGetScalar(prhs[10]);
   num_dislocation_segs = mxGetScalar(prhs[11]);
+  eps = mxGetScalar(prhs[12]);
 
   plhs[0] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
   plhs[1] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
@@ -1045,7 +1046,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
         x2[k] = x2_arr[idx2+k];
         b [k] = b_arr [idx2+k];
       }
-      main_nodal_surface_force_linear_rectangle(x1,x2,x3,x4,x5,x6,b,mu,nu,a,a_sq,one_m_nu,factor,fx,ftot);
+      main_nodal_surface_force_linear_rectangle(x1,x2,x3,x4,x5,x6,b,mu,nu,a,a_sq,one_m_nu,factor,fx,ftot,eps);
       // Add the force contributions for segment j to the surface element i.
       for (k = 0; k < 3; k++){
         fx_arr[0][idx1+k] += fx[0][k];

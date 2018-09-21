@@ -54,8 +54,7 @@ planes = (1:1:6)';
 gamma_dln = [gammat(:,1); gammaMixed(:,1)];
 [f_dln_node, f_dln_se,...
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-
-use_gpu = 1;
+tolerance = dx/10^9;
 % Parallel CUDA C flags.
 if use_gpu == 1
     % Provide a default number of threads in case none is given.
@@ -130,13 +129,13 @@ while simTime < totalSimTime
     end
     
     %DDD+FEM coupling
-     %[uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-      %               gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
-    
+%      [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+%                     gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+%     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
      [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
                          gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
                          gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
-                         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme);
+                         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
     t(curstep+1) = simTime;
@@ -245,13 +244,14 @@ while simTime < totalSimTime
 %             dx,dy,dz,w,h,d,vertices,uhat);                       
 %         return;
 %     end
-        
+%save restart;
+    if (mod(curstep, 500) == 0)
+        close all
+        save(sprintf('dcg_20_07_18_gpu_%d_%d', n_threads, curstep));
+    end 
  end
 
-%save restart;
-if (mod(curstep, 100) == 0)
-    save(sprintf('dcg_20_07_18_gpu_%d_%d', n_threads, curstep));
-end
+
 disp('completed')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

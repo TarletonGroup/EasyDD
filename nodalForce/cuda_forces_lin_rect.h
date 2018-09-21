@@ -1,4 +1,4 @@
-const double eps = 1e-6;
+double eps = 1e-6;
 
 __device__ double cuda_init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
