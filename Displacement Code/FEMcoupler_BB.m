@@ -1,5 +1,5 @@
-function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz)
+function [uhat,fend,Ubar] = FEMcoupler_BB(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,utilda_0)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -48,6 +48,8 @@ gn = gamma(:,1); % global node number
 utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;
 utilda(3*gn   ) = Uz;
+
+utilda = utilda - utilda_0;
 
 if any(isnan(utilda))
     disp('some entries of utilda are NaN')

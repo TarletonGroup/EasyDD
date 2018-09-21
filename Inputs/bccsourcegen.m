@@ -112,15 +112,15 @@ links = zeros(size(slipsys,1)*8*NUM_SOURCES,8);
 
 for i=1:size(slipsys,1)
     normal=slipsys(i,1:3);
-    fedge=normal/norm(normal);
+    normal=normal/norm(normal);
 %     screw=slipsys(1,4:6);
 %     screw=screw/norm(screw);
     edge=edgevecs(i,1:3);
     edge=edge/norm(edge);
-    b_vec=slipsys(1,4:6);
+    b_vec=slipsys(i,4:6);
     b_vec=b_vec/norm(b_vec);
     mobvec=DIST_SOURCE*edge;
-    fixvec=DIST_SOURCE*fedge;
+    fixvec=DIST_SOURCE*normal;
     %Generate midpoints of sources
     midX = Xmin + (Xmax - Xmin).*rand(NUM_SOURCES,1);
     midY = Ymin + (Ymax - Ymin).*rand(NUM_SOURCES,1);

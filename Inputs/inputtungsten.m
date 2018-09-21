@@ -140,7 +140,7 @@ integrator='int_trapezoid';
 %integrator='int_trapezoid_stoc'; %in development
 a=lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 0.5*a; 
+rann = 0.25*a; 
 rntol = 0.5*rann; % need to do convergence studies on all these parameters
 rmax = lmax;
 
@@ -150,4 +150,8 @@ plim=12/amag; %12microns
 viewangle=[-35,15]; 
 printfreq=500; 
 printnode=2; 
+
+%GPU Setup
+
+n_threads=512;
 

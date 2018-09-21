@@ -1,5 +1,5 @@
 function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-    gamma_disp, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,mx,my,mz,t,...
+    gamma_disp, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,mx,my,mz,utilda_0,t,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
     f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme)
     
@@ -7,10 +7,10 @@ function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L
 % u = uhat + utilda
 % f = f_hat + ftilda
 
-segments = constructsegmentlist(rn,links);
+%segments = constructsegmentlist(rn,links);
 
-%Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
-Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
+Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
+% Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
 
 Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debucontourfggin
@@ -49,19 +49,22 @@ utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;
 utilda(3*gn   ) = Uz;
 
+utilda = utilda - utilda_0;
+
 if any(isnan(utilda))
     disp('some entries of utilda are NaN')
     pause; %some entries of utilda are NaN -> leads to issues in hatStress routine
 end
 
 uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
+
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
 f_dln(:,1) = 0;
 f_hat(:,1) = 0;
 [f_dln,~] = analytic_traction(x3x6 , x1x2, b, n_nodes, n_nodes_t,...
                         n_se, n_dln, 3*gamma_dln, idxi,...
                         f_dln_node, f_dln_se, f_dln,...
-                        MU, NU, a, use_gpu, n_threads, para_scheme);% added to check something
+                        MU, NU, a, use_gpu, n_threads, para_scheme);
                     
 %f_dln = - f_dln;
 % any(isnan(f_dln))
@@ -92,11 +95,11 @@ bcwt = full(bcwt);
 % uhat = U\(L\f_hat); %using LU decomposition
 % uhat2=K\f;
 f2(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat2 = U\(L\f2); %using LU decomposition
+uhat = U\(L\f2); %using LU decomposition
 %f(fixedDofs) = bcwt*uhat(fixedDofs);
 %uhat = U\(L\f); %using LU decomposition
 
-rhat2=kg*uhat2;
+rhat2=kg*uhat;
 %rhat=kg*uhat; % reaction force
 
 %% The next two lines used to be fend2 instead of fend. Changed it so Bruce
