@@ -54,7 +54,7 @@ planes = (1:1:6)';
 gamma_dln = [gammat(:,1); gammaMixed(:,1)];
 [f_dln_node, f_dln_se,...
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-tolerance = dx/10^9;
+tolerance = dx/10^7;
 % Parallel CUDA C flags.
 if use_gpu == 1
     % Provide a default number of threads in case none is given.
@@ -129,17 +129,29 @@ while simTime < totalSimTime
     end
     
     %DDD+FEM coupling
-%      [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-%                     gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+    %load('./mat_files/20181001_debug.mat')
+    
+%     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+%                      gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
 %     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
-     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-                         gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
-                         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
-                         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
+%     num = fend;    
+    [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+                       gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
+                       gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
+                       f_dln_se, f_dln, f_hat, 0, n_threads, para_scheme, tolerance);
+%     ser = fend;
+%     fprintf("fend = %d, curstep = %d, errs = %d\n",fend, curstep,(num-ser)/ser*100);
+%     reset(gpuDevice);
+%     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+%                        gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
+%                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
+%                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
+%     reset(gpuDevice);
+%     par = fend;            
+%     fprintf("fend = %d, curstep = %d, erra = %d\n",fend, curstep,(num-par)/par*100);
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
-    t(curstep+1) = simTime;
-    
+    t(curstep+1) = simTime;  
     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
     
 %     if (dovirtmesh)
@@ -193,13 +205,12 @@ while simTime < totalSimTime
 %               it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
                [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
                rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-             
                   if colliding_segments == 1 %scan and update dislocation structure.
-                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                        collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                        fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
-                  end
-       
+                    reset(gpuDevice);
+                    [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+                    collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+                    fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
+                  end     
 %              INTIAL COLLISION
 %              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
 %              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
@@ -245,9 +256,16 @@ while simTime < totalSimTime
 %         return;
 %     end
 %save restart;
+%       if (curstep >= 2004)
+%           fprintf("\n")
+%           save(sprintf('20180925_gpu_debug_%d_%d', n_threads, curstep));
+%       end
+          
     if (mod(curstep, 500) == 0)
         close all
-        save(sprintf('dcg_20_07_18_gpu_%d_%d', n_threads, curstep));
+        save(sprintf('./mat_files/20181016_cpu_%d', curstep));
+%         save(sprintf('./mat_files/20180928_%d', curstep));
+%         save(sprintf('20181001_gpu_%d_%d', n_threads, curstep));
     end 
  end
 

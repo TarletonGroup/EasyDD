@@ -1,4 +1,4 @@
-function [f_dln, f_dln_se] = analytic_traction(                                    ...
+function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                                    ...
                      se_node_coord, dln_node_coord, burgers    , n_nodes,...
                      n_nodes_t    , n_se          , n_dln      , idxf   ,...
                      idxi         , f_dln_node    , f_dln_se   , f_dln  ,...
@@ -145,22 +145,19 @@ function [f_dln, f_dln_se] = analytic_traction(                                 
     %%===================================================================%%
     
     %% Analytical force calculation.
-%     se_node_coord2(:,1) = se_node_coord(:,1) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
-%     se_node_coord2(:,2) = se_node_coord(:,2) + (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
-%     se_node_coord2(:,3) = se_node_coord(:,3) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
-%     se_node_coord2(:,4) = se_node_coord(:,4) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
     % Parallel CUDA C calculation.
+    % serial last dislocation and surface element
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
         if ~exist('n_threads', 'var')
-            n_threads = 256;
+            n_threads = ceil(mod(n_dln,256)/32)*32;
         end %if
         % Provide a default parallelisaion scheme in case none is given.
         if ~exist('para_scheme', 'var')
             % Parallelise over dislocations.
             para_scheme = 1;
         end %if
-        [~, ~, ~, ~,...
+        [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4),...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex_cuda(        ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2)   ,...
                                 se_node_coord (:, 1), se_node_coord (:, 2)   ,...
@@ -169,20 +166,18 @@ function [f_dln, f_dln_se] = analytic_traction(                                 
                                 para_scheme, eps);
     % Serial force calculation in C.
     elseif use_gpu == 0
-        [~, ~, ~, ~, ...
+        [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex(          ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2),...
                                 se_node_coord (:, 1), se_node_coord (:, 2),...
                                 se_node_coord (:, 3), se_node_coord (:, 4),...
                                 burgers(:), mu, nu, a, n_se, n_dln, eps);
-    end %if
+    end %if    
     
     f_dln_node(:, 1) = f_dln_se*0.25;
     f_dln_node(:, 2) = f_dln_se*0.25;
     f_dln_node(:, 3) = f_dln_se*0.25;
     f_dln_node(:, 4) = f_dln_se*0.25;
-    
-%     ftilda = traction(gamma,segments,xnodes, mno, a, mu, nu);
     
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Loop through the number of nodes.

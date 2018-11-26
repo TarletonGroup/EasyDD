@@ -1,5 +1,3 @@
-double eps = 1e-6;
-
 __device__ double cuda_init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
                   int     i_vec_size){
@@ -782,9 +780,10 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  double eps;
   int blocks_per_grid;
   int idx1, idx2;
-  cudaSetDevice(0);
+
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
@@ -819,6 +818,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   fscanf(ptr_file, "%lf", &mu );
   fscanf(ptr_file, "%lf", &nu );
   fscanf(ptr_file, "%lf", &a );
+  fscanf(ptr_file, "%lf", &eps );
   fclose(ptr_file);
   #ifdef debug2
     cudaEvent_t start, stop;
@@ -978,10 +978,11 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  double eps;
   int blocks_per_grid;
   //int n_se, n_dln;
   int idx1, idx2;
-  cudaSetDevice(0);
+
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
@@ -1016,6 +1017,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   fscanf(ptr_file, "%lf", &mu );
   fscanf(ptr_file, "%lf", &nu );
   fscanf(ptr_file, "%lf", &a );
+  fscanf(ptr_file, "%lf", &eps);
   fclose(ptr_file);
   #ifdef debug2
     cudaEvent_t start, stop;

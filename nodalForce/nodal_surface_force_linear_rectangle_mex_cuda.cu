@@ -42,6 +42,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   double *x_se_arr, *x_dln_arr, *x_b_arr;
   // Device arrays.
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
+  double eps;
   int threads_per_block, blocks_per_grid, n_se, n_dln, para_scheme;
   //int debug = 1;
   //while(debug == 1){}
@@ -65,7 +66,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   se_node_arr[3] = (double *) mxGetPr(prhs[5]);
   b_arr[0] = (double *) mxGetPr(prhs[6]);
   para_scheme = (int) mxGetScalar(prhs[13]);
-  eps         = (double) mxGetScalar(prhs[14]);
+  eps = (double) mxGetScalar(prhs[14]);
   // Map dislocation node arrays to 1D array for parallelisation.
   if(para_scheme == 1){
     x_dln_arr = element_host_device_map(dln_node_arr, n_dln, 2);
@@ -111,7 +112,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_a_sq, &a_sq, sizeof(a_sq)) );
   factor   = 0.25*mu/pi/one_m_nu;
   checkCudaErrors( cudaMemcpyToSymbolAsync(d_factor, &factor, sizeof(factor)) );
-  checkCudaErrors( cudaMemcpyToSymbolAsync(d_eps   , &eps     , sizeof(eps)) );
+  checkCudaErrors( cudaMemcpyToSymbolAsync(d_eps, &eps, sizeof(eps)) );
   // Link force arrays to MATLAB.
   plhs[0] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
   plhs[1] = mxCreateDoubleMatrix(3 * n_se, 1, mxREAL);
@@ -126,11 +127,11 @@ void mexFunction(int nlhs, mxArray *plhs[],
   threads_per_block = (int) mxGetScalar(prhs[12]);
   // CUDA
   if(para_scheme == 1){
-    blocks_per_grid   = (n_dln + threads_per_block - 1) / threads_per_block;
+    blocks_per_grid   = ceil((n_dln + threads_per_block - 1) / threads_per_block);
     dln_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   }
   else{
-    blocks_per_grid   = (n_se + threads_per_block - 1) / threads_per_block;
+    blocks_per_grid   = ceil((n_se + threads_per_block - 1) / threads_per_block);
     se_cuda_nodal_surface_force_linear_rectangle<<<blocks_per_grid, threads_per_block>>>(d_x_dln_arr, d_x_se_arr, d_x_b_arr, d_fx_arr, d_ftot_arr, n_se, n_dln);
   }
   // Host code is executed asynchronously from the kernel execution.

@@ -8,13 +8,13 @@
 % https://devtalk.nvidia.com/default/topic/1027876/cuda-programming-and-performance/why-does-atomicadd-not-work-with-doubles-as-input-/post/5228325/#5228325
 % clear all
 % close all
-% run ./Inputs/i_prismatic_bcc.m
+run ./Inputs/i_prismatic_bcc.m
 min_mx = 30;
 max_mx = 30;
 stp_mx = 10;
 
 % fig0 = plotnodes(rn,links,0,vertices)
-% for mx = min_mx: stp_mx: max_mx
+for mx = min_mx: stp_mx: max_mx
     %close all
     clear x3_array x4_array x5_array x6_array;
     clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
@@ -46,7 +46,7 @@ stp_mx = 10;
          fxtot_array] = ...
            nodal_surface_force_linear_rectangle_mex(x1_array, x2_array, ...
               x3_array, x4_array, x5_array, x6_array, b_array, MU, NU, a, ...
-              sizeRectangleList, sizeSegmentList);
+              sizeRectangleList, sizeSegmentList, 0);
         time_a_lin = toc;
         ftilda_a_lin = reshape(fxtot_array, 3, dim(1))';
 
@@ -54,7 +54,7 @@ stp_mx = 10;
         tic;
           [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
            x3_array,x4_array,x5_array,x6_array,...
-            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 256, 1);
+            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1, 0);
         time_a_par = toc;
         ftilda_a_par = reshape(fxtot_array,3,dim(1))';
         
@@ -64,19 +64,22 @@ stp_mx = 10;
 %                                 x5_array, x6_array,...
 %                                 b_array, MU,NU,a);
 
-%         max(ftilda_a_lin - ftilda_a_par)
-%         min(ftilda_a_lin - ftilda_a_par)
-%         time_a_lin/time_a_par
+        maxval = max(ftilda_a_lin./ftilda_a_par)
+        minval = min(ftilda_a_lin./ftilda_a_par)
+        tdiff = time_a_lin/time_a_par
 
         % Numerical
         [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
+%         max(ftilda_n - ftilda_a_par)
+%         min(ftilda_n - ftilda_a_par)
+%         mean(ftilda_n - ftilda_a_par)
 
         % Plotting
 %         save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_a_par', 'ftilda_n', 'dim', 'face', 'midpoint_element')
-%          plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
+%         plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
     end %for
     
-% end %for
+end %for
 
 %% Plot
 min_face = 1;
