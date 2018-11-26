@@ -100,7 +100,7 @@ slipsys=[1, 1, 0, -1,  1,  1;
 bufferfactor = 1.5;
 %NB Sources are idealised as squares...
 Xmin = 0+bufferfactor*DIST_SOURCE+(0.8/3)*dx;
-Xmax = dx*0.75-bufferfactor*DIST_SOURCE;
+Xmax = Xmin+(dx-Xmin)/5;%dx*0.75-bufferfactor*DIST_SOURCE;
 Ymin = 0+bufferfactor*DIST_SOURCE;
 Ymax = dy-bufferfactor*DIST_SOURCE;
 Zmin = 0+bufferfactor*DIST_SOURCE;

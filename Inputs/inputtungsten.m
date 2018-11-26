@@ -27,7 +27,7 @@ amag=3.18e-4;
 mumag = 145E3; % MPa only used for plotting  
 
 CRYSTAL_STRUCTURE = 'bcc';
-NUM_SOURCES = 10;
+NUM_SOURCES = 4;
 DIST_SOURCE = 0.1/amag;
 
 %% FEM PARAMETERS
@@ -114,8 +114,8 @@ Bline=1e-4*min(Bscrew,Bedge);
 
 %Meshing
 maxconnections=4; 
-lmax =0.5/amag;
-lmin = 0.1/amag;
+lmax =0.25/amag;
+lmin = 0.05/amag;
 areamin=lmin*lmin*sin(60/180*pi)*0.5; 
 areamax=20*areamin; 
 doremesh=1; %flat set to 0 or 1 that turns the remesh functions off or on
@@ -140,7 +140,7 @@ integrator='int_trapezoid';
 %integrator='int_trapezoid_stoc'; %in development
 a=lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 0.25*a; 
+rann = 0.5*a; 
 rntol = 0.5*rann; % need to do convergence studies on all these parameters
 rmax = lmax;
 

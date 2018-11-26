@@ -7,6 +7,7 @@ function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mn
 
 segments = constructsegmentlist(rn,links);
 
+% Udot = 1E3*dx*(1E-4/160E9); %test by BB
 Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
 % Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
 % Udot = dx*1e-5; %HY
@@ -43,7 +44,7 @@ gn = gamma(:,1); % global node number
 % toc;
 % disp(displacementsMEX-displacements);
 %  [Ux, Uy, Uz]  = displacement_fivel(x0,segments,NU);
-[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+[Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
 
 utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;
