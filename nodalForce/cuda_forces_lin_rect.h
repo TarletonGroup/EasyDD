@@ -783,7 +783,7 @@ void main_se_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int 
   double eps;
   int blocks_per_grid;
   int idx1, idx2;
-
+  cudaSetDevice(0);
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
@@ -982,7 +982,7 @@ void main_dln_cuda_nodal_surface_force_linear_rectangle(int n_se, int n_dln, int
   int blocks_per_grid;
   //int n_se, n_dln;
   int idx1, idx2;
-
+  cudaSetDevice(0);
   // Memory allocation
   b_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
   dln_node_arr[0] = (double *) malloc(3 * n_dln * sizeof(double));
