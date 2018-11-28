@@ -1,178 +1,6 @@
-/*
- Calculate nodal forces induced by a non-singular straight segment of dislocation on a linear rectangular surface element.
-
- Notations and details can be found in S. Queyreau, J. Marian, B.D. Wirth, A. Arsenlis, MSMSE, 22(3):035004, (2014).
-
- Translated from matlab code into C by Daniel Celis Garza.
- Edits: June 12, 2017.
-*/
-#define _USE_MATH_DEFINES
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <mex.h>
-
-const double pi = 3.141592653589793238462643383279502884197169399375105820974944592307816;
-// Calculate atanh because MS Visual Studio is inferior to GCC.
-#ifdef _WIN32
-  double atanh( double r ){
-    return 0.5 * (log(1+r) - log(1-r));
-  }
-#endif
-
-double dot_product(double *i_vec1, double *i_vec2, int i_vec_size){
-  // Returns the dot product of i_vec1, i_vec2.
-  double result = 0.0;
-  int i;
-  for (i = 0; i < i_vec_size; i++){
-    result += i_vec1[i]*i_vec2[i];
-  }
-  return result;
-}
-
-double *cross_product(double *i_vec1, double *i_vec2,
-                      double *o_vec){
-  // Returns the cross product of i_vec1 x i_vec2.
-  o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
-  o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
-  o_vec[2] = i_vec1[0]*i_vec2[1] - i_vec1[1]*i_vec2[0];
-  return o_vec;
-}
-
-double *cross_product2(double *i_vec1, double *i_vec2){
-  double *o_vec = malloc(3*sizeof(double));
-  // Returns the cross product of i_vec1 x i_vec2.
-  o_vec[0] = i_vec1[1]*i_vec2[2] - i_vec1[2]*i_vec2[1];
-  o_vec[1] = i_vec1[2]*i_vec2[0] - i_vec1[0]*i_vec2[2];
-  o_vec[2] = i_vec1[0]*i_vec2[1] - i_vec1[1]*i_vec2[0];
-  return o_vec;
-}
-
-double *normalise_vector(double *i_vec, int i_vec_size,
-                         double *o_vec){
-  // Returns a normalised i_vec to o_vec.
-  double mag_vec = 0.0;
-  int i;
-  mag_vec = dot_product(i_vec, i_vec, i_vec_size);
-  // Check magnitude is not zero.
-  if (mag_vec == 0.0){
-    fprintf(stderr, "ERROR: nodal_surface_force_linear_rectangle: normalise_vector: mag_vec = 0: A vector cannot have magnitude 0\n");
-    //exit(EXIT_FAILURE);
-  }
-  mag_vec = sqrt(mag_vec);
-  for(i = 0; i < i_vec_size; i++){
-    o_vec[i] = i_vec[i]/mag_vec;
-  }
-  return o_vec;
-}
-
-void normalise_vector2(double *i_vec, int i_vec_size,
-                       double *o_vec, double *o_mag_vec){
-  // Returns a normalised i_vec to o_vec, and the magnitude of the vector in o_mag_vec.
-  // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
-  /*
-    int    size = 3;
-    double i_vec[size], o_vec[size], magnitude;
-    normalise_vector2(i_vec, size, o_vec, &magnitude);
-  */
-  int i;
-  *o_mag_vec = dot_product(i_vec, i_vec, i_vec_size);
-  // Check magnitude is not zero.
-  if (*o_mag_vec == 0.0){
-    fprintf(stderr, "ERROR: nodal_surface_force_linear_rectangle: normalise_vector2: o_mag_vec = 0: A vector cannot have magnitude 0\n");
-    //exit(EXIT_FAILURE);
-  }
-  *o_mag_vec = sqrt(*o_mag_vec);
-  for(i = 0; i < i_vec_size; i++){
-    o_vec[i] = i_vec[i]/ *o_mag_vec;
-  }
-}
-
-double *arbitrary_rotation_matrix_3d(double i_theta, double *i_rot_centre, double *i_rot_axis, double *i_point, double *o_result){
-  // Rotates i_point an angle of i_theta about the unit vector i_rot_axis passing through the point i_rot_centre..
-  double u_sq, v_sq, w_sq, au, bv, cw, m_ux_m_vy_m_wz, costheta, one_m_costheta, sintheta;
-  double mag_rot_axis;
-  int i;
-  // Always assume the user is stupid and check whether i_rot_axis is normalised, if it's not normalise it.
-  mag_rot_axis = dot_product(i_rot_axis, i_rot_axis, 3);
-  if(mag_rot_axis != 1.0){
-    mag_rot_axis = sqrt(mag_rot_axis);
-    for (i = 0; i < 3; i++){
-      i_rot_axis[i] /= mag_rot_axis;
-    }
-  }
-  // cos(i_theta), 1 - cos(i_theta), sin(i_theta)
-  sintheta = sin(i_theta);
-  costheta = cos(i_theta);
-  one_m_costheta = 1. - costheta;
-  // u^2, v^2, w^2
-  u_sq = i_rot_axis[0]*i_rot_axis[0];
-  v_sq = i_rot_axis[1]*i_rot_axis[1];
-  w_sq = i_rot_axis[2]*i_rot_axis[2];
-  // a*u, b*v, c*w, -u*x-v*y-w*z
-  au = i_rot_centre[0]*i_rot_axis[0];
-  bv = i_rot_centre[1]*i_rot_axis[1];
-  cw = i_rot_centre[2]*i_rot_axis[2];
-  m_ux_m_vy_m_wz = -(i_point[0]*i_rot_axis[0] + i_point[1]*i_rot_axis[1] + i_point[2]*i_rot_axis[2]);
-
-  o_result[0] = one_m_costheta*(i_rot_centre[0]*(v_sq + w_sq) - i_rot_axis[0]*(bv + cw + m_ux_m_vy_m_wz))
-            + costheta*i_point[0]
-            + sintheta*(-i_rot_centre[2]*i_rot_axis[1] + i_rot_centre[1]*i_rot_axis[2] - i_rot_axis[2]*i_point[1] + i_rot_axis[1]*i_point[2]);
-  o_result[1] = one_m_costheta*(i_rot_centre[1]*(u_sq + w_sq) - i_rot_axis[1]*(au + cw + m_ux_m_vy_m_wz))
-            + costheta*i_point[1]
-            + sintheta*( i_rot_centre[2]*i_rot_axis[0] - i_rot_centre[0]*i_rot_axis[2] + i_rot_axis[2]*i_point[0] - i_rot_axis[0]*i_point[2]);
-  o_result[2] = one_m_costheta*(i_rot_centre[2]*(u_sq + v_sq) - i_rot_axis[2]*(au + bv + m_ux_m_vy_m_wz))
-            + costheta*i_point[2]
-            + sintheta*(-i_rot_centre[1]*i_rot_axis[0] + i_rot_centre[0]*i_rot_axis[1] - i_rot_axis[1]*i_point[0] + i_rot_axis[0]*i_point[1]);
-  return o_result;
-}
-/*
-double *arbitrary_rotation_matrix_3d(double theta, double *abc, double *uvw, double *xyz, double *o_xpypzp){
-  // Rotates point xyz an angle of theta about the unit vector uvw passing through the point abc.
-  double costheta       = cos(theta);
-  double one_m_costheta = 1. - costheta;
-  double mag_uvw = dot_product(uvw, uvw, 3);
-  if(mag_uvw != 1.){
-    normalise_vector(uvw, 3, uvw);
-  }
-  o_xpypzp[0] = (abc[0]*(uvw[1]*uvw[1] + uvw[2]*uvw[2]) - uvw[0]*(abc[1]*uvw[1] + abc[2]*uvw[2] - uvw[0]*xyz[0] - uvw[1]*xyz[1] - uvw[2]*xyz[2]))*one_m_costheta + xyz[0]*costheta + (-abc[2]*uvw[1] + abc[1]*uvw[2] - uvw[2]*xyz[1] + uvw[1]*xyz[2])*sin(theta);
-  o_xpypzp[1] = (abc[1]*(uvw[0]*uvw[0] + uvw[2]*uvw[2]) - uvw[1]*(abc[0]*uvw[0] + abc[2]*uvw[2] - uvw[0]*xyz[0] - uvw[1]*xyz[1] - uvw[2]*xyz[2]))*one_m_costheta + xyz[1]*costheta + ( abc[2]*uvw[0] - abc[0]*uvw[2] + uvw[2]*xyz[0] - uvw[0]*xyz[2])*sin(theta);
-  o_xpypzp[2] = (abc[2]*(uvw[0]*uvw[0] + uvw[1]*uvw[1]) - uvw[2]*(abc[0]*uvw[0] + abc[1]*uvw[1] - uvw[0]*xyz[0] - uvw[1]*xyz[1] - uvw[2]*xyz[2]))*one_m_costheta + xyz[2]*costheta + (-abc[1]*uvw[0] + abc[0]*uvw[1] - uvw[1]*xyz[0] + uvw[0]*xyz[1])*sin(theta);
-  //printf("%f, %f, %f\n", xpypzp[0], xpypzp[1], xpypzp[2]);
-  return o_xpypzp;
-}
-*/
-
-double *build_vector(double *i_x1, double *i_x2, int i_vec_size,
-                     double *o_vec){
-  // Returns a vector o_vec which translates the point i_x1 to i_x2.
-  int i;
-  for (i = 0; i < i_vec_size; i++){
-    o_vec[i] = i_x2[i] - i_x1[i];
-  }
-  return o_vec;
-}
-
-double *init_vector(double *i_x1, double *i_x2, int i_vec_size,
-                    double *io_vec){
-  // Builds and returns a normalised vector io_vect.
-  build_vector(i_x1, i_x2, i_vec_size, io_vec);
-  normalise_vector(io_vec, i_vec_size, io_vec);
-  return io_vec;
-}
-
-void init_vector2(double *i_x1  , double *i_x2, int i_vec_size,
-                  double *io_vec, double *o_mag_vec){
-  // Builds and returns a normalised vector io_vect, and the magnitude of the vector in o_mag_vec.
-  // Has to be a void function in order to 'return' two values, the magnitude should be passed as a reference eg:
-  /*
-    int    size = 3;
-    double i_x1[size], i_x2[size], o_vec[size], magnitude;
-    init_vector2(i_x1, i_x2, size, o_vec, &magnitude);
-  */
-  build_vector(i_x1, i_x2, i_vec_size, io_vec);
-  normalise_vector2(io_vec, i_vec_size, io_vec, o_mag_vec);
-}
+const int n_nodes  = 4;
+const int n_limits = 8;
+const double pi = 4.0 * atan(1.0);
 
 double init_point(double *i_vec1, double *i_vec2,
                   double *i_vec3, double *i_vec4,
@@ -188,6 +16,7 @@ double init_point(double *i_vec1, double *i_vec2,
   result = dot_product(i_vec1, i_vec2, i_vec_size)/denom;
   return result;
 }
+
 
 double seed_single_integral(double a, double b){
   // Single integral seed.
@@ -753,10 +582,10 @@ void compute_forces_linear_rectangle(double *i_sch, double i_vec_int[][3],
   }
 }
 
-void init_force(double *nodal_force[4], double *total_force){
+void init_force(double *nodal_force[n_nodes], double *total_force){
   // Sets forces to zero.
   int i, j;
-  for (i = 0; i < 4; i++){
+  for (i = 0; i < n_nodes; i++){
     for (j = 0; j < 3; j++){
       nodal_force[i][j] = 0.0;
     }
@@ -864,6 +693,48 @@ void nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, do
   //printf("total_force[x, y, z] = [%2.14f, %2.14f, %2.14f]\n", total_force[0], total_force[1], total_force[2]);
 }
 
+void nodal_surface_force_linear_rectangle_special(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double *t, double *p, double *q, double *n, double p_norm, double q_norm, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[n_nodes], double *total_force){
+  /*
+    Forces
+    nodal_force[0][] = F_x3[x, y, z], nodal_force[1][] = F_x4[x, y, z],
+    nodal_force[2][] = F_x5[x, y, z], nodal_force[3][] = F_x6[x, y, z]
+    total_force[x, y, z] = F_x3[x, y, z] + F_x4[x, y, z] + F_x5[x, y, z] + F_x6[x, y, z]
+  */
+  // Modulus of p and q.
+  double rot_centre[3], rot_x1[3], rot_x2[3];
+  double t_x_n[3], mag_t_x_n, p_total_force[3], *p_nodal_force[n_nodes];
+  int rotation;
+  rotation = 4;
+  // Initialise force to zero.
+  init_force(nodal_force, total_force);
+
+  for (int i = 0; i < n_nodes; i++){
+    p_nodal_force[i] = (double *) malloc(3 * sizeof(double));
+  }
+  double angle = pi/180.;
+  cross_product(t, n, t_x_n);
+  mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
+  for (int i = 0; i < 3; i++){
+    // Halfway between x1 and x2. x1 + (x2-x1)/2
+    rot_centre[i] = 0.5*(x1[i] + x2[i]);
+    t_x_n[i] = t_x_n[i]/mag_t_x_n;
+  }
+  for (int i = 1; i < rotation + 1; i++){
+    arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x1, rot_x1);
+    arbitrary_rotation_matrix_3d(i*angle, rot_centre, t_x_n, x2, rot_x2);
+    nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
+    add_force(p_nodal_force, p_total_force, nodal_force, total_force);
+    arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x1, rot_x1);
+    arbitrary_rotation_matrix_3d(-i*angle, rot_centre, t_x_n, x2, rot_x2);
+    nodal_surface_force_linear_rectangle(rot_x1, rot_x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, factor, p_nodal_force, p_total_force);
+    add_force(p_nodal_force, p_total_force, nodal_force, total_force);
+  }
+  mean_force(nodal_force, total_force, rotation*2);
+  for (int i = 0; i < n_nodes; i++){
+    free(p_nodal_force[i]);
+  }
+}
+
 void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x3, double *x4, double *x5, double *x6, double *b, double mu, double nu, double a, double a_sq, double one_m_nu, double factor, double *nodal_force[4], double *total_force){
   /*
     Forces
@@ -895,8 +766,10 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
     nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, p, q, n, p_norm, q_norm, mu, nu, a, a_sq, one_m_nu, l_factor, nodal_force, total_force);
   }
   else{
+	// Initialise force to zero.
+	init_force(nodal_force, total_force);
     for (i = 0; i < 4; i++){
-      p_nodal_force[i] = malloc(3*sizeof(double));
+      p_nodal_force[i] = (double *) malloc(3*sizeof(double));
     }
     cross_product(t, n, t_x_n);
     mag_t_x_n = sqrt(dot_product(t_x_n, t_x_n, 3));
@@ -930,115 +803,3 @@ void main_nodal_surface_force_linear_rectangle(double *x1, double *x2, double *x
   }
   //printf("total_force[x, y, z] = [%2.14f, %2.14f, %2.14f]\n", total_force[0], total_force[1], total_force[2]);
 }
-
-void mexFunction(int nlhs, mxArray *plhs[],
-                 int nrhs, const mxArray *prhs[]){
-  // We bundle fx into an array op pointers because it makes it easier to make loops of many operations. We don't do it with the points x1--x6 because we don't gain anything from it aside from shorter argmument lists for functions, makes things harder to read, and would make it easy to mistakenly modify x1 and x2 as a side effect of having to rotate them if the line vector t is parallel to the surface element.
-  double *x1_arr, *x2_arr, *x3_arr, *x4_arr, *x5_arr, *x6_arr;
-  double *b_arr;
-  double mu,nu,a;
-  double a_sq, one_m_nu, factor;
-  double *fx_arr[4];
-  double *ftot_arr;
-  int num_surface_elements, num_dislocation_segs;
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3];
-  double b[3];
-  double *fx[4];
-  double ftot[3];
-  int i, j, k, idx1, idx2;
-  //int debug = 1;
-  //do {} while( debug == 1 );
-
-  x1_arr = (double *) mxGetPr(prhs[0]);
-  x2_arr = (double *) mxGetPr(prhs[1]);
-  x3_arr = (double *) mxGetPr(prhs[2]);
-  x4_arr = (double *) mxGetPr(prhs[3]);
-  x5_arr = (double *) mxGetPr(prhs[4]);
-  x6_arr = (double *) mxGetPr(prhs[5]);
-  b_arr  = (double *) mxGetPr(prhs[6]);
-  mu = mxGetScalar(prhs[7]);
-  nu = mxGetScalar(prhs[8]);
-  a  = mxGetScalar(prhs[9]);
-  num_surface_elements = mxGetScalar(prhs[10]);
-  num_dislocation_segs = mxGetScalar(prhs[11]);
-
-  plhs[0] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
-  plhs[1] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
-  plhs[2] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
-  plhs[3] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
-  plhs[4] = mxCreateDoubleMatrix(3*num_surface_elements,1,mxREAL);
-
-  fx_arr[0] = (double *) mxGetPr(plhs[0]);
-  fx_arr[1] = (double *) mxGetPr(plhs[1]);
-  fx_arr[2] = (double *) mxGetPr(plhs[2]);
-  fx_arr[3] = (double *) mxGetPr(plhs[3]);
-  ftot_arr  = (double *) mxGetPr(plhs[4]);
-  for (i = 0; i < 4; i++){
-      fx[i] = malloc(3*sizeof(double));
-  }
-  a_sq     = a*a;
-  one_m_nu = 1.-nu;
-  factor   = 0.25*mu/pi/one_m_nu;
-  // Naive case, we repeat many operations.
-  // TO DO: Change this from the naive case to something more efficient.
-  // Loop through the number of surface elements.
-  idx1 = 0;
-  for (i = 0; i < num_surface_elements; i++){
-    idx2 = 0;
-    // Transfer rectangular element i's coordinates into x3--x6.
-    for (k = 0; k < 3; k++){
-      x3[k] = x3_arr[idx1+k];
-      x4[k] = x4_arr[idx1+k];
-      x5[k] = x5_arr[idx1+k];
-      x6[k] = x6_arr[idx1+k];
-    }
-    // Loop through the dislocation segments.
-    for (j = 0; j < num_dislocation_segs; j++){
-      // Transfer dislocation segment j's coordinates and burger's vector into x1--x2 and b
-      for (k = 0; k < 3; k++){
-        x1[k] = x1_arr[idx2+k];
-        x2[k] = x2_arr[idx2+k];
-        b [k] = b_arr [idx2+k];
-      }
-      main_nodal_surface_force_linear_rectangle(x1,x2,x3,x4,x5,x6,b,mu,nu,a,a_sq,one_m_nu,factor,fx,ftot);
-      // Add the force contributions for segment j to the surface element i.
-      for (k = 0; k < 3; k++){
-        fx_arr[0][idx1+k] += fx[0][k];
-        fx_arr[1][idx1+k] += fx[1][k];
-        fx_arr[2][idx1+k] += fx[2][k];
-        fx_arr[3][idx1+k] += fx[3][k];
-        ftot_arr [idx1+k] += ftot[k];
-      }
-      idx2 += 3;
-    }
-    idx1 += 3;
-  }
-  for (i = 0; i < 4; i++){
-      free(fx[i]);
-  }
-}
-
-/*
-// Testing purposes
-int main(void){
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], mu, nu, a, *nodal_force[4], total_force[3];
-  double a_sq, one_m_nu, factor;
-  for(int i = 0; i < 4; i++){
-    nodal_force[i] = malloc(3*sizeof(double));
-  }
-  x1[0] = 0.5; x1[1] = 0.; x1[2] = 0.5;
-  x2[0] = 0.5; x2[1] = 1.; x2[2] = 1.5;
-  x3[0] = 0.; x3[1] = 0.; x3[2] = 0.;
-  x4[0] = 1.; x4[1] = 0.; x4[2] = 0.;
-  x5[0] = 0.; x5[1] = 1.; x5[2] = 1.;
-  x6[0] = 1.; x6[1] = 1.; x6[2] = 1.;
-  b[0] = -3./10.; b[1] = 5./10.; b[2] = 4./10.;
-  mu = 0.6;
-  nu = 0.3;
-  a = 0.01;
-  a_sq = a*a;
-  one_m_nu = 1.-nu;
-  factor   = 0.25*mu/pi/one_m_nu;
-  main_nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, mu, nu, a, a_sq, one_m_nu, factor, nodal_force, total_force);
-}
-*/

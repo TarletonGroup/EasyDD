@@ -2,10 +2,118 @@
 \label{c:ddd_fem}
 	\section{Superposition Scheme}
 	\label{s:sup_sch}
-		Coupling \kwd{ddd} to \kwdp{fem} \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element} is important to properly simulate micromechanical tests because \kwd{ddd} provides us with a more precise set of inputs and greater granularity for solving the \kwd{fe} problem.
+		Coupling \kwd{ddd} to \kwdp{fem} \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element} is important to properly simulate micromechanical tests because \kwd{ddd} provides us with a more precise set of inputs and greater granularity for solving the \kwd{fe} problem. This can be achieved by using a so-called superposition scheme \cref{f:fem_ddd} that enables the independent solution of both problems, whilst feeding information from one to the other in a continuous feedback loop.
 		\begin{figure}
 			\centering
 			\includegraphics[width=\linewidth]{fem_ddd.pdf}
 			\caption[Coupling Discrete Dislocation Dynamics to Finite Element Methods.]{The \kwd{dl} ensemble in a volume $ V $ is bounded by surface $ S $. First, the traction field $ \sum_{\textrm{d}} \tns{\tilde{\sigma}}_{\textrm{d}} $ due to the \kwd{dl} ensemble is evaluated at the surface. Then, a traditional \kwd{fem} or \kwd{bem} calculates the image traction field $ \tns{\hat{\sigma}} \times \vec{n} $. Which is then fed back to the \kwd{ddd} problem to evolve the \kwd{dl} positions and repeat the cycle. Image edited from \cite{analytical_integration_of_the_forces_induced_by_dislocations_on_a_surface_element}.}
 			\label{f:fem_ddd}
 		\end{figure}
+	\section{Extracting Surface Nodes}
+		The \kwd{fem} coupler arranges the nodes starting on the $ xz $-plane where $ y = 0, \ldots, n \mathrm{d}y,~n\in \mathbb{N} $. However in order to couple \kwd{ddd} to \kwd{fem} we only require the surface nodes where displacements are not calculated. Because we're working with rectangular prisms, we can easily pick out the surface nodes using a search algorithm with a logical mask. MATLAB and Fortran provide vector intrinsics that allow one to do so. \Cref{f:fem_surf_nodes} illustrates only the surface nodes according to our implementation's node arrangement---which is the $ xz $-plane going from $ y = y_{\textrm{min}} \to y = y_{\textrm{max}} $.
+		\begin{figure}
+			\centering
+			\begin{subfigure}[b]{0.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth]{fem_surf_nodes.pdf}
+				\caption[Surface nodes of our \kwd{fe} model.]{Arrangement of the surface nodes of our \kwd{fe} model. \kwd{fe} nodes are arranged in chunks of $ \Delta x \Delta z $ nodes in our implementation, but we only want the surface nodes.}
+				\label{f:fem_surf_nodes}
+			\end{subfigure}
+			~
+			\begin{subfigure}[b]{0.45\linewidth}
+				\centering
+				\includegraphics[width=\linewidth]{fe_numbering.pdf}
+				\caption[Single finite element node numbering.]{Single \kwd{fe} node numbering. It is necessary to know which \kwd{fe} plane corresponds to which node labels. This lets us design the auxiliary matrix that selects nodes according to the planes we want to extract.}
+				\label{f:fe_numbering}
+			\end{subfigure}
+		\caption[Finite Element node arrangement for coupling to Discrete Dislocation Dynamics.]{\kwd{fe} node arrangement for coupling to \kwd{ddd}.}
+		\label{f:fem_node_arr}
+		\end{figure}
+		However, due to the nature of the analytical solutions in \cref{c:lin_rect}, we need all the surface nodes of the rectangular faces for which there are no displacements. This means that edge nodes are shared between 2 adjacent faces and corner nodes between 3 adjacent faces. In order to properly apply the logical mask to find \emph{only} the surface nodes need to know that each \kwdp{fe}' nodes are numbered according to \cref{f:fe_numbering}.
+		
+		Using \cref{f:fem_node_arr} one can work out which nodes are of interest to whichever surface is being extracted. The ordering of the nodes in the final array will depend on the definition of the problems in \cref{c:lin_rect,c:quad_triang}.
+		
+		Node selection remains an expensive operation and minimising array indexing is of the utmost importance for the best perfomance. Selecting nodes in the traditional sense, i.e. with code branching such as \texttt{if statements} or \texttt{case selection} is unmantainable, verbose and very prone to mistakes. The issue was solved by introducing an auxiliary matrix which defines various parameters that aid node selection and greatly reduces code size, improves readability, and eliminates the need for code branching. The matrix can be constructed utilising \cref{f:fem_node_arr} in order to know which nodes correspond to which \kwd{fe} planes. The $ p\textsuperscript{th} $ column of the matrix\footnote{MATLAB uses column-major ordering, so this gives us the best performance for vectorised code.} corresponds to the $ p\textsuperscript{th} $ plane (according to an arbitrary plane numbering) and is defined as,
+		\begin{align}\label{e:surf_node_util_vec}
+			\vec{V_{p}}^{\mathsf{T}} =
+				\begin{bmatrix}
+					L_{1p} & L_{2p} & \cdots & L_{Np} & A_{p} & C_{p}
+				\end{bmatrix}\,,
+		\end{align}	
+		where $ L_{np} $ is the numeric label for node $ n $ as given by \cref{f:fem_node_arr}, $ A_{p} $ is the area of the plane, and $ C_{p} $ is the numeric label of the orthogonal coordinate to the plane $ C_{p} = 1, ~2, ~3 $ for the $ x, ~y, ~z $ coordinates respectively. $ A_{p} $ lets us segment our output and transitional arrays so that the only data being modified is that which corresponds to the correct plane and $ C_{p} $ lets us know which coordinate we must use in our selection criteria. Using our particular node labelling scheme (with dimensions $ \Delta x,~ \Delta y,~ \Delta z $ respectively in the $ x,~ y,~ z $ directions), the matrix is defined as,
+		\begin{align}\label{e:surf_node_util}
+			\mtx{V} = 
+				\begin{bmatrix}
+					5 & 2 & 6 & 1 & 5 & 4\\
+					1 & 6 & 5 & 2 & 6 & 3\\
+					8 & 3 & 7 & 4 & 1 & 8\\
+					4 & 7 & 8 & 3 & 2 & 7\\
+					\Delta y \Delta z & \Delta y \Delta z & \Delta x \Delta z & \Delta x \Delta z & \Delta x \Delta y & \Delta x \Delta y\\
+					1 & 1 & 2 & 2 & 3 & 3
+				\end{bmatrix}\,.
+		\end{align}
+		The information codified in \cref{e:surf_node_util} lets us index and process only the necessary columns to extract the surface nodes we're interested in. The advantage of this setup over a naïve implementation is that it can be relatively easily expanded, maintained, and is general enough that it lends itself to a variety of selection criteria. The columns from left to right (1 to 6) represent: 
+		\begin{inparaenum}[{face} 1 $ \equiv $]
+			\item $ \min(x),~ yz $-plane;
+			\item $ \max(x),~ yz $-plane;
+			\item $ \min(y),~ xz $-plane;
+			\item $ \max(y),~ xz $-plane;
+			\item $ \min(z),~ xy $-plane;
+			\item $ \max(z),~ xy $-plane.
+		\end{inparaenum} 
+		
+		It is important to make sure the nodes are extracted in a self consistent manner because the problem definitions in \cref{c:lin_rect,c:quad_triang} assume a specific node ordering. In particular, the labelling chirality must remain the same. This is due to the fact that the problems in \cref{c:lin_rect,c:quad_triang} utilise internal coordinates derived from a set of basis vectors, and scalar projections onto them. If the relationship between the vectors is kept, but the chirality is different (opposite) the calculated quantities will have the wrong sign. If however the relationship between the vectors is different to the problem formulation, the program will crash due to division by 0. Self-consistency was achieved by placing an imaginary observer inside the \kwd{fe} model facing the $ \min(x),~ yz $-plane (face 1) and rotating it to view all 6 planes according to \cref{f:surf_node_plane}.
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.75\linewidth]{surf_node_plane.pdf}
+			\caption[Self-consistent, chirality preserving surface planes.]{Self-consistent, chirality preserving surface planes. Plane and node numbering according to the columns of \cref{e:surf_node_util} and \cref{f:fem_node_arr}.}
+			\label{f:surf_node_plane}
+		\end{figure}
+		\section{Mapping Forces}
+		\begin{algorithm}
+			\caption{If $ \vec{\hat{F}} $'s columns are arranged the same way as $ \vec{\gamma_{t}} $.}
+			\begin{algorithmic}[1]
+				\State\Comment{Loop through the array containing the node labels of the relevant surface nodes.}
+				\For{$ i = 0;\, i < \rvar{length}(\vec{\gamma_{t}});\, i++$}
+					\State\Comment{Save the global node label for the current iteration.}
+					\State $ n \gets \vec{\gamma_{t}}[i] $
+					\State\Comment{Use the node label to find a vector with the linear location of all surface nodes whose labels correspond to the node whose forces we want to pass on to the \kwd{fem} coupler.}
+					\State $ \vec{L} \gets \rvar{find}(\mtx{N_{L}} == n) $
+					\State\Comment{Loop over coordinates.}
+					\For{$ k = 0;\, k < 3;\, k++ $}
+						\State\Comment{Use global node label vector to index the force array from the analytical force calculation due to dislocations on surface nodes. Multiplied by 3 because there are three coordinates per node. We sum the forces from the analytical calculation because the same global node can be part of multiple surface elements. We add $ k $ because the $ x,~y,~z $ coordinates are consecutively stored in $ \mtx{F_{n}} $.}
+						\State $ \mtx{\tilde{F}}[3\times \vec{L} + k] \gets \mtx{\tilde{F}}[3\times \vec{L} + k] + \sum\mtx{F_{n}}[3\times \vec{L} + k]  $
+					\EndFor
+				\EndFor
+			\end{algorithmic}
+		\end{algorithm}
+	
+%	\begin{algorithm}
+%		\begin{algorithmic}[1]
+%			content...
+%		\end{algorithmic}
+%	\end{algorithm}
+	
+	$ \vec{\hat{F}} $ only cares about the global node numbers, of which there are $ M $. The columns of $ \mtx{N_{L}},~ \mtx{F_{N}} $ represent the 4 nodes of a \kwd{se}, the rows represent the \kwd{se} they are part of. The column vector $ \vec{x} $ represents the $ x,~y~z $-coordinates of the node-element or global node corresponding to their subscript. The column vector $ \vec{\gamma_{t}} $ is the list of global nodes for which the forces induced by dislocations must be calculated.
+	\begin{align}
+		\mtx{N_{L}} &=	\begin{bmatrix}
+							4 & 5 & 1 & 2\\
+							5 & 6 & 2 & 3\\
+							7 & 8 & 4 & 5\\
+							8 & 9 & 5 & 6\\
+						\end{bmatrix}\\
+		\mtx{F_{n}} &=	\begin{bmatrix}
+							\vec{x_{11}} & \vec{x_{12}} & \vec{x_{13}} & \vec{x_{14}}\\
+							\vec{x_{21}} & \vec{x_{22}} & \vec{x_{23}} & \vec{x_{24}}\\
+							\vec{x_{31}} & \vec{x_{32}} & \vec{x_{33}} & \vec{x_{34}}\\
+							\vec{x_{41}} & \vec{x_{42}} & \vec{x_{43}} & \vec{x_{44}}\\
+						\end{bmatrix}\\
+		\vec{\hat{F}}^{\mathsf{T}} &= 	\begin{bmatrix}
+											\vec{x_{1}}^{\mathsf{T}} & \vec{x_{2}}^{\mathsf{T}} & \ldots & \vec{x_{M}}^{\mathsf{T}}
+										\end{bmatrix}\\
+		\vec{x_{en}}^{\mathsf{T}} &=	\begin{bmatrix}
+											x_{en} & y_{en} & z_{en}
+										\end{bmatrix}
+	\end{align}
+		
+		
