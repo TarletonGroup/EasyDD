@@ -7,8 +7,8 @@ function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mn
 
 segments = constructsegmentlist(rn,links);
 
-%Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
-Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
+Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
+%Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
 
 Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debuggin
@@ -60,7 +60,9 @@ fhat=zeros(3*(mno),1);
 gamma=[gammat;gammaMixed];
 
 %ftilda = zeros(3*mno,1);
-ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);   
+ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);
+
+%%
 %ftilda=zeros(3*mno,1); %ET uncomment later!
 
 fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
