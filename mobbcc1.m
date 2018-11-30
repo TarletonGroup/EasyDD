@@ -4,7 +4,7 @@ function [vn,fn] = mobbcc1(fseg,rn,links,connectivity,nodelist,conlist)
 global Bscrew Bedge Beclimb Bline
 
 %numerical tolerance
-eps=1e-10;
+eps=1e-7;
 
 % length of the nodelist for which the velocity will be calculated
 L1=size(nodelist,1);

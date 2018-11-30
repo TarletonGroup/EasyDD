@@ -40,6 +40,9 @@ convergent=0;
 while(~convergent)
     
     rnvec1=rnvec0+vnvec0*dt; %Euler forward method [Cai & Bulatov, eq. 10.43]
+    if isempty(rnvec1)
+        convergent=1;
+    end
 % ET - rnvec1 can contain a node outside the domain! 
     for iter=1:maxiter,
         [vnvec,fn,fseg]=drndt(rnvec1,flag,MU,NU,a,Ec,links,connectivity,...
@@ -72,7 +75,9 @@ vn=reshape(vnvec,length(vnvec)/3,3); % trapezoidal rule modification
 %dtmax. 
 
 %automatically adjust time step
-if((dt==dt1)&&(iter==1))
+if isempty(errmag)
+    dt=dt0;
+elseif((dt==dt1)&&(iter==1))
     maxchange=1.2;
     exponent=20;
     factor=maxchange*(1/(1+(maxchange^exponent-1)*(errmag/rntol)))^(1/exponent);

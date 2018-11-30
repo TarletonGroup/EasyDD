@@ -1,4 +1,4 @@
-% This is badly coded as there is a lot of hard code but it is a proof of 
+% This is badly coded as there is a lot of hard code but it is a proof of
 % concept for an idealised case.
 clear all;
 close all;
@@ -10,21 +10,22 @@ nu = 0.29;
 %  |       |
 %  |       |
 %  x3------x4
+
 %%
 x3 = [-0.5E3 -0.5E3 0];
 x4 = [ 0.5E3 -0.5E3 0];
 x5 = [-0.5E3  0.5E3 0];
 x6 = [ 0.5E3  0.5E3 0];
-% 
+%
 n_q  = [1; 2; 10; 11; 100; 101; 500; 501; 1000; 1001; 1500; 1501];
-% 
+%
 % % There seems to be a factor of 3 missing from the analytical solutions.
 % x1i = [0 0 0];
 % x2i = [0 0 1];
 % b   = [1 0 0];
 % a   = 5*norm(b);
 % dist = a + [0; 1E-1; 1E0; 1E1; 1E2];% 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-% 
+%
 % % % save("eperp_params.mat")
 % % for i = 1: size(n_q)
 % %     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
@@ -51,7 +52,7 @@ n_q  = [1; 2; 10; 11; 100; 101; 500; 501; 1000; 1001; 1500; 1501];
 % %         sprintf("q = %d, dist = %f, err = %f, ", n_q(i), dist(j), abs(ftotn(2)-ftota(2))./ftota(2))
 % %     end %for
 % % end %for
-% 
+%
 n_dln = 10000;
 x1i = zeros(n_dln,3);
 x2i = zeros(n_dln,3);
@@ -127,16 +128,16 @@ end %for
 % x4 = [ 0.5E3 -0.5E3 0];
 % x5 = [-0.5E3  0.5E3 0];
 % x6 = [ 0.5E3  0.5E3 0];
-% 
+%
 % n_q  = [1; 2; 10; 11; 100; 101; 500; 501; 1000; 1001; 1500; 1501];
-% 
+%
 % % There seems to be a factor of 3 missing from the analytical solutions.
 % % x1i = [0.5E3 0.5E3 0];
 % % x2i = [0.5E3 0.5E3 1];
 % % b   = [1 0 0];
 % % a   = 5*norm(b);
 % % dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-% % 
+% %
 % % save("aeperp_params.mat")
 % % for i = 1: size(n_q)
 % %     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
@@ -162,7 +163,7 @@ end %for
 % %         end %for
 % %     end %for
 % % end %for
-% 
+%
 % n_dln = 100;
 % x1i = zeros(n_dln,3);
 % x2i = zeros(n_dln,3);
@@ -175,7 +176,7 @@ end %for
 % a   = 5*norm(b(1,:));
 % dim = size(x1i,1)*size(x1i,2);
 % dist = a;% + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-% 
+%
 % % save("aepar_params.mat")
 % for i = 1: size(n_q)
 %     [q, w] = lgwt(n_q(i), -0.5E3, 0.E3);
@@ -198,7 +199,7 @@ end %for
 %         end %for
 %     end %for
 % end %for
-% 
+%
 % % x1i = [-0.5E9 0 0];
 % % x2i = [ 0.5E9 0 0];
 % % b   = [1 0 0];
@@ -216,7 +217,7 @@ end %for
 % a   = 5*norm(b(1,:));
 % dim = size(x1i,1)*size(x1i,2);
 % dist = a;% + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-% 
+%
 % % save("aaspar_params.mat")
 % for i = 1: size(n_q)
 %     [q, w] = lgwt(n_q(i), -0.5E3, 0.E3);
@@ -261,17 +262,18 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
 
      Lx = (x4(1)-x3(1));
      Ly = (x5(2)-x3(2));
-     
+
      LxLy = Lx*Ly;
      factor = 1/LxLy;
-     
+
      fx1 = zeros(1,3);
      fx2 = zeros(1,3);
      fx3 = zeros(1,3);
      fx4 = zeros(1,3);
      ftot = zeros(1,3);
-     
+
      n_q = size(quad, 1);
+
      for i = 1: n_q
          y  = quad(i, 1);
          wy = quad(i, 2);
@@ -279,20 +281,20 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
              x  = quad(j, 1);
              wx = quad(j, 2);
              [N1, N2, N3, N4] = shape_func(x, y);
-             
+
              [sxx, syy, szz,...
               sxy, syz, sxz] = StressDueToSegs(n_se, n_dln, x, y, 0,...
                                               x1(:,1), x1(:,2), x1(:,3),...
                                               x2(:,1), x2(:,2), x2(:,3),...
                                               b(:,1),b(:,2),b(:,3),...
                                               a,mu,nu);
-                                          
+
             T = [sxx.*n(1,1) + sxy.*n(1,2) + sxz.*n(1,3) ...
                  sxy.*n(1,1) + syy.*n(1,2) + syz.*n(1,3) ...
                  sxz.*n(1,1) + syz.*n(1,2) + szz.*n(1,3)];
-             
+
             ft = wy*wx*T*LxLy*factor;
-             
+
             fx1 = fx1 + ft*N1;
             fx2 = fx2 + ft*N2;
             fx3 = fx3 + ft*N3;
@@ -306,7 +308,7 @@ function [x, w] = lgwt(N,a,b)
 
 % lgwt.m
 %
-% This script is for computing definite integrals using Legendre-Gauss 
+% This script is for computing definite integrals using Legendre-Gauss
 % Quadrature. Computes the Legendre-Gauss nodes and weights  on an interval
 % [a,b] with truncation order N
 %
@@ -339,23 +341,23 @@ y0=2;
 while max(abs(y-y0))>eps
     L(:,1)=1;
     Lp(:,1)=0;
-    
+
     L(:,2)=y;
     Lp(:,2)=1;
-    
+
     for k=2:N1
         L(:,k+1)=( (2*k-1)*y.*L(:,k)-(k-1)*L(:,k-1) )/k;
     end
- 
-    Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);   
-    
+
+    Lp=(N2)*( L(:,N1)-y.*L(:,N2) )./(1-y.^2);
+
     y0=y;
     y=y0-L(:,N2)./Lp;
-    
+
 end
 
 % Linear map from[-1,1] to [a,b]
-x=(a*(1-y)+b*(1+y))/2;      
+x=(a*(1-y)+b*(1+y))/2;
 
 % Compute the weights
 w=(b-a)./((1-y.^2).*Lp.^2)*(N2/N1)^2;

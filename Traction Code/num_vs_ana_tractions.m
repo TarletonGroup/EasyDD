@@ -8,13 +8,13 @@
 % https://devtalk.nvidia.com/default/topic/1027876/cuda-programming-and-performance/why-does-atomicadd-not-work-with-doubles-as-input-/post/5228325/#5228325
 % clear all
 % close all
-run ./Inputs/i_prismatic_bcc.m
+% run ./Inputs/i_prismatic_bcc.m
 min_mx = 30;
 max_mx = 30;
 stp_mx = 10;
 
 % fig0 = plotnodes(rn,links,0,vertices)
-for mx = min_mx: stp_mx: max_mx
+% for mx = min_mx: stp_mx: max_mx
     %close all
     clear x3_array x4_array x5_array x6_array;
     clear fx3_array fx4_array fx5_array fx6_array fxtot_array;
@@ -26,11 +26,11 @@ for mx = min_mx: stp_mx: max_mx
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
 
     sizeSegmentList = size(segments,1);
-
+    
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
-    b_array  = reshape(segments(:,3:5)',sizeSegmentList*3,1);
-
+    b_array  = reshape(segments(:,3:5)',sizeSegmentList*3,1); 
+   
     %%
     for face = 1: 1: 3
         % Analytical.
@@ -46,7 +46,7 @@ for mx = min_mx: stp_mx: max_mx
          fxtot_array] = ...
            nodal_surface_force_linear_rectangle_mex(x1_array, x2_array, ...
               x3_array, x4_array, x5_array, x6_array, b_array, MU, NU, a, ...
-              sizeRectangleList, sizeSegmentList, 0);
+              sizeRectangleList, sizeSegmentList);
         time_a_lin = toc;
         ftilda_a_lin = reshape(fxtot_array, 3, dim(1))';
 
@@ -54,32 +54,29 @@ for mx = min_mx: stp_mx: max_mx
         tic;
           [fx3_array,fx4_array,fx5_array,fx6_array,fxtot_array] = nodal_surface_force_linear_rectangle_mex_cuda(x1_array,x2_array,...
            x3_array,x4_array,x5_array,x6_array,...
-            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1, 0);
+            b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 256, 1);
         time_a_par = toc;
         ftilda_a_par = reshape(fxtot_array,3,dim(1))';
-
+        
 %         ftilda_mat = NodalSurfForceLinearRectangle2(                    ...
 %                                 x1_array, x2_array,...
 %                                 x3_array, x4_array,...
 %                                 x5_array, x6_array,...
 %                                 b_array, MU,NU,a);
 
-        maxval = max(ftilda_a_lin./ftilda_a_par)
-        minval = min(ftilda_a_lin./ftilda_a_par)
-        tdiff = time_a_lin/time_a_par
+%         max(ftilda_a_lin - ftilda_a_par)
+%         min(ftilda_a_lin - ftilda_a_par)
+%         time_a_lin/time_a_par
 
         % Numerical
         [ftilda_n, x, y, z] = f_dln_num(face, dim, gammat, segments, midpoint_element, a, MU, NU);
-%         max(ftilda_n - ftilda_a_par)
-%         min(ftilda_n - ftilda_a_par)
-%         mean(ftilda_n - ftilda_a_par)
 
         % Plotting
 %         save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_a_par', 'ftilda_n', 'dim', 'face', 'midpoint_element')
-%         plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
+%          plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
     end %for
-
-end %for
+    
+% end %for
 
 %% Plot
 min_face = 1;
@@ -153,7 +150,7 @@ function [dim, x3, x4, x5, x6, xmid] = get_face_nodes(face, mx, my, mz, xnodes, 
                 x6  (idx, 1:3) = x3x6(4   , 1:3);
                 xmid(idx, 1:3) = mean(x3x6,   1);
                 idx = idx + 1;
-            end %for
+            end %for 
         end %for
     elseif face == 3
         dim = [my*mz; my; mz];
@@ -209,7 +206,7 @@ function [f_dln, x, y ,z] = f_dln_num(face, dim, gammat, segments, xmid, a, MU, 
                                                   p1x,p1y,p1z,...
                                                   p2x,p2y,p2z,...
                                                   bx,by,bz,...
-                                                  a,MU,NU);
+                                                  a,MU,NU); 
     Tx = sxx*normal(1) + sxy*normal(2) + sxz*normal(3);
     Ty = sxy*normal(1) + syy*normal(2) + syz*normal(3);
     Tz = sxz*normal(1) + syz*normal(2) + szz*normal(3);
@@ -220,7 +217,7 @@ function [f_dln, x, y ,z] = f_dln_num(face, dim, gammat, segments, xmid, a, MU, 
 end %function
 
 function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
-
+    
     if face == 1
         axis1 = reshape(x, dim(2), dim(3));
         axis2 = reshape(z, dim(2), dim(3));
@@ -234,65 +231,65 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         axis2 = reshape(z, dim(2), dim(3));
         str_label  = ['y'; 'z'];
     end %if
-
+    
     str_dim = ['x'; 'y'; 'z'];
-
+    
     rel_err = (f_dln_n - f_dln_a)./f_dln_a;
     rel_err(isnan(rel_err)) = 0;
-
+    
     error_cntr = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
-
+        
         contourf(axis1, axis2, reshape(rel_err(:, i), dim(2), dim(3)));
-
+        
         min_rel_err  = min (rel_err(:, i));
         max_rel_err  = max (rel_err(:, i));
         colorvec = [min_rel_err max_rel_err];
         caxis(colorvec);
         colorbar
-
+        
         title(sprintf('Relative Error, $F_{%s}$', str_dim(i)),'Interpreter','latex');
         ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
         xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
-
+    
     f_dln_n_fig = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
-
+        
         contourf(axis1, axis2, reshape(f_dln_n(:, i), dim(2), dim(3)));
-
+        
         mean_rel_err = mean(abs(rel_err(:, i)));
         cvec = [min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         colorvec = [min(cvec) max(cvec)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
-
+        
         title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
         ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
         xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
-
+    
     f_dln_a_fig = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
-
+        
         contourf(axis1, axis2, reshape(f_dln_a(:, i), dim(2), dim(3)));
-
+        
         mean_rel_err = mean(abs(rel_err(:, i)));
         cvec = [min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         colorvec = [min(cvec) max(cvec)];
         caxis(colorvec);
         colorbar
-
+        
         title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
         ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
         xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
-
+    
     rms_rel_err = rms(rel_err);
 end %function

@@ -1,9 +1,8 @@
-function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                                    ...
+function [f_dln, f_dln_se] = analytic_traction(                                    ...
                      se_node_coord, dln_node_coord, burgers    , n_nodes,...
                      n_nodes_t    , n_se          , n_dln      , idxf   ,...
                      idxi         , f_dln_node    , f_dln_se   , f_dln  ,...
-                     mu, nu, a    , use_gpu       , n_threads  , para_scheme, ...
-                     eps)
+                     mu, nu, a    , use_gpu       , n_threads  , para_scheme)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
@@ -36,12 +35,12 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     % Inputs
     %=====================================================================%
     %
-    % se_node_coord := dimension(n_se*n_nodes, 3). 2D array
-    %   with the cartesian coordinates of the finite element nodes subject
-    %   to traction boundary conditions. The analytical solution requires
+    % se_node_coord := dimension(n_se*n_nodes, 3). 2D array 
+    %   with the cartesian coordinates of the finite element nodes subject 
+    %   to traction boundary conditions. The analytical solution requires 
     %   they be arranged element by element in a specific order.
     %
-    % dln_node_coord := dimension(n_dln*2, 3). 2D array with
+    % dln_node_coord := dimension(n_dln*2, 3). 2D array with 
     %   the cartesian coordinates of the dislocation line nodes. The
     %   analytical solution requires they be arranged line segment by
     %   line segment.
@@ -53,12 +52,12 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     % n_nodes := number of nodes per surface element.
     %
     % n_nodes_t := total number of nodes with traction boundary conditions.
-    %   It is needed to map the analytical solutions' forces to the force
-    %   array used to account for the forces exerted by the dislocation
-    %   ensemble on the finite element nodes. This does not necessarily
+    %   It is needed to map the analytical solutions' forces to the force 
+    %   array used to account for the forces exerted by the dislocation 
+    %   ensemble on the finite element nodes. This does not necessarily 
     %   contain a factor of n_nodes less entries than se_node_coord because
     %   not all nodes in an element may have traction boundary conditions,
-    %   but still need to be included in the calculation due to the
+    %   but still need to be included in the calculation due to the 
     %   problem's formulation.
     %
     % n_se := number of surface elements
@@ -66,14 +65,14 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     % n_dln := number of dislocation line segments
     %
     % idxf := dimension(:). 1D array containing the indices of the force
-    %   array used to account for the forces exerted by the dislocation
-    %   ensemble on the finite element nodes. It is needed to map the
+    %   array used to account for the forces exerted by the dislocation 
+    %   ensemble on the finite element nodes. It is needed to map the 
     %   analytical solutions' forces to the right index. It is usually
     %   equal to gamma*3 because only the nodes with traction boundary
     %   conditions are needed.
     %
-    % idxi := dimension(n_nodes_t*n_nodes). 1D assumed shape array
-    %   containing the global label indices of the nodes whose tractions
+    % idxi := dimension(n_nodes_t*n_nodes). 1D assumed shape array 
+    %   containing the global label indices of the nodes whose tractions 
     %   were calculated by the analytical solution.
     %
     % mu := shear modulus of material.
@@ -98,8 +97,8 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     %
     % Optional parameters:
     %
-    % n_threads := when use_gpu ==1, it is the number of threads per block
-    %   to be used in the parallelisation. This may require some
+    % n_threads := when use_gpu ==1, it is the number of threads per block 
+    %   to be used in the parallelisation. This may require some 
     %   experimentation to optimise. Defaults to 512. Does nothing if a
     %   GPU isn't used.
     %
@@ -123,16 +122,16 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     %   the surface elements.
     %
     % tmp := dimension(n_nodes). 1D array containing the at-most 4
-    %   instances where a surface element node appears (a single node can
+    %   instances where a surface element node appears (a single node can 
     %   be shared by up to 4 surface elements).
     %
     % tmp2 := dimension(:). Assumed shape 1D array containing the at-most 4
-    %   instances where a surface element node appears (a single node can
-    %   be shared by up to 4 surface elements) but without any zero-valued
+    %   instances where a surface element node appears (a single node can 
+    %   be shared by up to 4 surface elements) but without any zero-valued 
     %   entries because 0 indices crash MATLAB.
     %
     % k := used to traverse idxi to the next block of 4 entries which
-    %   contain data relevant to the node in the
+    %   contain data relevant to the node in the 
     %
     %=====================================================================%
     % Inputs/Outputs
@@ -143,48 +142,53 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     %   correct the finite element forces.
     %
     %%===================================================================%%
-
+    
     %% Analytical force calculation.
+%     se_node_coord2(:,1) = se_node_coord(:,1) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
+%     se_node_coord2(:,2) = se_node_coord(:,2) + (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
+%     se_node_coord2(:,3) = se_node_coord(:,3) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
+%     se_node_coord2(:,4) = se_node_coord(:,4) - (se_node_coord(:,2)-se_node_coord(:,1))/2 - (se_node_coord(:,3)-se_node_coord(:,1))/2;
     % Parallel CUDA C calculation.
-    % serial last dislocation and surface element
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
         if ~exist('n_threads', 'var')
-            n_threads = ceil(mod(n_dln,256)/32)*32;
+            n_threads = 256;
         end %if
         % Provide a default parallelisaion scheme in case none is given.
         if ~exist('para_scheme', 'var')
             % Parallelise over dislocations.
             para_scheme = 1;
         end %if
-        [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4),...
+        [~, ~, ~, ~,...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex_cuda(        ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2)   ,...
                                 se_node_coord (:, 1), se_node_coord (:, 2)   ,...
                                 se_node_coord (:, 3), se_node_coord (:, 4)   ,...
                                 burgers(:), mu, nu, a, n_se, n_dln, n_threads,...
-                                para_scheme, eps);
+                                para_scheme);
     % Serial force calculation in C.
     elseif use_gpu == 0
-        [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
+        [~, ~, ~, ~, ...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex(          ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2),...
                                 se_node_coord (:, 1), se_node_coord (:, 2),...
                                 se_node_coord (:, 3), se_node_coord (:, 4),...
-                                burgers(:), mu, nu, a, n_se, n_dln, eps);
+                                burgers(:), mu, nu, a, n_se, n_dln);
     end %if
-
+    
     f_dln_node(:, 1) = f_dln_se*0.25;
     f_dln_node(:, 2) = f_dln_se*0.25;
     f_dln_node(:, 3) = f_dln_se*0.25;
     f_dln_node(:, 4) = f_dln_se*0.25;
+    
+%     ftilda = traction(gamma,segments,xnodes, mno, a, mu, nu);
     
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Loop through the number of nodes.
     k = 0;
     tmp = zeros(n_nodes, 1);
     for i = 1: n_nodes_t
-        % Populate tmp array with the indices corresponding to nodes of
+        % Populate tmp array with the indices corresponding to nodes of 
         % the surface relevant surface element.
         tmp  = idxi(1 + k: k + n_nodes);
         % Obtain only the indices which are non-zero. Zero indices mean
@@ -197,11 +201,11 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
             % is part of. This gives us the total x,y,z forces on each node.
             f_dln(idxf(i) - j) = sum(f_dln_node(tmp2 - j));
         end %for
-        % Step to the block in idxi where the next surface node's indices
+        % Step to the block in idxi where the next surface node's indices 
         % are found.
         k = k + 4;
     end %for
     clear tmp; clear tmp2; clear k;
-
-
+    
+    
 end % function

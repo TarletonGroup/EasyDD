@@ -10,7 +10,7 @@ function [rn,links] = checkGenerator101(NUM_SOURCES,DIST_SOURCE,CRYSTAL_STRUCTUR
 %     disp('Crystal structure not recognized. Aborting');
 %     return;
 % end
-bufferfactor = 0.65;% > 1/2 
+bufferfactor = 0.65;% > 1/2
 %NB Sources are idealised as squares...
 Xmin = 0+bufferfactor*DIST_SOURCE;
 Xmax = dx-bufferfactor*DIST_SOURCE;
@@ -21,7 +21,7 @@ Zmax = dz-bufferfactor*DIST_SOURCE;
 
 %Generate midpoints of sources
  midX = Xmin + (Xmax - Xmin).*rand(NUM_SOURCES,1); %*0.75;
- midY = Ymin + (Ymax - Ymin).*rand(NUM_SOURCES,1); %*0.1; 
+ midY = Ymin + (Ymax - Ymin).*rand(NUM_SOURCES,1); %*0.1;
  midZ = Zmin + (Zmax - Zmin).*rand(NUM_SOURCES,1); %*0.45;
  midPTS = horzcat(midX,midY,midZ);
 %midPTS(1,:) = [0.1*dx,0.5*dy,0.8*dz];
@@ -46,15 +46,15 @@ links = zeros(8*NUM_SOURCES,8);
 
 for p=1:NUM_SOURCES
     % pure edge segment
-%     r1 = midPTS(p,:)  
+%     r1 = midPTS(p,:)
 %     r2 = midPTS(p,:) + 0.5*DIST_SOURCE*seg_vec(p,:)/norm(seg_vec(p,:));
 %     r3 = midPTS(p,:) + 1*DIST_SOURCE*seg_vec(p,:)/norm(seg_vec(p,:));
-%    
+%
     % pure screw segment
-%     r1 = midPTS(p,:) - 0.5*DIST_SOURCE*b_vec(p,:)/norm(b_vec(p,:)); 
+%     r1 = midPTS(p,:) - 0.5*DIST_SOURCE*b_vec(p,:)/norm(b_vec(p,:));
 %     r2 = midPTS(p,:);
 %     r3 = midPTS(p,:) + 0.5*DIST_SOURCE*b_vec(p,:)/norm(b_vec(p,:));
-    
+
     r1 = midPTS(p,:)-edge;
     r2 = midPTS(p,:);
     r3 = midPTS(p,:) + edge;
@@ -64,23 +64,23 @@ for p=1:NUM_SOURCES
     r7 = r6 - edge;
     r8 = r7 - screw;
 
-    rn((p-1)*8+1,:) = [r1 7]; 
-    rn((p-1)*8+2,:) = [r2 0]; 
-    rn((p-1)*8+3,:) = [r3 7]; 
+    rn((p-1)*8+1,:) = [r1 7];
+    rn((p-1)*8+2,:) = [r2 0];
+    rn((p-1)*8+3,:) = [r3 7];
     rn((p-1)*8+4,:) = [r4 0];
     rn((p-1)*8+5,:) = [r5 7];
     rn((p-1)*8+6,:) = [r6 0];
     rn((p-1)*8+7,:) = [r7 7];
     rn((p-1)*8+8,:) = [r8 0];
-  
+
     for m = 1:7
         links((p-1)*8+m,1:2) = [(p-1)*8+m, (p-1)*8+(m+1)];
     end
     links((p-1)*8+8,1:2) = [(p-1)*8+8,(p-1)*8+1];
-    
+
     links(((p-1)*8+1):((p-1)*8+8),3:5) = repmat(b_vec,8,1);
     links(((p-1)*8+1):((p-1)*8+8),6:8) = repmat(normal,8,1);
-    
+
 end
 
 vertices = [0,0,0;...
@@ -101,12 +101,12 @@ quiver3(midPTS(:,1),midPTS(:,2),midPTS(:,3), bvec_plot(:,1),bvec_plot(:,2),bvec_
 end
 
 function normal = slipplane(NUM_SOURCES)
-    
+
     normal = zeros(NUM_SOURCES,3);
     for i=1:NUM_SOURCES
-        
+
         random = rand;
-        
+
         if random<0.3333
             normal(i,:) = [1 1 0];
             if rand < 0.5
@@ -124,14 +124,14 @@ function normal = slipplane(NUM_SOURCES)
             end
         end
     end
-        
+
 end
 
 function b_vec = pmone(normal,NUM_SOURCES)
 
     b_vec = zeros(NUM_SOURCES,3);
     b_combinations = [1 1 1; -1 1 1; 1 -1 1; 1 1 -1; -1 -1 1; 1 -1 -1; -1 1 -1; -1 -1 -1];
-    
+
     for i = 1:NUM_SOURCES
         for j=1:8;
             if dot( normal(i,:) , b_combinations(j,:) ) == 0
@@ -139,5 +139,5 @@ function b_vec = pmone(normal,NUM_SOURCES)
                 continue;
             end
         end
-    end  
+    end
 end

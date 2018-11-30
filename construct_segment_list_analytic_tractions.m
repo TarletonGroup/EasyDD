@@ -18,7 +18,6 @@ for i=1:LINKMAX
           if (rn(n0, end) == 67 || rn(n1, end) == 67 )
               continue
           end
-
         nseg=nseg+1;
         segments(nseg,:)=[links(i,1:5),rn(n0,1:3),rn(n1,1:3),links(i,6:8)];
     end

@@ -37,7 +37,11 @@ while i<=length(rnnew(:,1))
         r1=sqrt(vec1*vec1');
         r2=sqrt(vec2*vec2');
         r3=sqrt(vec3*vec3');
-        if r3<lmax %if the coarsening would result in a link length larger than lmax don't coarsen
+        sourcecheck=0;
+        if rnnew(link1_nodenoti,end)==7 && rnnew(link2_nodenoti,end)==7
+            sourcecheck=1;
+        end
+        if r3<lmax && sourcecheck==0 %if the coarsening would result in a link length larger than lmax don't coarsen
             s=0.5*(r1+r2+r3);
             area2=(s*(s-r1)*(s-r2)*(s-r3));
             dvec1dt=rnnew(link1_nodenoti,4:6)-rnnew(i,4:6);
