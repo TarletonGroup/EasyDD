@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [rnnew,linksnew,connectivitynew,linksinconnectnew]=...
-    remesh_surf(rnnew,linksnew,connectivitynew,linksinconnectnew,vertices,P,fn)
+    remesh_surf_BB(rnnew,linksnew,connectivitynew,linksinconnectnew,vertices,P,fn)
 
 % Beginning of surface remeshing for surface nodes. %%%%%%%%%%%%%%%%%%%%
 % Flag all nodes outside of medium.
