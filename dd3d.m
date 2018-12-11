@@ -38,7 +38,7 @@ disp('Consistencycheck : Done!');
 %construct stiffeness matrix K and pre-compute L,U decompositions.
 disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.');
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,unfixedDofs...
     w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
 
 %% Addition by Daniel Celis Garza 12/19/2017.
@@ -80,7 +80,7 @@ USE_GPU=1; %0 if CPU only.
 
 if (USE_GPU==1)
     disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
-    system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
+    system('nvcc -ptx -m64 -arch sm_60 SegForceNBodyCUDADoublePrecision.cu');
 end
 
 
@@ -140,7 +140,8 @@ while simTime < totalSimTime
 
 %   DDD+FEM coupling, analytic tractions
     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-                       gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime,mx,my,mz,utilda_0 ,...
+                       gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,unfixedDofs,...
+                       dx,dy,dz,simTime,mx,my,mz,utilda_0 ,...
                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
     %DDD+FEM coupling, numerical tractions

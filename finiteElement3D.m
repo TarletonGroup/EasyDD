@@ -2,8 +2,8 @@
 % mx=1,dx=6,dy=1,dz=1,mu=1,nu=.3,loading=1; 
 
 function [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel,unfixedDofs,Kred,Lred,Ured] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,unfixedDofs,...
+    w,h,d,my,mz,mel,Kred,Lred,Ured] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
 %HY20171206: new return variables (,unfixedDofs,Kred,Lred,Ured) added in order to use setdiff
 % E Tarleton edmund.tarleton@materials.ox.ac.uk
 % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) per element
@@ -617,8 +617,8 @@ tic;
 Ured = chol(Kred);
 Lred = Ured';
 toc;
-L=[]; %HY20171206: since L is needed as a returned variable
-U=[]; %HY20171206: since U is needed as a returned variable
+L=Lred; %HY20171206: since L is needed as a returned variable
+U=Lred; %HY20171206: since U is needed as a returned variable
 %HY20171206:********************************************************
 
 disp('finished FEM')

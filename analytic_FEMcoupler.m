@@ -1,5 +1,5 @@
 function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-    gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,t,mx,my,mz,utilda_0,...
+    gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs, unfixedDofs, dx,dy,dz,t,mx,my,mz,utilda_0,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
     f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance)
 
@@ -69,11 +69,17 @@ f_hat(freeDofs) = -f_dln(freeDofs)';% no applied forces
 
 f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt = mean(diag(kg));%=trace(K)/length(K)
-bcwt = full(bcwt);
+uhat(unfixedDofs) = U\(L\f(unfixedDofs));
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+%HY20171206:********************************************************
+
+%HY20171206: commented by HY
+% bcwt=mean(diag(kg));%=trace(K)/length(K)
+% bcwt = full(bcwt);
+%
+% f(fixedDofs) = bcwt*uhat(fixedDofs);
+% uhat = U\(L\f); %using LU decomposition
+% uhat2=K\f;
 
 rhat=kg*uhat;
 
