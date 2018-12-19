@@ -13,78 +13,44 @@
 
 %function [surfvirtlist,virtIDlist,realsurflist,realIDlist] = virtualsegfinder(rn,links)
 
-function [index,index2,indexR,indexR2,segpairs] = virtualsegfinder(rn,links)
+function [index,index2,indexR,indexR2,segpairs] = virtualsegfinder(rn,links,segments)
 
-surfnodes = find(rn(:,4)==6); %finds surface nodes
-
-S = length(surfnodes);
 Slinks = size(links,1);
 
-index = false(Slinks,1);
-index2 = zeros(Slinks,1);
-indexR = false(Slinks,1);
-indexR2 = zeros(Slinks,1);
+index_a=(rn(links(:,1),end)==6 & rn(links(:,2),end)==67);  %finds links attaching surface nodes to vitual nodes
+index_b=(rn(links(:,2),end)==6 & rn(links(:,1),end)==67);
+index = (index_a | index_b);                               %index for said links
+index2 = zeros(Slinks,1);                                  %flags whether surface node is 1st or 2nd in links
+index2(index_a==true) = 1;
+index2(index_b==true) = 2;
+indexR_a=(rn(links(:,1),end)==6 & rn(links(:,2),end)==0);  %finds links attaching surface nodes to real nodes
+indexR_b=(rn(links(:,2),end)==6 & rn(links(:,1),end)==0);
+indexR = (indexR_a | indexR_b);                            %index for said links
+indexR2 = zeros(Slinks,1);                                 %flags whether surface node is 1st or 2nd in links
+indexR2(indexR_a==true) = 1;
+indexR2(indexR_b==true) = 2;
     
-for i = 1:S 
-    [row,col] = find(links(:,1:2) == surfnodes(i));
-    S_conns = length(row);
-    
-    %for each connection to surface node, check whether virtual or real
-    for j = 1:S_conns 
-        if col(j) == 1
-            link = links(row(j),2); %2nd row
-            if rn(link,4) == 67 %virtual node flag
-                index(row(j)) = true;
-                index2(row(j)) = 1; %surf node 1st col of links array
-            elseif rn(link,4) == 0 %real node flag
-                indexR(row(j)) = true;
-                indexR2(row(j)) = 1; %surf node 1st col of links array      
-            end
-        else 
-            link = links(row(j),1); %1st row
-            if rn(link,4) == 67 %virtual node flag
-                index(row(j)) = true;
-                index2(row(j)) = 2; %surf node 2nd col of links array                      
-            elseif rn(link,4) == 0 %real node flag
-                indexR(row(j)) = true;
-                indexR2(row(j)) = 2; %surf node 1st col of links array
-            end
-        end
-        
-    end
 
-end
-
-index2(index2==0) = [];
+index2(index2==0) = [];                                    %removes zeros from index2 and indexR2
 indexR2(indexR2==0) = [];
 
-segments=constructsegmentlist(rn,links);
-segpairs=segpairing(segments,index,indexR,indexR2);
+virtsegs=segments(index,:);                                %lists segments attached to surface nodes that are virtual
+realsegs=segments(indexR,:);                               %lists segments attached to surface nodes that are real
 
-segpairs(segpairs==0)=[];
+SR = size(realsegs,1);                                     %number of real segments attached to surface nodes
+SV = size(virtsegs,1);                                     %number of virtual segments attached to surface nodes
 
-end
+segpairs=zeros(2*SV*SR,14);                                %preallocates memory, accounting for multiple real and/or virtual segments attached to one surface node
 
-function segpairs=segpairing(segments,index,indexR,indexR2)
-
-virtsegs=segments(index,:);
-realsegs=segments(indexR,:);
-
-SR = size(realsegs,1);
-SV = size(virtsegs,1);
-
-segpairs=zeros(SV*SR,14); %first is real, second is virtual
-
-counter=1;
 for i=1:SR
-    for j=1:SV   
-    condition = sum(virtsegs(j,1:2) == realsegs(i,indexR2(i)));
-        if condition == 1 %virtual seg is paired with real seg
-            segpairs(2*counter-1,:) = realsegs(i,:);
-            segpairs(2*counter,:) = virtsegs(j,:); 
-            counter=counter+1;  
+    for j=1:SV 
+        if virtsegs(j,index2(j)) == realsegs(i,indexR2(i)) %virtual seg is paired with real seg
+            segpairs(2*(i-1)*SV+2*j-1,:) = realsegs(i,:);  %first seg in pair is real
+            segpairs(2*(i-1)*SV+2*j,:) = virtsegs(j,:);    %second seg in pair is virtual
         end      
     end
 end
+
+segpairs(~any(segpairs,2),:) = [];                         %removes empty rows from segpairs
 
 end

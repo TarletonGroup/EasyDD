@@ -43,7 +43,7 @@ gn = gamma_disp(:,1); % global node number
 % toc;
 % disp(displacementsMEX-displacements);
 %  [Ux, Uy, Uz]  = displacement_fivel(x0,segments,NU);
-[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+[Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz); %must be used with virtual segments projected normal to the surface
 
 utilda(3*gn -2) = Ux;
 utilda(3*gn -1) = Uy;
