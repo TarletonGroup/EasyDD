@@ -26,99 +26,99 @@
 %   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
-% [rn,links]=cleanupnodes(rn,links);
-% 
-% % genererate the connectivity list from the list of links
-% disp('Initiliazing connectivity list. Please wait.'); 
-% [connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
-% 
-% consistencycheck(rn,links,connectivity,linksinconnect);
-% disp('Consistencycheck : Done!'); 
-% 
-% %construct stiffeness matrix K and pre-compute L,U decompositions.
-% disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
-% [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-%     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-%     w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading); 
-% 
-% %% Addition by Daniel Celis Garza 12/19/2017.
-% % Precomputing variables needed to couple tractions induced by dislocations
-% % to FEM. Generate the list of planes to be extracted. The FEM coupler is 
-% % hardcoded so that the min(x) yz-plane does not have traction boundary
-% % conditions.
-% f_hat = zeros(3*mno, 1);
-% 
-% planes = (1:1:6)';
-% [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
-%                                                planes, 4);
-% gamma_dln = [gammat(:,1); gammaMixed(:,1)];
-% [f_dln_node, f_dln_se,...
-%  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-% 
-% use_gpu = 1;
-% % Parallel CUDA C flags.
-% if use_gpu == 1
-%     % Provide a default number of threads in case none is given.
-%     if ~exist('n_threads', 'var')
-%         n_threads = 256;
-%     end %if
-%     % Provide a default parallelisaion scheme in case none is given.
-%     if ~exist('para_scheme', 'var')
-%         % Parallelise over dislocations.
-%         para_scheme = 1;
-%     end %if
-% else
-%     n_threads = 0;
-%     para_scheme = 0;
-% end %if
-% 
-% gamma_disp = [gammau; gammaMixed];
-% %%
-% 
-% disp('Done! Initializing simulation.');
-% 
-% global USE_GPU;
-% USE_GPU=1; %0 if CPU only.
-% 
-% if (USE_GPU==1)
-%     disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
-%     system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
-% end  
-% 
-% 
-% %Use Delaunay triangulation to create surface mesh, used for visualisation
-% 
-% %and for dislocation remeshing algorithm.
-% [TriangleCentroids,TriangleNormals,tri,Xb] = ...
-%     MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
-% %Remesh considering surfaces in case input file incorrect.
-% %disp('Remeshing...');
-% [rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
-% 
-% %plot dislocation structure           
-% figure(1); 
-% plotHandle = plotnodes(rn,links,plim,vertices); view(viewangle);
-% drawnow
-% 
-% % data=zeros(totalsteps,1);
-% if(~exist('dt','var'))
-%     dt=dt0;
-% end
-% dt=min(dt,dt0);
-% plotCounter=1;
-% close all
-% 
-% Fend=zeros(1e6,1); fend=[];
-% U_bar=zeros(1e6,1); Ubar=[];
-% t=zeros(1e6,1); simTime=0;
-% %%
-% utilda_0=zeros(3*mno,1);
-% gn = gamma_disp(:,1);
-% [Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
-% 
-% utilda_0(3*gn -2) = Ux;
-% utilda_0(3*gn -1) = Uy;
-% utilda_0(3*gn   ) = Uz;
+[rn,links]=cleanupnodes(rn,links);
+
+% genererate the connectivity list from the list of links
+disp('Initiliazing connectivity list. Please wait.'); 
+[connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
+
+consistencycheck(rn,links,connectivity,linksinconnect);
+disp('Consistencycheck : Done!'); 
+
+%construct stiffeness matrix K and pre-compute L,U decompositions.
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
+[B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading); 
+
+%% Addition by Daniel Celis Garza 12/19/2017.
+% Precomputing variables needed to couple tractions induced by dislocations
+% to FEM. Generate the list of planes to be extracted. The FEM coupler is 
+% hardcoded so that the min(x) yz-plane does not have traction boundary
+% conditions.
+f_hat = zeros(3*mno, 1);
+
+planes = (1:1:6)';
+[x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
+                                               planes, 4);
+gamma_dln = [gammat(:,1); gammaMixed(:,1)];
+[f_dln_node, f_dln_se,...
+ f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
+
+use_gpu = 1;
+% Parallel CUDA C flags.
+if use_gpu == 1
+    % Provide a default number of threads in case none is given.
+    if ~exist('n_threads', 'var')
+        n_threads = 256;
+    end %if
+    % Provide a default parallelisaion scheme in case none is given.
+    if ~exist('para_scheme', 'var')
+        % Parallelise over dislocations.
+        para_scheme = 1;
+    end %if
+else
+    n_threads = 0;
+    para_scheme = 0;
+end %if
+
+gamma_disp = [gammau; gammaMixed];
+%%
+
+disp('Done! Initializing simulation.');
+
+global USE_GPU;
+USE_GPU=1; %0 if CPU only.
+
+if (USE_GPU==1)
+    disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
+    system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
+end  
+
+
+%Use Delaunay triangulation to create surface mesh, used for visualisation
+
+%and for dislocation remeshing algorithm.
+[TriangleCentroids,TriangleNormals,tri,Xb] = ...
+    MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
+%Remesh considering surfaces in case input file incorrect.
+%disp('Remeshing...');
+[rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
+
+%plot dislocation structure           
+figure(1); 
+plotHandle = plotnodes(rn,links,plim,vertices); view(viewangle);
+drawnow
+
+% data=zeros(totalsteps,1);
+if(~exist('dt','var'))
+    dt=dt0;
+end
+dt=min(dt,dt0);
+plotCounter=1;
+close all
+
+Fend=zeros(1e6,1); fend=[];
+U_bar=zeros(1e6,1); Ubar=[];
+t=zeros(1e6,1); simTime=0;
+%%
+utilda_0=zeros(3*mno,1);
+gn = gamma_disp(:,1);
+[Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+
+utilda_0(3*gn -2) = Ux;
+utilda_0(3*gn -1) = Uy;
+utilda_0(3*gn   ) = Uz;
 %%
 while simTime < totalSimTime
     

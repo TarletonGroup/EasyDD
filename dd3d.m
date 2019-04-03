@@ -14,77 +14,77 @@
 % 
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
-%  mex SegSegForcesMex.c
-%  mex StressDueToSegs.c
-%  mex UtildaMex.c
-%  mex mindistcalcmex.c
-%  mex  CollisionCheckerMex.c
-%  mex mobbcc1mex.c
-%  mex displacementmex_et.c
-%  mex CreateInputMex.c %CollisionMarielle
-%  mex CollisionCheckerMexMariellebis.c %CollisionMarielle 
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" SegSegForcesMex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegs.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" UtildaMex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mindistcalcmex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG"  CollisionCheckerMex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CreateInputMex.c %CollisionMarielle
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMexMariellebis.c %CollisionMarielle 
 %   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
-% [rn,links]=cleanupnodes(rn,links);
-% 
-% % genererate the connectivity list from the list of links
-% disp('Initiliazing connectivity list. Please wait.'); 
-% [connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
-% 
-% consistencycheck(rn,links,connectivity,linksinconnect);
-% disp('Consistencycheck : Done!'); 
-% 
-% %construct stiffeness matrix K and pre-compute L,U decompositions.
-% disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
-% [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-%     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-%     w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
-% disp('Done! Initializing simulation.');
-% 
-% global USE_GPU;
-% USE_GPU=1; %0 if CPU only.
-% 
-% if (USE_GPU==1)
-%     disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
-%     system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
-% end  
-% 
-% 
-% %Use Delaunay triangulation to create surface mesh, used for visualisation
-% 
-% %and for dislocation remeshing algorithm.
-% [TriangleCentroids,TriangleNormals,tri,Xb] = ...
-%     MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
-% %Remesh considering surfaces in case input file incorrect.
-% %disp('Remeshing...');
-% [rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
-% 
-% %plot dislocation structure           
-% figure(1); 
-% plotHandle = plotnodes(rn,links,plim,vertices); view(viewangle);
-% drawnow
-% 
-% % data=zeros(totalsteps,1);
-% if(~exist('dt','var'))
-%     dt=dt0;
-% end
-% dt=min(dt,dt0);
-% plotCounter=1;
-% close all
-% 
-% Fend=zeros(1e6,1); fend=[];
-% U_bar=zeros(1e6,1); Ubar=[];
-% t=zeros(1e6,1); simTime=0;
-% %%
-% gamma=[gammau;gammaMixed];
-% utilda_0=zeros(3*mno,1);
-% gn = gamma(:,1);
-% [Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
-% 
-% utilda_0(3*gn -2) = Ux;
-% utilda_0(3*gn -1) = Uy;
-% utilda_0(3*gn   ) = Uz;
+[rn,links]=cleanupnodes(rn,links);
+
+% genererate the connectivity list from the list of links
+disp('Initiliazing connectivity list. Please wait.'); 
+[connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
+
+consistencycheck(rn,links,connectivity,linksinconnect);
+disp('Consistencycheck : Done!'); 
+
+%construct stiffeness matrix K and pre-compute L,U decompositions.
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
+[B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+disp('Done! Initializing simulation.');
+
+global USE_GPU;
+USE_GPU=1; %0 if CPU only.
+
+if (USE_GPU==1)
+    disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
+    system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
+end  
+
+
+%Use Delaunay triangulation to create surface mesh, used for visualisation
+
+%and for dislocation remeshing algorithm.
+[TriangleCentroids,TriangleNormals,tri,Xb] = ...
+    MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
+%Remesh considering surfaces in case input file incorrect.
+%disp('Remeshing...');
+[rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
+
+%plot dislocation structure           
+figure(1); 
+plotHandle = plotnodes(rn,links,plim,vertices); view(viewangle);
+drawnow
+
+% data=zeros(totalsteps,1);
+if(~exist('dt','var'))
+    dt=dt0;
+end
+dt=min(dt,dt0);
+plotCounter=1;
+close all
+
+Fend=zeros(1e6,1); fend=[];
+U_bar=zeros(1e6,1); Ubar=[];
+t=zeros(1e6,1); simTime=0;
+%%
+gamma=[gammau;gammaMixed];
+utilda_0=zeros(3*mno,1);
+gn = gamma(:,1);
+[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+
+utilda_0(3*gn -2) = Ux;
+utilda_0(3*gn -1) = Uy;
+utilda_0(3*gn   ) = Uz;
 %%
 while simTime < totalSimTime
     
@@ -154,40 +154,66 @@ while simTime < totalSimTime
     connectivitynew=connectivity;
     linksinconnectnew=linksinconnect;
     fsegnew=fseg;
+    
+    %save restart.mat
+    if (docollision)
+%         s1_old=0;
+%         s2_old=0;
+        %collision detection and handling
+         
+              %COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
+              %it requires a GPU device
+              %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
+              colliding_segments=1;
+              while colliding_segments==1
+              [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+               rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+                if floop==2
+                    colliding_segments=0;
+                end
+             
+%                   if colliding_segments == 1 %scan and update dislocation structure.
+%                         reset(gpuDevice)
+%                         [rnnew,linksnew,~,~,fsegnew]=...
+%                         collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+%                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
+%                   end
+                  
+       
+%              INTIAL COLLISION
+%              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+%              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
+             if colliding_segments == 1 %scan and update dislocation structure.
+
+%                 [rnnew,linksnew,~,~,fsegnew]=...
+%                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+%                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+                
+                if floop==2
+%                     if s1==s1_old && s2==s2_old
+                        colliding_segments=0;
+%                     else
+%                         s1_old=s1;
+%                         s2_old=s2;
+%                     end
+                end
+
+                fprintf(' Segment %d and segment %d are colliding\n',s1,s2);
+                [rnnew,linksnew,~,~,fsegnew]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
+                uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
+             end
+              %removing links with effective zero Burgers vectors
+              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = cleanupsegments(rnnew,linksnew,fsegnew);
+              end
+    end
+    
+    
  
     if (doseparation)
         %spliting of nodes with 4 or more connections
         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
             separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
             fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-    end
-    
-    %save restart.mat
-    if (docollision) 
-        %collision detection and handling
-         
-              %COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
-              %it requires a GPU device
-              %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
-               [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-               rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-             
-                  if colliding_segments == 1 %scan and update dislocation structure.
-                        reset(gpuDevice)
-                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                        collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                        fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair); 
-                  end
-       
-%              INTIAL COLLISION
-%              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-%              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
-%              if colliding_segments == 1 %scan and update dislocation structure.
-% 
-%                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-%                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-%                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-%              end
     end
     
     if (doremesh) %do virtual re-meshing first

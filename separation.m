@@ -134,10 +134,10 @@ for i=1:lrn
             end
             
             disp(sprintf('separation: node %d has %d arms',i,c));
-            disp(sprintf('separation: the following connections have split off'));
-            for j=1:length(s)
-                disp(sprintf('separation: connection %d',s(j)));
-            end
+%             disp(sprintf('separation: the following connections have split off'));
+%             for j=1:length(s)
+%                 disp(sprintf('separation: connection %d',s(j)));
+%             end
             % get the positions and velocities of the nodes after the split
             vel1=splittingvel(1,:);
             vel2=splittingvel(2,:);

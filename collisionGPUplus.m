@@ -23,8 +23,8 @@ function [rn,links,connectivity,linksinconnect,fseg]=collisionGPUplus(rn,links,c
 mindist2=mindist*mindist;
 lrn2=length(rn(1,:));
 lrn3=lrn2-1; %lnr2-1 to count every column execpt the one with the flag
-% eps is the error factor of the calculation
-eps=1e-12;
+% tol is the error factor of the calculation
+tol=1e-12;
 
 % check for two links colliding
 
@@ -33,7 +33,7 @@ if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 ne
 % First collision in computed with collisioncheckermexmarielle information : n1s1,n2s1,n1s2,n2s2,s1,s2
 
 [dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
-            collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-eps))|(dist2<eps);
+            collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-tol))|(dist2<tol);
             % there are two conditions here the first condition handles non planar collisions
             % the second conditions looks for coplanar collisions
             if collision_condition_is_met
@@ -78,7 +78,7 @@ if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 ne
                     fseg=[fseg;zeros(1,6)];
                 end
                 % merge the two colliding nodes
-                disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
+%                 disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
                 collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links);
                 rn(mergenode1,1:lrn2)=[collisionpoint 0 0 0 max(rn(mergenode1,lrn2),rn(mergenode2,lrn2)) ];
                 [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,mergenode1,mergenode2,MU,NU,a,Ec);
@@ -88,11 +88,11 @@ if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 ne
                         fseg(linkid,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
                         othernode=links(linkid,3-connectivity(mergednodeid,2*k+1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M 
                         clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
-                        [rn(othernode,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
+                        [rn(othernode,4:6),~]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
                     end
                     numbcon=connectivity(mergednodeid,1);
                     conlist=[numbcon linspace(1,numbcon,numbcon)];
-                    [rn(mergednodeid,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
+                    [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                 end
             end  
            
@@ -177,7 +177,7 @@ end
 
                dist2=T(kk,3); %M
                ddist2dt=T(kk,4); %M
-               collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-eps))|(dist2<eps);
+               collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-tol))|(dist2<tol);
                 % there are two conditions here the first condition handles non planar collisions
                 % the second conditions looks for coplanar collisions
                 if collision_condition_is_met
@@ -234,7 +234,7 @@ end
                     end
 
                      % merge the two colliding nodes
-                    disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
+%                     disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
                     collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links);
                     rn(mergenode1,1:lrn2)=[collisionpoint 0 0 0 max(rn(mergenode1,lrn2),rn(mergenode2,lrn2)) ];
                     [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,mergenode1,mergenode2,MU,NU,a,Ec);
@@ -244,11 +244,11 @@ end
                             fseg(linkid,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
                             othernode=links(linkid,3-connectivity(mergednodeid,2*k+1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M 
                             clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
-                            [rn(othernode,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
+                            [rn(othernode,4:6),~]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
                         end
                         numbcon=connectivity(mergednodeid,1);
                         conlist=[numbcon linspace(1,numbcon,numbcon)];
-                        [rn(mergednodeid,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
+                        [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                     end
                     
                     if r==1 %only one loop
@@ -352,7 +352,7 @@ while i<=length(rn(:,1))
                 [dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
                 %dist2
                 %ddist2dt
-                collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-eps);
+                collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-tol);
                 if collision_condition_is_met
                     % identify the first node to be merged
                     mergenode1=nodenoti;
@@ -376,7 +376,7 @@ while i<=length(rn(:,1))
                         fseg=[fseg;zeros(1,6)];
                     end
                     %merge the two nodes
-                    disp(sprintf('node %d and node %d are colliding by hinge condition',mergenode2,mergenode1))
+%                     disp(sprintf('node %d and node %d are colliding by hinge condition',mergenode2,mergenode1))
                     collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links);
                     rn(mergenode1,1:lrn2)=[collisionpoint 0 0 0 max(rn(mergenode1,lrn2),rn(mergenode2,lrn2)) ];
                     [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,mergenode1,mergenode2,MU,NU,a,Ec);
@@ -386,11 +386,11 @@ while i<=length(rn(:,1))
                             fseg(linkid,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
                             othernode=links(linkid,3-connectivity(mergednodeid,2*k+1));
                             clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
-                            [rn(othernode,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
+                            [rn(othernode,4:6),~]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
                         end
                         numbcon=connectivity(mergednodeid,1);
                         conlist=[numbcon linspace(1,numbcon,numbcon)];
-                        [rn(mergednodeid,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
+                        [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                     end 
                     %there has been a connectivity change in node i start the search through node i's connections from the beginning
                     if i>size(rn,1)
@@ -445,7 +445,7 @@ end
              plane=n2./norm(n2);
          end
          
-         if ((n1*n1'>eps)|(n2*n2'>eps))
+         if ((n1*n1'>eps)||(n2*n2'>eps))
             if Nsize==0
                 conditionismet = 1;
             elseif Nsize==1
