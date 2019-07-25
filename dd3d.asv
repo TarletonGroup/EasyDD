@@ -208,9 +208,6 @@ while simTime < totalSimTime
                     nodeids3=connectivitynew(n1s2,1);
                     nodeids3=1:nodeids3;
                     nodeids3=2*nodeids3;
-                    nodeids4=connectivitynew(n2s2,1);
-                    nodeids4=1:nodeids4;
-                    nodeids4=2*nodeids4;
                     alt1=connectivitynew(n1s1,nodeids1);
                     alt2=connectivitynew(n2s1,nodeids2);
                     alt3=connectivitynew(n1s2,nodeids3);

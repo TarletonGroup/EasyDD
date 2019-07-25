@@ -32,6 +32,10 @@ for i=1:S
 end
 segments = segments(index,:);
 
+if any(any(isnan(segments)))
+    disp('YDFUS')
+end
+
 if linkid==0 %calculate forces on all segments
     %PK force due to applied stress
     %t0=clock;

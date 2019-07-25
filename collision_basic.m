@@ -1,5 +1,5 @@
 function [rn,links,connectivity,linksinconnect,fseg]=collision_basic(rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
-    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair)
+    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,~)
 %floop to know wich loop has to be run 
 
 mindist2=mindist*mindist;
@@ -7,10 +7,26 @@ lrn2=length(rn(1,:));
 lrn3=lrn2-1; %lnr2-1 to count every column execpt the one with the flag
 % tol is the error factor of the calculation
 tol=1e-12;
+remcon=0;
+
+% if connectivity(n1s1,1)==2 && connectivity(n2s1,1)==2 && connectivity(n1s2,1)==2 && connectivity(n2s2,1)==2
+%     alt1=connectivity(n1s1,[2 4]);
+%     other1=alt1(alt1~=s1);
+%     alt2=connectivity(n2s1,[2 4]);
+%     other2=alt2(alt2~=s1);
+%     alt3=connectivity(n1s2,[2 4]);
+%     other3=alt3(alt3~=s2);
+%     alt4=connectivity(n2s2,[2 4]);
+%     other4=alt4(alt4~=s2);
+%     if other1==other3 || other1==other4 || other2==other3 || other2==other4
+%         remcon=1;
+%     end
+% end
 
 % check for two links colliding
-
-if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 needs to be run. 
+if remcon==1
+    fprintf('Remeshing conflict detected. Cancelling collision\n')
+elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 needs to be run. 
     
 % First collision in computed with collisioncheckermexmarielle information : n1s1,n2s1,n1s2,n2s2,s1,s2
 
@@ -35,8 +51,8 @@ if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 ne
                     posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode1=length(rn(:,1)); %nodeid of mergenode1 M
-                    linknew=length(links(:,1)); %linkid of linknew M
-                    links(linknew,6:8)=links(s1,6:8); %glide plane M 
+                    %linknew=length(links(:,1)); %linkid of linknew M
+%                     links(linknew,6:8)=links(s1,6:8); %glide plane M 
                     fseg=[fseg;zeros(1,6)];
                 end
 
@@ -55,8 +71,8 @@ if floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 ne
                     posvel=rn(n1s2,1:lrn3).*(1-L2)+rn(n2s2,1:lrn3).*L2;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode2=length(rn(:,1));
-                    linknew=length(links(:,1));
-                    links(linknew,6:8)=links(s2,6:8);
+                    %linknew=length(links(:,1));
+                    %links(linknew,6:8)=links(s2,6:8);
                     fseg=[fseg;zeros(1,6)];
                 end
                 % merge the two colliding nodes

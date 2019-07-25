@@ -69,9 +69,15 @@ for i=1:lrn
             rn([i lastnode],4:6)=vntmp;
             if vd1>=vd2
                 dir=-vntmp(1,:)./sqrt(vd1);
+                if vd1<eps
+                    dir=[0,0,0];
+                end
                 rn(i,1:3)=rn(i,1:3)-mindist*dir;
             else
                 dir=vntmp(2,:)./sqrt(vd2);
+                if vd2<eps
+                    dir=[0,0,0];
+                end
                 rn(lastnode,1:3)=rn(lastnode,1:3)+mindist*dir;
             end
             % check to see if a junction was needed to repair the connectivity
@@ -79,6 +85,10 @@ for i=1:lrn
             totalconnectivity=clist(1,1)+clist(2,1);
             if totalconnectivity>refconnecti(1)
                 fseg=[fseg;zeros(1,6)];
+            end
+            
+            if any(any(isnan(rn)))
+                disp('YDFUS')
             end
             % calculate the segment forces still connected to node i
             for k=1:connectivity(i,1)

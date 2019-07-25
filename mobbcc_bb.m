@@ -39,6 +39,9 @@ for n=1:L1
         %fprintf('ii=%i, linkid=%i, n0=%i, n1=%i, L=%f \n',ii,linkid,n0,n1,L);
         if L>0.0
             fsegn0=fseg(linkid,3*(posinlink-1)+[1:3]);
+            if norm(fsegn0)/L<0.0015
+                fsegn0=[0,0,0];
+            end
             fn(n,:)=fn(n,:)+fsegn0; % nodeid for the node that n0 is connected to
             burgv=links(connectivity(n0,2*ii),3:5); % burgers vector of the link                                                           
             mag=norm(burgv);
