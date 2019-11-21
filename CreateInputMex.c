@@ -3,13 +3,13 @@
 #include <mex.h>
 #include <matrix.h>
 
-#ifdef _WIN32
-    /* this function does rounding as MS visual studio can't do it!*/
+/*#ifdef _WIN32
+    // this function does rounding as MS visual studio can't do it!
     int round( double r ) {
     return (r > 0.0) ? (r + 0.5) : (r - 0.5); 
     }
 #endif
-
+*/
 void CreateInputMex (double *rn_x,double *rn_y,double *rn_z, double *v_x,double *v_y,double *v_z, double *flag,
        double *links_c1, double *links_c2,int links_length,double *count,
        double *r11x,double *r11y,double *r11z, double *r21x,double *r21y,double *r21z, double *r12x,double *r12y,double *r12z, double *r22x,double *r22y,double *r22z,

@@ -3,12 +3,13 @@
 #include <mex.h>
 #include <matrix.h>
 
-#ifdef _WIN32
-    /* this function does rounding as MS visual studio can't do it!*/
+/*#ifdef _WIN32
+    // this function does rounding as MS visual studio can't do it!
     int round( double r ) {
     return (r > 0.0) ? (r + 0.5) : (r - 0.5); 
     }
 #endif
+*/
     
 void MinDistCalc(double x0[3], double x1[3], double y0[3], double y1[3], double vx0[3], double vx1[3], double vy0[3], double vy1[3], double dist2[1], double ddist2dt[1], double L1[1], double L2[1]);
 

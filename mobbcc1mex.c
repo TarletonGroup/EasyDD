@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <mex.h>
 
-#ifdef _WIN32
-    /* this function does rounding as MS visual studio can't do it!*/
+/*#ifdef _WIN32
+    // this function does rounding as MS visual studio can't do it!
     int round( double r ) {
     return (r > 0.0) ? (r + 0.5) : (r - 0.5); 
     }
 #endif
+*/
 
 void cross3(double a[3], double b[3], double c[3]);
 void matrixinverse(double m[3][3],double minv[3][3]);

@@ -4,14 +4,15 @@
 #include <mex.h>
 #include "UtildaMex.h"
 
-#ifdef _WIN32
+/*#ifdef _WIN32
     #define isnan(x) (_isnan(x))
     #define isfinite(x) (_finite(x))
-    /* this function does rounding as MS visual studio can't do it!*/
+    // this function does rounding as MS visual studio can't do it!
     int round( double r ) {
     return (r > 0.0) ? (r + 0.5) : (r - 0.5); 
     }
 #endif
+*/
 
 /************************** MEX gateway function ***********************/
 
