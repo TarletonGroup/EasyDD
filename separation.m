@@ -1,6 +1,6 @@
 function [rn,links,connectivity,linksinconnect,fseg]=separation(rn,links,connectivity,linksinconnect,fseg,mobility,MU,NU,a,Ec,mindist,vertices,...
     uhat,nc,xnodes,D,mx,mz,w,h,d)
-                                   
+
 
 [lrn,lrn2]=size(rn);
 
@@ -23,14 +23,14 @@ for i=1:lrn
         Powermax=1.05*rn(i,4:6)*ft';
         %initialize the splitting mode that will be undertaken
         splittingmode=0;
-        
+
         % build the list of possible splittingmodes of the multinode
         conlist=buildsplitmodelist(c);
         numsplitmodes=size(conlist,1);
         % conlist is a matrix with dimension numsplitting modes by number of connections
         % it consists of a series of ones and twos detailing which connection in the original
         % connectivity list is connected in the temporary dislocation structure that is being considered
-        
+
         % save the current configuration of the node to be considered for splitting
         refposveli=rn(i,1:6);
         refconnecti=connectivity(i,:);
@@ -48,7 +48,7 @@ for i=1:lrn
             for k=1:c  %for each column of s M
                 count=c-k+1; %we start with the last column M
                 if s(count)==1 %if there is a 1 M
-                    s(count)=count; %the value become the number of the column M 
+                    s(count)=count; %the value become the number of the column M
                 else %if there is a 0 M
                     s(count)=[]; %delete the box
                 end
@@ -69,9 +69,15 @@ for i=1:lrn
             rn([i lastnode],4:6)=vntmp;
             if vd1>=vd2
                 dir=-vntmp(1,:)./sqrt(vd1);
+                if vd1<eps
+                    dir=[0,0,0];
+                end
                 rn(i,1:3)=rn(i,1:3)-mindist*dir;
             else
                 dir=vntmp(2,:)./sqrt(vd2);
+                if vd2<eps
+                    dir=[0,0,0];
+                end
                 rn(lastnode,1:3)=rn(lastnode,1:3)+mindist*dir;
             end
             % check to see if a junction was needed to repair the connectivity
@@ -80,19 +86,23 @@ for i=1:lrn
             if totalconnectivity>refconnecti(1)
                 fseg=[fseg;zeros(1,6)];
             end
+
+            if any(any(isnan(rn)))
+                disp('YDFUS')
+            end
             % calculate the segment forces still connected to node i
             for k=1:connectivity(i,1)
                 linkid1=connectivity(i,2*k);
                 fseg(linkid1,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid1,vertices,...
                                              uhat,nc,xnodes,D,mx,mz,w,h,d);
-            end 
+            end
             % calculate the segment forces connected to the new node
             for k=1:connectivity(lastnode,1)
                 linkid2=connectivity(lastnode,2*k);
                 fseg(linkid2,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid2,vertices,...
                                              uhat,nc,xnodes,D,mx,mz,w,h,d);
-            end 
-                                               
+            end
+
             % evaluate the power dissipated by this splitting configuration
             [vntmp,fntmp]=feval(mobility,fseg,rn,links,connectivity,nodelist,clist);
             vdiff=vntmp(2,:)-vntmp(1,:);
@@ -105,10 +115,10 @@ for i=1:lrn
                     splittingfseg=[fseg(linkid1,:);fseg(linkid2,:)];
                     splittingfind=[linkid1,linkid2];
                 end
-                
+
             end
             % test is complete
-            % put the configuration back to the starting position 
+            % put the configuration back to the starting position
             rn(i,1:6)=refposveli;
             [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,i,lastnode,MU,NU,a,Ec);
             connectivity(i,1:size(refconnecti,2))=refconnecti; %F.Ferroni, 2013
@@ -119,7 +129,7 @@ for i=1:lrn
                 linksinconnect(linkid,posi)=k;
             end
         end
-        % all of the tests have been concludeded if there is a candidate for splitting perform the operation 
+        % all of the tests have been concludeded if there is a candidate for splitting perform the operation
         % and initialize the forces and the velocities of the affected segments and nodes
         if splittingmode~=0
             % a viable splitting mode was found
@@ -132,12 +142,12 @@ for i=1:lrn
                     s(count)=[];
                 end
             end
-            
+
             disp(sprintf('separation: node %d has %d arms',i,c));
-            disp(sprintf('separation: the following connections have split off'));
-            for j=1:length(s)
-                disp(sprintf('separation: connection %d',s(j)));
-            end
+%             disp(sprintf('separation: the following connections have split off'));
+%             for j=1:length(s)
+%                 disp(sprintf('separation: connection %d',s(j)));
+%             end
             % get the positions and velocities of the nodes after the split
             vel1=splittingvel(1,:);
             vel2=splittingvel(2,:);
@@ -167,7 +177,7 @@ for i=1:lrn
                 clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
                 [rn(othernode,4:6),fntmp]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
             end
-            
+
             for k=1:connectivity(lastnode,1)
                 linkid=connectivity(lastnode,2*k);
                 othernode=links(linkid,3-connectivity(lastnode,2*k+1));
@@ -202,8 +212,8 @@ function [conlist]=buildsplitmodelist(numconnections)
         end
         numsplitmodes=numsplitmodes+subnumber;
     end
-    
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [splitmodes]=createsplitmodelist(nodeconnectivity,numsplitarms)
 %initialize the size of splitmodes and fill with zeros
@@ -225,7 +235,7 @@ function [splitmodes]=createsplitmodelist(nodeconnectivity,numsplitarms)
             splitmodes(lastone+1:lastone+addlength,2:numsplitarms)=i+b( 1:addlength , 1:numsplitarms-1 );
             % update the current position of the last valid line of the splitmode system
             lastone=lastone+addlength;
-        end       
+        end
     end
 
 
@@ -243,7 +253,7 @@ function [splitmodes]=createsplitmodelist(nodeconnectivity,numsplitarms)
 %8 arm multinode
 %may split into 28 two arm splitting modes or        n! / ( (n-2)! * 2! )
 %may split into 56 three arm splitting modes or      n! / ( (n-3)! * 3! )
-%may split into 35 four arm splitting modes    0.5 * n! / ( (n-4)! * 4! )     119 total 
+%may split into 35 four arm splitting modes    0.5 * n! / ( (n-4)! * 4! )     119 total
 %9 arm multinode
 %may split into 36 two arm splitting modes or        n! / ( (n-2)! * 2! )
 %may split into 84 three arm splitting modes or      n! / ( (n-3)! * 3! )
@@ -253,8 +263,6 @@ function [splitmodes]=createsplitmodelist(nodeconnectivity,numsplitarms)
 %may split into 120 three arm splitting modes or     n! / ( (n-3)! * 3! )
 %may split into 210 four arm splitting modes or      n! / ( (n-4)! * 4! )
 %may split into 126 five arm splitting modes   0.5 * n! / ( (n-5)! * 5! )     501 total
-% the division by 2 for some of the cases is done outside this function call when appropriate.    
+% the division by 2 for some of the cases is done outside this function call when appropriate.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-

@@ -20,6 +20,7 @@
 *.mat
 *.pdb
 *.txt
+*.asv
 
 # Object files
 *.o
@@ -261,4 +262,3 @@ TSWLatexianTemp*
 
 # expex forward references with \gathertags
 *-tags.tex
-

@@ -1,6 +1,6 @@
 function [rn,links,connectivity,linksinconnect,fseg]=remesh(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,vertices,...
     uhat,nc,xnodes,D,mx,mz,w,h,d)
-% first coarsen the parts of the mesh than can be coarsened 
+% first coarsen the parts of the mesh than can be coarsened
 % then refine the parts of the mesh that need it
 % meshcoarsen is done first because it relies on positions of nodes that were introduced at the end of the previous time step
 % do not change the order of these two subroutines
@@ -12,10 +12,10 @@ function [rn,links,connectivity,linksinconnect,fseg]=remesh(rn,links,connectivit
 function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=meshcoarsen(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamin,MU,NU,a,Ec,mobility,vertices,...
         uhat,nc,xnodes,D,mx,mz,w,h,d)
 rnnew=rn;
-[lrn lrn2]=size(rn);
+[~, lrn2]=size(rn);
 linksnew=links;
 connectivitynew=connectivity;
-linksinconnectnew=linksinconnect; % investigate this 
+linksinconnectnew=linksinconnect; % investigate this
 fsegnew=fseg;
 areamin2=areamin*areamin;
 i=1;
@@ -66,29 +66,29 @@ while i<=length(rnnew(:,1))
                         if ((connode==i)||(connode==link1_nodenoti))
                             fsegnew(linkm,:)=segforcevec(MU,NU,a,Ec,rnnew(:,[1 2 3 lrn2]),linksnew,linkm,vertices,...
                                              uhat,nc,xnodes,D,mx,mz,w,h,d);
-                            for j=1:2
-                                nodelist=linksnew(linkm,j);
+                            for k=1:2
+                                nodelist=linksnew(linkm,k);
                                 clist=[connectivitynew(nodelist,1) linspace(1,connectivitynew(nodelist,1),connectivitynew(nodelist,1))];
-                                [rnnew(nodelist,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,nodelist,clist);
-                            end    
+                                [rnnew(nodelist,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,nodelist,clist);
+                            end
                         end
                     end
-                end    
+                end
             else %((area2>=areamin2)|(dareadt>=0.0d0)) & ((r1>=lmin)|(dr1dt>=lmin)) & ((r2>=lmin)|(dr2dt>=lmin))
                 i=i+1;
-            end 
+            end
         else % r3>=lmax
             i=i+1;
-        end 
+        end
     else % connectivitynew(i,1)>2
         i=i+1;
-    end 
+    end
 end %while loop
 
 
 function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=meshrefine(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamax,MU,NU,a,Ec,mobility,vertices,...
     uhat,nc,xnodes,D,mx,mz,w,h,d)
-[lrn lrn2]=size(rn);
+[lrn, lrn2]=size(rn);
 lrn3=lrn2-1;
 rnnew=rn;
 linksnew=links;
@@ -117,45 +117,49 @@ for i=1:lrn
         r3=sqrt(vec3*vec3');
         s=0.5*(r1+r2+r3);
         area2=(s*(s-r1)*(s-r2)*(s-r3));
-        if (((area2>areamax2)&(r2>=lmin2)&(link2_nodenoti<=lrn))|(r2>lmax))
-            %conditions necessary to bisect the second link are met 
-            posvel=[(rnnew(i,1:lrn3)+rnnew(link2_nodenoti,1:lrn3))./2];
+        if (((area2>areamax2)&&(r2>=lmin2)&&(link2_nodenoti<=lrn))||(r2>lmax))
+            %conditions necessary to bisect the second link are met
+            posvel=(rnnew(i,1:lrn3)+rnnew(link2_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,secondconnection,posvel);
             newnode=length(rnnew(:,1));
             newlink=length(linksnew(:,1));
-            linksnew(newlink,6:8)=linksnew(link2,6:8);
+            if linksnew(link1,6:8)==linksnew(link2,6:8)
+                linksnew(newlink,6:8)=linksnew(link2,6:8);
+            end
             for j=1:connectivitynew(newnode,1)
                 linkid=connectivitynew(newnode,2*j);
                 oldnode=linksnew(linkid,3-connectivitynew(newnode,2*j+1));
-                
+
                 fsegnew(linkid,:)=segforcevec(MU,NU,a,Ec,rnnew(:,[1 2 3 lrn2]),linksnew,linkid,vertices,...
                     uhat,nc,xnodes,D,mx,mz,w,h,d);
-                
+
                 clist=[connectivitynew(oldnode,1) linspace(1,connectivitynew(oldnode,1),connectivitynew(oldnode,1))];
-                [rnnew(oldnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
+                [rnnew(oldnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
             end
             clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
-            [rnnew(newnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
+            [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
         end
-        if (((area2>areamax2)&(r1>=lmin2)&(link1_nodenoti<=lrn))|(r1>lmax))
+        if (((area2>areamax2)&&(r1>=lmin2)&&(link1_nodenoti<=lrn))||(r1>lmax))
             %conditions necessary to bisect the first link are met
-            posvel=[(rnnew(i,1:lrn3)+rnnew(link1_nodenoti,1:lrn3))./2];
+            posvel=(rnnew(i,1:lrn3)+rnnew(link1_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,firstconnection,posvel);
             newnode=length(rnnew(:,1));
             newlink=length(linksnew(:,1));
-            linksnew(newlink,6:8)=linksnew(link1,6:8);
+            if linksnew(link1,6:8)==linksnew(link2,6:8)
+                linksnew(newlink,6:8)=linksnew(link1,6:8);
+            end
             for j=1:connectivitynew(newnode,1)
                 linkid=connectivitynew(newnode,2*j);
                 oldnode=linksnew(linkid,3-connectivitynew(newnode,2*j+1));
                 fsegnew(linkid,:)=segforcevec(MU,NU,a,Ec,rnnew(:,[1 2 3 lrn2]),linksnew,linkid,vertices,...
                     uhat,nc,xnodes,D,mx,mz,w,h,d);
                 clist=[connectivitynew(oldnode,1) linspace(1,connectivitynew(oldnode,1),connectivitynew(oldnode,1))];
-                [rnnew(oldnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
+                [rnnew(oldnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
             end
             clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
-            [rnnew(newnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
+            [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
         end
-    elseif (connectivitynew(i,1)>2) & (rnnew(i,lrn2)==0) 
+    elseif (connectivitynew(i,1)>2) && (rnnew(i,lrn2)==0)
         % check to make sure that no link is larger than lmax
         for j=1:connectivitynew(i,1)
             linkid=connectivitynew(i,2*j);
@@ -164,21 +168,21 @@ for i=1:lrn
             vec1=rnnew(nodenoti,1:3)-rnnew(i,1:3);
             r1=sqrt(vec1*vec1');
             if (r1>lmax)
-                posvel=[(rnnew(i,1:lrn3)+rnnew(nodenoti,1:lrn3))./2];
+                posvel=(rnnew(i,1:lrn3)+rnnew(nodenoti,1:lrn3))./2;
                 [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,j,posvel);
                 newnode=length(rnnew(:,1));
                 newlink=length(linksnew(:,1));
                 linksnew(newlink,6:8)=linksnew(linkid,6:8);
-                for j=1:connectivitynew(newnode,1)
-                    linkid=connectivitynew(newnode,2*j);
-                    oldnode=linksnew(linkid,3-connectivitynew(newnode,2*j+1));
+                for k=1:connectivitynew(newnode,1)
+                    linkid=connectivitynew(newnode,2*k);
+                    oldnode=linksnew(linkid,3-connectivitynew(newnode,2*k+1));
                     fsegnew(linkid,:)=segforcevec(MU,NU,a,Ec,rnnew(:,[1 2 3 lrn2]),linksnew,linkid,vertices,...
                     uhat,nc,xnodes,D,mx,mz,w,h,d);
                     clist=[connectivitynew(oldnode,1) linspace(1,connectivitynew(oldnode,1),connectivitynew(oldnode,1))];
-                    [rnnew(oldnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
+                    [rnnew(oldnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,oldnode,clist);
                 end
                 clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
-                [rnnew(newnode,4:6),fntmp]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
+                [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
             end
         end
     end

@@ -1,33 +1,37 @@
-function [rn,links,connectivity,linksinconnect,fseg]=collision(rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
-    uhat,nc,xnodes,D,mx,mz,w,h,d)
-% this subroutine goes through the existing links and checks for collisions
-% it first checks through unconnected links
-% it then checks for hinges that are coming within the mininum distance
+function [rn,links,connectivity,linksinconnect,fseg]=collision_basic(rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
+    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,~)
+%floop to know wich loop has to be run
+
 mindist2=mindist*mindist;
 lrn2=length(rn(1,:));
-lrn3=lrn2-1;
-% eps is the error factor of the calculation
-eps=1e-12;
+lrn3=lrn2-1; %lnr2-1 to count every column execpt the one with the flag
+% tol is the error factor of the calculation
+tol=1e-12;
+remcon=0;
+
+% if connectivity(n1s1,1)==2 && connectivity(n2s1,1)==2 && connectivity(n1s2,1)==2 && connectivity(n2s2,1)==2
+%     alt1=connectivity(n1s1,[2 4]);
+%     other1=alt1(alt1~=s1);
+%     alt2=connectivity(n2s1,[2 4]);
+%     other2=alt2(alt2~=s1);
+%     alt3=connectivity(n1s2,[2 4]);
+%     other3=alt3(alt3~=s2);
+%     alt4=connectivity(n2s2,[2 4]);
+%     other4=alt4(alt4~=s2);
+%     if other1==other3 || other1==other4 || other2==other3 || other2==other4
+%         remcon=1;
+%     end
+% end
+
 % check for two links colliding
-i=1;
-while i<size(links,1) %for every link M
-    %ignore virtual segments - FF
-    if rn(links(i,1),end)==67 || rn(links(i,2),end)==67
-        i=i+1;
-        continue;
-    end
-    j=i+1;
-    while j<=size(links,1)
-        n1s1=links(i,1);
+if remcon==1
+    fprintf('Remeshing conflict detected. Cancelling collision\n')
+elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 needs to be run.
 
-        n2s1=links(i,2);
-        n1s2=links(j,1);
-        n2s2=links(j,2);
-        if (n1s1~=n1s2)&&(n1s1~=n2s2)&&(n2s1~=n1s2)&&(n2s1~=n2s2)
+% First collision in computed with collisioncheckermexmarielle information : n1s1,n2s1,n1s2,n2s2,s1,s2
 
-           %[dist2,ddist2dt,L1,L2]=mindistcalc(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
-           [dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
-            collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-eps))|(dist2<eps);
+[dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
+            collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-tol))|(dist2<tol);
             % there are two conditions here the first condition handles non planar collisions
             % the second conditions looks for coplanar collisions
             if collision_condition_is_met
@@ -43,12 +47,12 @@ while i<size(links,1) %for every link M
                     mergenode1=n2s1;
                 else
                     spnode=n1s1;
-                    splitconnection=linksinconnect(i,1); % linki=s1 M
+                    splitconnection=linksinconnect(s1,1); % linki=s1 M
                     posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode1=length(rn(:,1)); %nodeid of mergenode1 M
-                    linknew=length(links(:,1)); %linkid of linknew M
-                    links(linknew,6:8)=links(i,6:8); %glide plane M
+                    %linknew=length(links(:,1)); %linkid of linknew M
+%                     links(linknew,6:8)=links(s1,6:8); %glide plane M
                     fseg=[fseg;zeros(1,6)];
                 end
 
@@ -63,12 +67,12 @@ while i<size(links,1) %for every link M
                     mergenode2=n2s2;
                 else
                     spnode=n1s2;
-                    splitconnection=linksinconnect(j,1); %linkj=s2 M
+                    splitconnection=linksinconnect(s2,1); %linkj=s2 M
                     posvel=rn(n1s2,1:lrn3).*(1-L2)+rn(n2s2,1:lrn3).*L2;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode2=length(rn(:,1));
-                    linknew=length(links(:,1));
-                    links(linknew,6:8)=links(j,6:8);
+                    %linknew=length(links(:,1));
+                    %links(linknew,6:8)=links(s2,6:8);
                     fseg=[fseg;zeros(1,6)];
                 end
                 % merge the two colliding nodes
@@ -89,38 +93,12 @@ while i<size(links,1) %for every link M
                     [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                 end
             end
-        end
-        j=j+1;
-    end
-    i=i+1;
-end
-% check for a hinge condition
-i=1;
-while i<=length(rn(:,1))
-    %ignore virtual nodes - FF
-    if rn(i,end)==67
-        i=i+1;
-        continue;
-    end
-    j=1;
-    while j<=connectivity(i,1)
-        nodenoti=links(connectivity(i,2*j),3-connectivity(i,2*j+1));
-        k=1;
-        while k<=connectivity(i,1)
-            linkid=connectivity(i,2*k);
-            % if node is on the link do not check for collision
-            if j~=k
-                % identify the nodes on the link
-                n1s1=links(linkid,1);
-                n2s1=links(linkid,2);
-                %[dist2,ddist2dt,L1,L2]=mindistcalc(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
-                [dist2,ddist2dt,L1,~]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
-                %dist2
-                %ddist2dt
-                collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-eps);
-                if collision_condition_is_met
+else
+    [dist2,ddist2dt,L1,~]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n1s2,1:lrn3));
+    collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-tol);
+    if collision_condition_is_met
                     % identify the first node to be merged
-                    mergenode1=nodenoti;
+                    mergenode1=n1s2;
                     % identify the second node to be merged
                     vec=rn(n1s1,1:3)-rn(n2s1,1:3);
                     close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
@@ -132,12 +110,12 @@ while i<=length(rn(:,1))
                         mergenode2=n2s1;
                     else
                         spnode=n1s1;
-                        splitconnection=linksinconnect(linkid,1);
+                        splitconnection=linksinconnect(s1,1);
                         posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
                         [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                         mergenode2=length(rn(:,1));
                         newlink=length(links(:,1));
-                        links(newlink,6:8)=links(linkid,6:8);
+                        links(newlink,6:8)=links(s1,6:8);
                         fseg=[fseg;zeros(1,6)];
                     end
                     %merge the two nodes
@@ -157,96 +135,9 @@ while i<=length(rn(:,1))
                         conlist=[numbcon linspace(1,numbcon,numbcon)];
                         [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                     end
-                    %there has been a connectivity change in node i start the search through node i's connections from the beginning
-                    if i>size(rn,1)
-                        % this is a rare but possible case.
-                        % for this condition to be satisfied the last node was being checked for closed hinge condition and it merged with another node
-                        % since this was the last node being checked exit the function
-                        return;
-                    else
-                        j=0;
-                        k=connectivity(i,1);
-                    end
-                end
-            end
-            k=k+1;
-        end
-        j=j+1;
     end
-    i=i+1;
 end
-
-
-% function [dist2,ddist2dt,L1,L2]=mindistcalc(x0vx0,x1vx1,y0vy0,y1vy1)
-% % this function finds the minimum distance bewtween two line segments
-% % seg1=x0->x1 seg2=y0->y1
-% % dist2 = square of the minimum distance between the two points
-% % L1 = normalize position on seg1 that is closest to seg2
-% % L2 = normalized position on seg2 that is closest to seg1
-% % ddist2dt = time rate of change of the distance between L1 and L2
-% x0=x0vx0(1:3); %seg1 M
-% x1=x1vx1(1:3); %seg1 M
-% y0=y0vy0(1:3); %seg2 M
-% y1=y1vy1(1:3); %seg2 M
-% if length(x0vx0)==6 %if there are velocities M
-%     vx0=x0vx0(4:6);
-%     vx1=x1vx1(4:6);
-%     vy0=y0vy0(4:6);
-%     vy1=y1vy1(4:6);
-% else %if there are no velocities M
-%     vx1=zeros(1,3);
-%     vx0=zeros(1,3);
-%     vy1=zeros(1,3);
-%     vy0=zeros(1,3);
-% end
-%
-% seg1=x1-x0; %vector seg1 M
-% seg2=y1-y0; %vector seg2 M
-% vseg1=vx1-vx0; %vector velocity seg1 M
-% vseg2=vy1-vy0; %vector velocity seg2 M
-%
-% A=seg1*seg1'; %��seg1��^2 M
-% B=2*seg1*(x0'-y0');
-% C=2*seg1*seg2';
-% D=2*seg2*(y0'-x0');
-% E=seg2*seg2'; %��seg2��^2 M
-% F=x0*x0'+y0*y0';
-% G=C*C-4*A*E;
-% eps=1e-12;
-% if A<eps % seg1 is just a point
-%     L1=0;
-%     if E<eps
-%         L2=0;
-%     else
-%         L2=-0.5*D/E;
-%     end
-% elseif E<eps % seg2 is just a point
-%     L2=0;
-%     if A<eps
-%         L1=0;
-%     else
-%         L1=-0.5*B/A;
-%     end
-% elseif abs(G)<eps % lines are parallel
-%     dist2=[(y0-x0)*(y0-x0)' (y1-x0)*(y1-x0)' (y0-x1)*(y0-x1)' (y1-x1)*(y1-x1)'];
-%     [mindist2,pos]=min(dist2);
-%     L1=floor(pos/2);
-%     L2=mod(pos-1,2);
-% else
-%     L2=(2*A*D+B*C)/G;
-%     L1=0.5*(C*L2-B)/A;
-% end
-%
-% % now check to make sure that L2 and L1 are betwen 0 and 1
-% L1=min(max([L1,0]),1);
-% L2=min(max([L2,0]),1);
-%
-% % now calculate the distance^2 and the time rate of change of the distance between the points at L1 and L2
-% dist2=(x0+seg1.*L1-y0-seg2.*L2)*(x0+seg1.*L1-y0-seg2.*L2)';
-% ddist2dt=2*((vx0+vseg1.*L1-vy0-vseg2.*L2)*(x0+seg1.*L1-y0-seg2.*L2)');
-
-
- function collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links)
+function collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links)
  % this subroutine finds the collision point of two nodes given that there are strict glide plane constraints
  eps=1e-12;
  newplanecondition=0.875;

@@ -1,4 +1,4 @@
-function [fseg_tot]=segforcevec(MU,NU,a,Ec,rn,links,linkid,~,...
+function [fseg_tot]=segforcevec_old(MU,NU,a,Ec,rn,links,linkid,~,...
     uhat,nc,xnodes,D,mx,mz,w,h,d)
 %compute nodal driving force of dislocation network by stress formula
 %(vectorized version)
@@ -19,7 +19,7 @@ end
 segments=constructsegmentlist(rn,links);
 
 %find segments that are virtual with a surface node.
-[virtindex,~,realindex,realID,~] = virtualsegfinder(rn,links,segments);
+[virtindex,~,realindex,realID,segpairs] = virtualsegfinder(rn,links);
 virtsegs = segments(virtindex,:);
 
 S=size(segments,1);
@@ -32,11 +32,7 @@ for i=1:S
 end
 segments = segments(index,:);
 
-if any(any(isnan(segments)))
-    disp('YDFUS, see line 36 segforcevec.m')
-end
-
-if linkid==0 %calculate forces on all segments
+if linkid==0
     %PK force due to applied stress
     %t0=clock;
 
@@ -45,75 +41,51 @@ if linkid==0 %calculate forces on all segments
 
     %self force due to self stress
     [fs0,fs1]=selfforcevec(MU,NU,a,Ec,segments);
-%     if not(isempty(virtsegs))
-%         %zero out the self-force on surface nodes
-%         realtosurfsegs=find(realindex==1);
-%         for i=1:length(realtosurfsegs)
-%             realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
-%             if realID(i) == 1 %surface node is in first column of links entry
-%                fs0(realtosurfsegs(i),:) = [0, 0, 0];
-%             else %surface node is in second column of links entry
-%                fs1(realtosurfsegs(i),:) = [0, 0, 0];
-%             end
-%         end
-%     end
-
-%     if isempty(virtsegs)
-        %remote force due to remote stress, real segments
-        [fr0,fr1]=remoteforcevec(MU,NU,a,segments,0);
-%     else
-%         %if virtual nodes present one must
-%         %correct surface nodes by removing virtual contribution
-%         %and delete appended forces on virtual nodes
-%         segments_tot = vertcat(segments,virtsegs);
-%         %force on every segment due to every other segment (virtual included)
-%         [fr0,fr1]=remoteforcevec(MU,NU,a,segments_tot,0);
-%         %subtract contribution in surface nodes of connected virtual nodes...
-%         for vs = 1:size(segpairs,1)*0.5
-%             segment_pair = segpairs(2*vs-1:2*vs,:); %first segment is real, second is virtual
-%             [fr0v,fr1v]=remoteforcevec(MU,NU,a,segment_pair,1);
-%             %decide which is surface node, and subtract "virtual" force
-%             %from segment
-%             rowpos=find(segments_tot(:,1)==segpairs(1,1) & segments_tot(:,2)==segpairs(1,2));
-%             if realID(vs)==1 %first node is at surface
-%                 fr0(rowpos,:) = fr0(rowpos,:) - fr0v;
-%             elseif realID(vs)==2 %second node is at surface
-%                 fr1(rowpos,:) = fr1(rowpos,:) - fr1v;
-%             end
-%         end
-%         %delete appended forces on virtual nodes
-%         fr0 = fr0(1:size(segments,1),:);
-%         fr1 = fr1(1:size(segments,1),:);
-%     end
-
-    %PK force due to image stress
-    %fimg = imageforce(segments,a,MU,NU,vertices);
-
-    fseg=[fpk, fpk]*0.5+[fs0, fs1]+[fr0, fr1];   %combine all force contributions
-
-    if ~isempty(virtsegs)
-        %project forces on surface nodes into the plane of the surface
+    if not(isempty(virtsegs))
+        %zero out the self-force on surface nodes
         realtosurfsegs=find(realindex==1);
         for i=1:length(realtosurfsegs)
             realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
-            relevantsegs1=virtsegs(virtsegs(:,1)==segments(realtosurfsegs(i),realID(i)),:);
-            relevantsegs2=virtsegs(virtsegs(:,2)==segments(realtosurfsegs(i),realID(i)),:);
-            planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-            planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-            planenormal=[planenormal1;planenormal2];
-            planenormal=sum(planenormal,1);
-            planenormal=planenormal/norm(planenormal);
             if realID(i) == 1 %surface node is in first column of links entry
-                fseg(realtosurfsegs(i),1:3) = 2*(fseg(realtosurfsegs(i),1:3)-planenormal*dot(fseg(realtosurfsegs(i),1:3),planenormal));
+               fs0(realtosurfsegs(i),:) = [0, 0, 0];
             else %surface node is in second column of links entry
-                fseg(realtosurfsegs(i),4:6) = 2*(fseg(realtosurfsegs(i),4:6)-planenormal*dot(fseg(realtosurfsegs(i),4:6),planenormal));
+               fs1(realtosurfsegs(i),:) = [0, 0, 0];
             end
         end
     end
 
-    if any(any(isnan(fseg)))
-        fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
+    if isempty(virtsegs)
+        %remote force due to remote stress, real segments
+        [fr0,fr1]=remoteforcevec(MU,NU,a,segments,0);
+    else
+        %if virtual nodes present one must
+        %correct surface nodes by removing virtual contribution
+        %and delete appended forces on virtual nodes
+        segments_tot = vertcat(segments,virtsegs);
+        %force on every segment due to every other segment (virtual included)
+        [fr0,fr1]=remoteforcevec(MU,NU,a,segments_tot,0);
+        %subtract contribution in surface nodes of connected virtual nodes...
+        for vs = 1:size(segpairs,1)*0.5
+            segment_pair = segpairs(2*vs-1:2*vs,:); %first segment is real, second is virtual
+            [fr0v,fr1v]=remoteforcevec(MU,NU,a,segment_pair,1);
+            %decide which is surface node, and subtract "virtual" force
+            %from segment
+            rowpos=find(segments_tot(:,1)==segpairs(1,1) & segments_tot(:,2)==segpairs(1,2));
+            if realID(vs)==1 %first node is at surface
+                fr0(rowpos,:) = fr0(rowpos,:) - fr0v;
+            elseif realID(vs)==2 %second node is at surface
+                fr1(rowpos,:) = fr1(rowpos,:) - fr1v;
+            end
+        end
+        %delete appended forces on virtual nodes
+        fr0 = fr0(1:size(segments,1),:);
+        fr1 = fr1(1:size(segments,1),:);
     end
+
+    %PK force due to image stress
+    %fimg = imageforce(segments,a,MU,NU,vertices);
+
+    fseg=[fpk, fpk]*0.5+[fs0, fs1]+[fr0, fr1];
 
     %fseg is calculated for real segments. The total fseg list used
     %throughout DDLab also contains virtual segments (flagged as 67).
@@ -124,7 +96,7 @@ if linkid==0 %calculate forces on all segments
     fseg_tot = zeros(S,6);
     fseg_tot(index,1:6) = fseg;
 
-else  %calculate force on segment specified by linkid
+else
 
     %update linkid based on "real" index, rather than global indexing.
     if sum(index(1:linkid))==0
@@ -148,34 +120,9 @@ else  %calculate force on segment specified by linkid
     %segments when a node is created. length of [fr0,fr1]=1
     [fr0,fr1]=remoteforcevec(MU,NU,a,segments,linkid);
 
-    fseg=[fpk, fpk]*0.5 + [fs0, fs1] + [fr0, fr1]; %sum force contributions
+    fseg=[fpk, fpk]*0.5 + [fs0, fs1]+[fr0, fr1];
 
-    %project forces on surface nodes into plane of surface
-    if rn(segments(linkid,1),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,1),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,1),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal,1);
-       fseg(1:3) = 2*(fseg(1:3)-planenormal*dot(fseg(1:3),planenormal));
-    elseif rn(segments(linkid,2),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,2),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,2),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal);
-       fseg(4:6) = 2*(fseg(4:6)-planenormal*dot(fseg(4:6),planenormal));
-    end
-
-    if any(any(isnan(fseg)))
-        fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
-    end
-
-    fseg_tot = fseg; %output variable
+    fseg_tot = fseg;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
