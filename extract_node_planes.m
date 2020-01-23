@@ -80,10 +80,10 @@ function [node_plane_lbl, node_plane] = extract_node_planes(            ...
     % coord := orthogonal coordinate to the plane (for node filtering
     %   purposes).
     %
-    % idxi, idxf := initial and final index that slice the coordinate
+    % idxi, idxf := initial and final index that slice the coordinate 
     %   output array into sections for each extracted plane.
     %
-    % idxl, idxm := initial and final index that slice the label
+    % idxl, idxm := initial and final index that slice the label 
     %   output array into sections for each extracted plane.
     %
     % filter := value for filtering data.
@@ -128,7 +128,7 @@ function [node_plane_lbl, node_plane] = extract_node_planes(            ...
         % to be extracted this iteration
         tmp_nodes_lbl = fem_node_cnct(:, surf_node_util(1:n_nodes, plane_idx));
         tmp_nodes     = fem_nodes(tmp_nodes_lbl, 1:3);
-        % If the plane index is odd it is a face where its orthogonal
+        % If the plane index is odd it is a face where its orthogonal 
         % coordinate is at a minimum.
         if(mod(plane_idx, 2) ~= 0)
             filter = min(tmp_nodes(:, coord));
@@ -147,6 +147,7 @@ function [node_plane_lbl, node_plane] = extract_node_planes(            ...
         tmp_nodes_lbl      = reshape(tmp_nodes_lbl ,...
                                      tmp_nodes_lbl_size * n_nodes, 1);
         tmp_nodes_lbl = tmp_nodes_lbl(mask);
+
         %% Passing data to the slice of the array that contains the nodes labels and coords for every plane
         % Pass the node labels of this iteration to the global array.
         % Set the slice of the tmp_nodes array to be indexed
@@ -175,7 +176,7 @@ function [node_plane_lbl, node_plane] = extract_node_planes(            ...
     end %for
     
     %% Cleanup
-    clear idxl; clear idxi; clear plane_idx; clear dim; clear dim_3;
+    clear idxl; clear idxi; clear plane_idx; clear dim; clear dim_3; 
     clear coord; clear idxm; clear idxf; clear filter; clear tmp_nodes_lbl_size;
     clear step; clear step_lbl; clear n_nodes_p1; clear n_nodes_p2;
 end %function

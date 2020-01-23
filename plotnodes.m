@@ -20,7 +20,8 @@ for i=1:LINKMAX
     plane_n = cross(lvec/norm(lvec),bvec/norm(bvec));
 %     if plane_n == [-1 0 1]/sqrt(2)
     r0 = rn(n0,1:3)*amag;
-%      if rn(n0,4)==0
+%      if rn(n0,4)==0 || rn(n0,4) == 6
+%     if rn(n0,4)==0
         %filter out "infinity" lines
        plot3(rn([n0,n1],1)*amag,rn([n0,n1],2)*amag,rn([n0,n1],3)*amag,'r','LineWidth',2);  
         quiver3(r0(1),r0(2),r0(3),lvec(1),lvec(2),lvec(3),'r','LineWidth',1); 

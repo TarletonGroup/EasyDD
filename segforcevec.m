@@ -91,25 +91,25 @@ if linkid==0 %calculate forces on all segments
 
     fseg=[fpk, fpk]*0.5+[fs0, fs1]+[fr0, fr1];   %combine all force contributions
 
-    if ~isempty(virtsegs)
-        %project forces on surface nodes into the plane of the surface
-        realtosurfsegs=find(realindex==1);
-        for i=1:length(realtosurfsegs)
-            realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
-            relevantsegs1=virtsegs(virtsegs(:,1)==segments(realtosurfsegs(i),realID(i)),:);
-            relevantsegs2=virtsegs(virtsegs(:,2)==segments(realtosurfsegs(i),realID(i)),:);
-            planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-            planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-            planenormal=[planenormal1;planenormal2];
-            planenormal=sum(planenormal,1);
-            planenormal=planenormal/norm(planenormal);
-            if realID(i) == 1 %surface node is in first column of links entry
-                fseg(realtosurfsegs(i),1:3) = 2*(fseg(realtosurfsegs(i),1:3)-planenormal*dot(fseg(realtosurfsegs(i),1:3),planenormal));
-            else %surface node is in second column of links entry
-                fseg(realtosurfsegs(i),4:6) = 2*(fseg(realtosurfsegs(i),4:6)-planenormal*dot(fseg(realtosurfsegs(i),4:6),planenormal));
-            end
-        end
-    end
+%     if ~isempty(virtsegs)
+%         %project forces on surface nodes into the plane of the surface
+%         realtosurfsegs=find(realindex==1);
+%         for i=1:length(realtosurfsegs)
+%             realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
+%             relevantsegs1=virtsegs(virtsegs(:,1)==segments(realtosurfsegs(i),realID(i)),:);
+%             relevantsegs2=virtsegs(virtsegs(:,2)==segments(realtosurfsegs(i),realID(i)),:);
+%             planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%             planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%             planenormal=[planenormal1;planenormal2];
+%             planenormal=sum(planenormal,1);
+%             planenormal=planenormal/norm(planenormal);
+%             if realID(i) == 1 %surface node is in first column of links entry
+%                 fseg(realtosurfsegs(i),1:3) = 2*(fseg(realtosurfsegs(i),1:3)-planenormal*dot(fseg(realtosurfsegs(i),1:3),planenormal));
+%             else %surface node is in second column of links entry
+%                 fseg(realtosurfsegs(i),4:6) = 2*(fseg(realtosurfsegs(i),4:6)-planenormal*dot(fseg(realtosurfsegs(i),4:6),planenormal));
+%             end
+%         end
+%     end
 
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
