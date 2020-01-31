@@ -1,22 +1,18 @@
-function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+function [uhat,fend,Ubar] = STATIC_analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
     gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,t,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
-    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps, Ubar, dt)
+    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps)
 
 %Coupling of FEM and DDD
 % u = uhat + utilda
 % f = f_hat + ftilda
 
 % segments = constructsegmentlist(rn,links);
-Udot = 0.0001*1E3*dx*(1E-4/160E9); %for tungsten...
+% Udot = 1*1E3*dx*(1E-4/160E9); %for tungsten...
 % Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
 %Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
-
-% Changed from:
-% Ubar = Udot*t;
-% to:
-Ubar = Ubar - Udot*dt;
-
+Udot = 0;
+Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debucontourfggin
 u=zeros(3*(mno),1);
 
@@ -57,7 +53,7 @@ uhat=zeros(3*mno,1);
 %     pause; %some entries of utilda are NaN -> leads to issues in hatStress routine
 % end
 
-uhat(fixedDofs) = u(fixedDofs);% - utilda(fixedDofs);
+% uhat(:) = u(:);% - utilda(fixedDofs);
 
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
 f_dln(:,1) = 0;
@@ -67,18 +63,18 @@ f_hat(:,1) = 0;
                         f_dln_node, f_dln_se, f_dln,...
                         MU, NU, a, use_gpu, n_threads, para_scheme, eps);
 
-f_hat(freeDofs) = -f_dln(freeDofs)';% no applied forces
+f_hat(gamma_disp) = -f_dln(gamma_disp)';% no applied forces
 
-f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
+f    = f_hat-kg(:,gamma_disp)*uhat(gamma_disp);
 
 bcwt = mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
+% f(gamma_disp) = bcwt*uhat(gamma_disp);
 uhat = U\(L\f); %using LU decomposition
 
 rhat=kg*uhat;
 
-fend = rhat(3*gamma_mixed(:,1))+f_dln(3*gamma_mixed(:,1));
-fend = sum(fend);
+fend = rhat(gamma_disp)+f_dln(gamma_disp);
+% fend = sum(fend);
 end

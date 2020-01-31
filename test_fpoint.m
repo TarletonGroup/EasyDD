@@ -18,53 +18,56 @@ x5 = [-0.5E3  0.5E3 0];
 x6 = [ 0.5E3  0.5E3 0];
 %
 n_q  = [1; 2; 10; 11; 100; 101; 500; 501; 1000; 1001; 1500; 1501];
-%
-% % There seems to be a factor of 3 missing from the analytical solutions.
-% x1i = [0 0 0];
-% x2i = [0 0 1];
-% b   = [1 0 0];
-% a   = 5*norm(b);
-% dist = a + [0; 1E-1; 1E0; 1E1; 1E2];% 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-%
-% % % save("eperp_params.mat")
-% % for i = 1: size(n_q)
-% %     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
-% %     quad = [q, w];
-% %     for j = 1: size(dist)
-% %         x1 = x1i;
-% %         x1(1,3) = x1(1,3) + dist(j);
-% %         x2i = x1;
-% %         for k = 1: size(dist)
-% %             x2(1,3) = x2i(1,3) + dist(k);
-% %             if x1(1,3) == x2(1,3)
-% %                 x2(1,3) = x2(1,3) + 1;
-% %             end %if
-% %             [~, ~, ~, ~, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad, 1, 1);
-% %             if i == 1
-% %                 [~, ~, ~, ~, ftota] = ...
-% %                     nodal_surface_force_linear_rectangle_mex(x1, x2, ...
-% %                                     x3, x4, x5, x6, b, mu, nu, a, 1, 1, 0.0);
-% %                 ftota = ftota';
-% % %                 save(sprintf("aeperp_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
-% %             end %if
-% % %             save(sprintf("neperp_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
-% %         end %for
-% %         sprintf("q = %d, dist = %f, err = %f, ", n_q(i), dist(j), abs(ftotn(2)-ftota(2))./ftota(2))
-% %     end %for
-% % end %for
-%
-n_dln = 10000;
+%%
+% Dislocation passes over x3
+x1i = [-0.5E3 -0.5E3 0];
+x2i = [-0.5E3 -0.5E3 1];
+b   = [1 0 0];
+a   = 5*norm(b);
+dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
+
+save("./worst_case/eperp_params_x3.mat")
+for i = 1: size(n_q)
+    [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
+    quad = [q, w];
+    for j = 1: size(dist)
+        x1 = x1i;
+        x1(1,3) = x1(1,3) + dist(j);
+        x2i = x1;
+        for k = 1: size(dist)
+            x2(1,3) = x2i(1,3) + dist(k);
+            if x1(1,3) == x2(1,3)
+                x2(1,3) = x2(1,3) + 1;
+            end %if
+            [~, ~, ~, ~, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad, 1, 1);
+            if i == 1
+                [~, ~, ~, ~, ftota] = ...
+                    nodal_surface_force_linear_rectangle_mex(x1, x2, ...
+                                    x3, x4, x5, x6, b, mu, nu, a, 1, 1, 0.0);
+                ftota = ftota';
+                save(sprintf("./worst_case/aeperp_%f_%f_x3.mat", x1(1,3), x2(end,3)), "ftota")
+            end %if
+            save(sprintf("./worst_case/neperp_%d_%f_%f_x3.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+        end %for
+%         sprintf("q = %d, dist = %f, err = %f, ", n_q(i), dist(j), abs(ftotn(2)-ftota(2))./ftota(2))
+    end %for
+end %for
+%%
+n_dln =1000;
 x1i = zeros(n_dln,3);
 x2i = zeros(n_dln,3);
 b = zeros(n_dln,3);
+% Dislocation passes over x3 and x6
 x1i(:,1) = linspace(-0.5E6,0.5E6-(0.5E6+0.5E6)/(n_dln),n_dln);
 x2i(:,1) = linspace(-0.5E6+(0.5E6+0.5E6)/(n_dln),0.5E6,n_dln);
-b(:,2)   = 1;
+x1i(:,2) = linspace(-0.5E6,0.5E6-(0.5E6+0.5E6)/(n_dln),n_dln);
+x2i(:,2) = linspace(-0.5E6+(0.5E6+0.5E6)/(n_dln),0.5E6,n_dln);
+b(:,3)   = 1;
 a   = 5*norm(b(1,:));
 dim = size(x1i,1)*size(x1i,2);
 dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
 
-save("epar_params.mat")
+% save("./worst_case/epar_params_x3x6.mat")
 for i = 1: size(n_q)
     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
     quad = [q, w];
@@ -79,48 +82,49 @@ for i = 1: size(n_q)
                 nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
                                 x3, x4, x5, x6, b, mu, nu, a, 1, n_dln, 1e-6);
             ftota = ftota';
-            save(sprintf("aepar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+            save(sprintf("./worst_case/aepar_%f_%f_x3x6.mat", x1(1,3), x2(end,3)), "ftota")
         end %if
-        save(sprintf("nepar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+        save(sprintf("./worst_case/nepar_%d_%f_%f_x3x6.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
     end %for
 end %for
 
+%%
 % x1i = [-0.5E9 0 0];
 % x2i = [ 0.5E9 0 0];
 % b   = [1 0 0];
 % a   = 5*norm(b);
 % dist = a + [0; 1E-6; 1E-5; 1E-4; 1E-3; 1E-2; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-n_dln = 10000;
-x1i = zeros(n_dln,3);
-x2i = zeros(n_dln,3);
-b = zeros(n_dln,3);
-x1i(:,1) = linspace(-0.5E6,0.5E6-(0.5E6+0.5E6)/(n_dln),n_dln);
-x2i(:,1) = linspace(-0.5E6+(0.5E6+0.5E6)/(n_dln),0.5E6,n_dln);
-b(:,1)   = 1;
-a   = 5*norm(b(1,:));
-dim = size(x1i,1)*size(x1i,2);
-dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-
-save("spar_params.mat")
-for i = 1: size(n_q)
-    [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
-    quad = [q, w];
-    for j = 1: size(dist)
-        x1 = x1i;
-        x2 = x2i;
-        x1(:,3) = x1(:,3) + dist(j);
-        x2(:,3) = x2(:,3) + dist(j);
-        [~, ~, ~, ~, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad, 1, n_dln);
-        if i == 1
-            [~, ~, ~, ~, ftota] = ...
-                nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
-                                x3, x4, x5, x6, b, mu, nu, a, 1, n_dln, 1e-6);
-            ftota = ftota';
-            save(sprintf("aspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
-        end %if
-        save(sprintf("nspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
-    end %for
-end %for
+% n_dln = 10000;
+% x1i = zeros(n_dln,3);
+% x2i = zeros(n_dln,3);
+% b = zeros(n_dln,3);
+% x1i(:,1) = linspace(-0.5E6,0.5E6-(0.5E6+0.5E6)/(n_dln),n_dln);
+% x2i(:,1) = linspace(-0.5E6+(0.5E6+0.5E6)/(n_dln),0.5E6,n_dln);
+% b(:,1)   = 1;
+% a   = 5*norm(b(1,:));
+% dim = size(x1i,1)*size(x1i,2);
+% dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
+% 
+% save("spar_params.mat")
+% for i = 1: size(n_q)
+%     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
+%     quad = [q, w];
+%     for j = 1: size(dist)
+%         x1 = x1i;
+%         x2 = x2i;
+%         x1(:,3) = x1(:,3) + dist(j);
+%         x2(:,3) = x2(:,3) + dist(j);
+%         [~, ~, ~, ~, ftotn] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a, quad, 1, n_dln);
+%         if i == 1
+%             [~, ~, ~, ~, ftota] = ...
+%                 nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
+%                                 x3, x4, x5, x6, b, mu, nu, a, 1, n_dln, 1e-6);
+%             ftota = ftota';
+%             save(sprintf("aspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+%         end %if
+%         save(sprintf("nspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+%     end %for
+% end %for
 %%
 
 % %%

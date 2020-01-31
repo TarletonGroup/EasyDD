@@ -149,7 +149,7 @@ while simTime < totalSimTime
     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
                        gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
-                       f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
+                       f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance, Ubar, dt);
 %     reset(gpuDevice);
     end
 %     par = fend;            
@@ -280,7 +280,7 @@ while simTime < totalSimTime
 %     end
     if (mod(curstep, 10000) == 0)
         close all
-        save(sprintf('./mat_files/20200122_%d_%d_%d_HYmob', curstep, a_trac, simple));
+        save(sprintf('./mat_files/20200128_%d_%d_%d_HYmob', curstep, a_trac, simple));
 %         save(sprintf('./mat_files/20191216_%d_%d_%d_HYmob', curstep, a_trac, simple));
 %         save(sprintf('./mat_files/20180928_%d', curstep));
 %         save(sprintf('20181001_gpu_%d_%d', n_threads, curstep));
