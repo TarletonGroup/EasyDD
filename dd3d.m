@@ -278,6 +278,10 @@ while simTime < totalSimTime
 %         pause
 % % %         save(sprintf('./mat_files/debris_%d', curstep));
 %     end
+%     if -Fend(curstep)*amag^2*mumag < -2580
+%         save(sprintf('./mat_files/20200128_%d_%d_%d_HYmob', curstep, a_trac, simple));
+%         pause
+%     end
     if (mod(curstep, 10000) == 0)
         close all
         save(sprintf('./mat_files/20200128_%d_%d_%d_HYmob', curstep, a_trac, simple));

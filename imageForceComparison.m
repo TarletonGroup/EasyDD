@@ -3,21 +3,22 @@
 %
 %
 %% SOURCE GENERATION PARAMETERS
+close all
 amag=3.18e-4; 
 mumag = 145E3; % MPa only used for plotting  
 
 CRYSTAL_STRUCTURE = 'bcc';
-%% FEM PARAMETERS
+% FEM PARAMETERS
 %Cantilever
 simTime = 0;
 use_gpu=0;
 para_scheme = 0;
 n_threads = 0;
-dx=15/amag;
-dy=15/amag;
-dz=15/amag;
+dx=1/amag;
+dy=5/amag;
+dz=1/amag;
 
-mx=5; % number of elements along beam length
+mx=10; % number of elements along beam length
 loading=1; 
 vertices = [0,0,0;...
             dx,0,0;...
@@ -34,10 +35,8 @@ MU = 1;
 NU = 0.28; 
 lmin = 0.1/amag;
 a=lmin/sqrt(3)*0.5; 
-rn = [0, 0.5, 0.5;
-      1, 0.5, 0.5]*dx;
+
 links = [1, 2, 0, 1, 1,  1, -1,  1];
-l = (rn(2,:)-rn(1,:))/norm(rn(2,:)-rn(1,:));
 
 
 
@@ -45,31 +44,99 @@ plim=12/amag; %12microns
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,Smixed,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
     w,h,d,my,mz,mel] = STATIC_finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
+%%
+planes = 0;
+length = 1000;
+range = linspace(0,dy,length);
+lvec = range(2)-range(1);
+scale = 10;
+scenario = 2;
+if scenario == 1
+%     range = flip(range);
+    gammat = Sleft;
+    gammau = Sleft;
+    gammaMixed = Sleft;
+    midPoints = [0 - lvec*scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
+    planes = 1;    
+elseif scenario == 2
+    gammat = Sleft;
+    gammau = Sleft;
+    gammaMixed = Sleft;
+    midPoints = [0 + lvec*scale; 0.5*dy; 0.5*dz];
+    planes = 1;
+elseif scenario == 3
+    gammat = [Sright;Smixed];
+    gammau = [Sright;Smixed];
+    gammaMixed = [Sright;Smixed];
+    midPoints = [dx - lvec*scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
+    planes = 2;
+elseif scenario == 4
+    gammat = [Sright;Smixed];
+    gammau = [Sright;Smixed];
+    gammaMixed = [Sright;Smixed];
+    midPoints = [dx + lvec*scale; 0.5*dy; 0.5*dz];
+    planes = 2;
+end
+gamma_dln = gammat(:,1);
+fixedDofs =[3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
+freeDofs = [3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
+t = [0 1 0];
+b = [1 0 0];
+n = [0 0 1];
+rn = zeros(length,3);
+rn(:,1) = midPoints(1);
+rn(:,2) = range;
+rn(:,3) = midPoints(3);
+links = zeros(length-1,8);
+for i = 1:length-1
+    links(i,:) = [i, i+1, b,  n];
+end
 
- gammad_dln=[Stop;Sbot;Sright;Sleft;Sfront;Sback;Smixed]; % t=0         
-    
-Dofs = [3*gammad_dln(:,1)-2; 3*gammad_dln(:,1)-1; 3*gammad_dln(:,1)];
+ % Set surface node labels for surface node extraction.
+        n_nodes = 4;
+        surf_node_util = zeros(n_nodes+2, 6);
+        xy = mx*my;
+        xz = mx*mz;
+        yz = my*mz;
+        % For rectangular surface elements. Add an if statement and redifine
+        % matrix to generalise it for triangular surface elements.
+        surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1 Sleft
+%         surf_node_util(1:6, 1) = [1, 5, 4, 8, yz, 1]; % min(x), yz-plane, face 1 Sleft
+        surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2 Sright+SMixed
+%         surf_node_util(1:6, 2) = [6, 2, 7, 3, yz, 1]; % max(x), yz-plane, face 2 Sright+SMixed
+        surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4 Sfront
+        surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3 Sback
+        surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5 Sbot
+        surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6 Stop
 
-%% Addition by Daniel Celis Garza 12/19/2017.
-% Precomputing variables needed to couple tractions induced by dislocations
-% to FEM. Generate the list of planes to be extracted. The FEM coupler is 
-% hardcoded so that the min(x) yz-plane does not have traction boundary
-% conditions.
 f_hat = zeros(3*mno, 1);
-
-planes = (1:1:6)';
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
-                                               planes, 4);
-gamma_dln = Dofs;%[gammat(:,1); gammaMixed(:,1)];
+                                               planes, 4, surf_node_util);
 [f_dln_node, f_dln_se,...
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-tolerance = dx/10^7;
+tolerance = dx/10^6;
 
+hold on
+plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
+plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
+plot3(x3x6(1:3:end,3), x3x6(2:3:end,3), x3x6(3:3:end,3),'ko')
+plot3(x3x6(1:3:end,4), x3x6(2:3:end,4), x3x6(3:3:end,4),'ko')
+plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
+plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
+plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'b.')
+plot3(rn(:,1),rn(:,2),rn(:,3),'r.')
+hold off
 
 [uhat,fend,Ubar] = STATIC_analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-                       Dofs, Dofs, Dofs,Dofs,Dofs,dx,simTime ,...
+                       0, 0, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
+
+% [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+%                        gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
+%                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
+%                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance, Ubar, dt);
+
 segments=constructsegmentlist(rn,links);
 image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 
@@ -94,10 +161,125 @@ for i =1:nseg % evaluate sigmahat at midpoint of each segment (do something bett
         pause;
     end
 
-    sigext = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,xi); %must not pass virtsegs!
+    sigext = hatStressStatic(uhat,nc,xnodes,D,mx,mz,w,h,d,xi); %must not pass virtsegs!
 
     sigb=sigext*b(i,1:3)';
     l = r01(i,:);
     f(i,:)=cross(sigb',l);
 end
 end
+
+function sigma=hatStressStatic(uhat,nc,x,D,mx,mz,w,h,d,x0)
+                              
+% returns stress tensor at a point x=x0 by constructing B matrix B(x)
+% notes with mx=90 dx=6,dy=dz=1, agrees with S(1:5) agree with Abaqus to 1% 
+% S(6) is approx zero so the error is huge!
+
+i=ceil(x0(1)/w);
+i = max(i,1);
+j=ceil(x0(2)/h);
+j =max(j,1);
+k=ceil(x0(3)/d);
+k=max(k,1);
+p = i + (k-1)*mx + (j-1)*mx*mz;
+% if any(x0<0) || p > mx*mz*mz || isnan(p) 
+%     %disp('Node outside domain! See hatStress.m')
+%     %disp(strcat('x0 = [',num2str(x0),']')); 
+%     %Usually stemming from NaN in utilda!
+%     %pause;
+%     sigma = zeros(3); % do something better like remeshing later...
+%     %Sort of have to do this when using int_trapezium.m because real
+%     %segment will move out of domain during trial before it can be
+%     %remeshed?
+%     return;
+% end
+
+% 4. ----- .3
+%  �\       �\
+%  � \      � \
+% 1. -\---- .2 \ 
+%   \  \     \  \
+%    \ 8. ----\- .7
+%     \ �      \ �
+%      \�       \�
+%      5. ----- .6
+
+
+%  s2   s3    
+%    \  ^ 
+%     \ �      
+%      \�       
+%       . -----> s1
+% redefine local corordinate system (s1,s2,s3) to have same orientation as
+% the global system (x,y,z) this should save calcualting Jij and inv(J)
+
+for i=1:3
+    xc(i)= 0.5*(x(nc(p,1),i)+x(nc(p,7),i)); %xc is center of element p
+end
+
+a = w/2; % element dx
+b = h/2; % element dy
+c = d/2; % element dz
+
+s1 =  (x0(1) - xc(1))/a;
+s2 = (x0(2) - xc(2))/b;
+s3 = (x0(3) - xc(3))/c;
+
+ds1dx=1/a;
+ds2dy=1/b;
+ds3dz=1/c;
+
+pm1 =[-1  1  1 -1 -1  1  1 -1];
+pm2 =[ 1  1  1  1 -1 -1 -1 -1];
+pm3 =[-1 -1  1  1 -1 -1  1  1];
+%eg shape function a: Na = 1/8*(1+pm1(a)*s1)(1+pm2(a)*s2)(1+pm3(a)*s3)
+% dNa/ds1 = 1/8* pm1(a)*(1+pm2(a)*s2)(1+pm3(a)*s3)
+% dNa/dx = (dNa/ds1)(ds1/dx) where ds1/dx = 1/a
+% dN1/dx = 1/a(dNa/ds1) = -b*c*(1+s2)(1-s3)/(abc)
+
+B=zeros(6,24);
+for a= 1:8
+    dNds1(a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
+    dNds2(a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
+    dNds3(a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
+    
+    B(1,3*(a-1)+1) = dNds1(a)*ds1dx;
+    B(2,3*(a-1)+2) = dNds2(a)*ds2dy;
+    B(3,3*(a-1)+3) = dNds3(a)*ds3dz;
+    
+    B(4,3*(a-1)+1) = B(2,3*(a-1)+2);
+    B(4,3*(a-1)+2) = B(1,3*(a-1)+1);
+    
+    B(5,3*(a-1)+1) = B(3,3*a);
+    B(5,3*a)   = B(1,3*(a-1)+1);
+    
+    B(6,3*(a-1)+2) = B(3,3*a);
+    B(6,3*a)   = B(2,3*(a-1)+2);
+end
+
+%
+%----------------------------------------------------------------------
+U=zeros(24,1); sigmaA = zeros(6,1);
+for a=1:8
+    U(3*a-2)=uhat(3*nc(p,a)-2);
+    U(3*a-1)=uhat(3*nc(p,a)-1);
+    U(3*a)=uhat(3*nc(p,a));
+end
+
+sigmaA=D*(B*U); % 
+
+sigma=zeros(3);
+sigma(1,1)=sigmaA(1); %11
+sigma(2,2)=sigmaA(2); %22
+sigma(3,3)=sigmaA(3); % 33
+sigma(1,2)=sigmaA(4);% 12
+sigma(1,3)=sigmaA(5);% 13
+sigma(2,3)=sigmaA(6);% 23
+sigma(2,1)=sigma(1,2);
+sigma(3,1)=sigma(1,3);
+sigma(3,2)=sigma(2,3);
+
+end
+
+
+

@@ -15,7 +15,7 @@ Udot = 0.0001*1E3*dx*(1E-4/160E9); %for tungsten...
 % Changed from:
 % Ubar = Udot*t;
 % to:
-Ubar = Ubar - Udot*dt;
+Ubar = Ubar + Udot*dt;
 
 %Ubar = 0.1*1E4; for debucontourfggin
 u=zeros(3*(mno),1);

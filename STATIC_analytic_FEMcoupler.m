@@ -54,6 +54,7 @@ uhat=zeros(3*mno,1);
 % end
 
 % uhat(:) = u(:);% - utilda(fixedDofs);
+uhat(fixedDofs) = u(fixedDofs);% - utilda(fixedDofs);
 
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
 f_dln(:,1) = 0;
@@ -63,18 +64,23 @@ f_hat(:,1) = 0;
                         f_dln_node, f_dln_se, f_dln,...
                         MU, NU, a, use_gpu, n_threads, para_scheme, eps);
 
-f_hat(gamma_disp) = -f_dln(gamma_disp)';% no applied forces
+% Apply all of these to a single surface
+% f_hat(gamma_disp) = -f_dln(gamma_disp)';% no applied forces
+f_hat(freeDofs) = -f_dln(freeDofs)';% no applied forces
 
-f    = f_hat-kg(:,gamma_disp)*uhat(gamma_disp);
+% f    = f_hat-kg(:,gamma_disp)*uhat(gamma_disp);
+f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
 
 bcwt = mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
 
 % f(gamma_disp) = bcwt*uhat(gamma_disp);
+% f(fixedDofs) = bcwt*uhat(fixedDofs);
 uhat = U\(L\f); %using LU decomposition
 
 rhat=kg*uhat;
 
-fend = rhat(gamma_disp)+f_dln(gamma_disp);
+% fend = rhat(gamma_disp)+f_dln(gamma_disp);
+fend = rhat;
 % fend = sum(fend);
 end
