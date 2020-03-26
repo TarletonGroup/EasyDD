@@ -16,7 +16,7 @@ para_scheme = 0;
 n_threads = 0;
 dx=1/amag;
 dy=5/amag;
-dz=1/amag;
+dz=5/amag;
 
 mx=10; % number of elements along beam length
 loading=1; 
@@ -34,7 +34,7 @@ vertices = [0,0,0;...
 MU = 1;
 NU = 0.28; 
 lmin = 0.1/amag;
-a=lmin/sqrt(3)*0.5; 
+a=lmin/sqrt(3)*0.5;
 
 links = [1, 2, 0, 1, 1,  1, -1,  1];
 
@@ -50,13 +50,14 @@ length = 1000;
 range = linspace(0,dy,length);
 lvec = range(2)-range(1);
 scale = 10;
+% Parameters with nice fend plots length = 1000, scale = 100
 scenario = 2;
 if scenario == 1
 %     range = flip(range);
     gammat = Sleft;
     gammau = Sleft;
-    gammaMixed = Sleft;
-    midPoints = [0 - lvec*scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
+    gammaMixed = Sleft;lvec
+    midPoints = [0 - scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
     planes = 1;    
 elseif scenario == 2
     gammat = Sleft;
@@ -116,6 +117,7 @@ f_hat = zeros(3*mno, 1);
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
 tolerance = dx/10^6;
 
+figure(1)
 hold on
 plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
 plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
@@ -139,6 +141,155 @@ hold off
 
 segments=constructsegmentlist(rn,links);
 image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
+
+%
+% x = linspace(0,5e2,1000);
+% z = linspace(0,5e2,1000);
+% [X,Z] = meshgrid(x,z);
+% 
+% [txx,tzz,txz] = imageStressAnalyticEdge1(200e3, 1, 0.28, X, Z, 1e2, 2.5e2);
+% figure(1)
+% txx = txx;%./norm(txx);
+% meantxx = mean(txx,'all');
+% stdtxx = std(txx,0,'all');
+% displace = 5*stdtxx;
+% limits = [meantxx - displace, meantxx + displace];
+% contourf(X,Z,txx,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(2)
+% tzz = tzz;%./norm(tzz);
+% meantzz = mean(tzz,'all');
+% stdtzz = std(tzz,0,'all');
+% displace = 5*stdtzz;
+% limits = [meantzz - displace, meantzz + displace];
+% contourf(X,Z,tzz,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(3)
+% txz = txz;%./norm(txz);
+% meantxz = mean(txz,'all');
+% stdtxz = std(txz,0,'all');
+% displace = 5*stdtxz;
+% limits = [meantxz - displace, meantxz + displace];
+% contourf(X,Z,txz,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% xlabel('b')
+% ylabel('b')
+% 
+% 
+% %
+% [txx,tzz,txz] = imageStressAnalyticEdge2(1e8, 0.001, 0.28, X, Z, 1e-3, 1e-3);
+% figure(4)
+% txx = txx./norm(txx);
+% meantxx = mean(txx,'all');
+% stdtxx = std(txx,0,'all');
+% displace = 5*stdtxx;
+% limits = [meantxx - displace, meantxx + displace];
+% contourf(X,Z,txx,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% 
+% figure(5)
+% tzz = tzz./norm(tzz);
+% meantzz = mean(tzz,'all');
+% stdtzz = std(tzz,0,'all');
+% displace = 5*stdtzz;
+% limits = [meantzz - displace, meantzz + displace];
+% contourf(X,Z,tzz,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% 
+% figure(6)
+% txz = txz./norm(txz);
+% meantxz = mean(txz,'all');
+% stdtxz = std(txz,0,'all');
+% displace = 5*stdtxz;
+% limits = [meantxz - displace, meantxz + displace];
+% contourf(X,Z,txz,400);
+% colormap(parula(400))
+% colorbar
+% caxis(limits)
+% 
+% %
+% % xnodes2 = xnodes(gammau(:,1),1:3);
+% % uhat2 = uhat(fixedDofs);
+% pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
+
+function [txx, tyy, txy] = imageStressAnalyticEdge1(E, b, nu, x, y, a, c)
+%%%
+% Stress on point (x, y) induced by edge dislocation parallel to the 
+% surface at x = 0. Dislocation coordinates are (a, c).
+%%%
+D = E.*b./(4.*pi.*(1-nu.^2));
+ymc = y-c;
+ymc2 = ymc.^2;
+xma = x-a;
+xma2 = xma.^2;
+xpa = x+a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
+
+txx =       -ymc .* (3.*xma2 + ymc2)./den1 + ...
+             ymc .* (3.*xpa2 + ymc2)./den2 + ...
+  4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
+txx = D.*txx;
+
+tyy =     ymc .* (xma2 - ymc2)./den1 + ...
+         -ymc .* (xpa2 - ymc2)./den2 + ...
+  4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
+tyy = D.*tyy;
+
+txy =       xma .* (xma2 - ymc2)./den1 + ...
+           -xpa .* (xpa2 - ymc2)./den2 + ...
+  2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+txy = D.*txy;
+end
+function [txx, tyy, txy] = imageStressAnalyticEdge2(E, b, nu, x, y, a, c)
+%%%
+% Stress on point (a, c) induced by edge dislocation parallel to the 
+% surface at x = 0. Dislocation coordinates are (x, y).
+%%%
+D = E.*b./(4.*pi.*(1-nu.^2));
+ymc = y-c;
+ymc2 = ymc.^2;
+xma = x-a;
+xma2 = xma.^2;
+xpa = x+a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
+
+txx =     xma .* (xma2 - ymc2) ./ den1 + ... % + ymc2
+         -xpa .* (xpa2 - ymc2) ./ den2 + ...
+  2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
+txx = D.*txx;
+   
+tyy =       xma .* (xma2 + 3.*ymc2) ./ den1 + ...
+           -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
+  -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
+tyy = D.*tyy;
+
+txy =        ymc .* (xma2 - ymc2) ./ den1 + ...
+            -ymc .* (xpa2 - ymc2) ./ den2 + ...
+  4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
+txy = D.*txy;
+end
 
 function f=pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments)
 %nodal force on dislocation segments due to applied stress sigext
@@ -168,6 +319,7 @@ for i =1:nseg % evaluate sigmahat at midpoint of each segment (do something bett
     f(i,:)=cross(sigb',l);
 end
 end
+
 
 function sigma=hatStressStatic(uhat,nc,x,D,mx,mz,w,h,d,x0)
                               
