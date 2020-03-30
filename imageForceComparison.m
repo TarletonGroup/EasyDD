@@ -142,36 +142,61 @@ hold off
 segments=constructsegmentlist(rn,links);
 image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 %%
-gridSize = 4;
-x = linspace(0, dx, gridSize);
+gridSize = 3;
+x = linspace(0, 2*lvec*scale, gridSize);
 y = linspace(0.5*dy, 0.5*dy, gridSize);
-z = linspace(0, dz, gridSize);
+z = linspace(0.5*dz-lvec*scale, 0.5*dz+lvec*scale, gridSize);
 [X,Z] = meshgrid(x,z);
 Y = meshgrid(y);
-test = ceil(X/2);
-test2 = max(test);
 
-sigma = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+% r0=segments(50,6:8);
+% r1=segments(55,9:11);
+% r01=r1-r0;
+% rmid = 0.5*(r0+r1);
+% xi = rmid(1:3);
+% X = xi(1);
+% Y = xi(2);
+% Z = xi(3);
+
+[sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+
+% xi(1),xi(2),xi(3)); test that it works
+
+
+% sigma2 = hatStressStatic(uhat,nc,xnodes,D,mx,mz,w,h,d,[X,Y,Z]);
+% % xi); test that it works
+% difference = max(abs(sigma2 - [sxx; syy; szz; sxy; sxz; syz]))
 
 % pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
-function sigma = hatStress(uhat,nc,x,D,mx,mz,w,h,d,X,Y,Z)
-i = max(ceil(X/w));
-if i(1) == 0
-    i(1) = i(1) + 1;
+function [sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,x,D,mx,mz,w,h,d,X,Y,Z)
+
+gridSize = size(X,1);
+i = ceil(X/w);
+j = ceil(Y/h);
+k = ceil(Z/d);
+
+i0 = find(i==0);
+j0 = find(j==0);
+k0 = find(k==0);
+if any(i0)
+    i(i0) = 1;
 end
-j = max(ceil(Y/h));
-k = max(ceil(Z/d),[],2)';
-if k(1) == 0
-    k(1) = k(1) + 1;
+if any(j0)
+    i(j0) = 1;
+end
+if any(k0)
+    i(k0) = 1;
 end
 p = i + (k-1)*mx + (j-1)*mx*mz;
+
 
 xc = [0.5*(x(nc(p,1),1) + x(nc(p,7),1)),... % midpoint x
       0.5*(x(nc(p,1),2) + x(nc(p,7),2)),... % midpoint y
       0.5*(x(nc(p,1),3) + x(nc(p,7),3))];   % midpoint z
 
-[Xc, Zc] = meshgrid(xc(:,1), xc(:,3));
-Yc = meshgrid(xc(:,2));
+Xc = reshape(xc(:,1), gridSize, gridSize);
+Yc = reshape(xc(:,2), gridSize, gridSize);
+Zc = reshape(xc(:,3), gridSize, gridSize);
 
 a = 0.5*w;
 b = 0.5*h;
@@ -189,55 +214,183 @@ pm1 =[-1  1  1 -1 -1  1  1 -1];
 pm2 =[ 1  1  1  1 -1 -1 -1 -1];
 pm3 =[-1 -1  1  1 -1 -1  1  1];
 
-dNds1 = zeros(size(s1,1), size(s1,2), 8);
-dNds2 = zeros(size(s2,1), size(s2,2), 8);
-dNds3 = zeros(size(s3,1), size(s3,2), 8);
-B = zeros(size(s3,1), size(s3,2), 6, 24);
-for a = 1:8
-    dNds1(:,:,a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
-    dNds2(:,:,a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
-    dNds3(:,:,a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
-    
-    B(:,:,1,3*(a-1)+1) = dNds1(:,:,a)*ds1dx;
-    B(:,:,2,3*(a-1)+2) = dNds2(:,:,a)*ds2dy;
-    B(:,:,3,3*(a-1)+3) = dNds3(:,:,a)*ds3dz;
-    
-    B(:,:,4,3*(a-1)+1) = B(:,:,2,3*(a-1)+2);
-    B(:,:,4,3*(a-1)+2) = B(:,:,1,3*(a-1)+1);
-    
-    B(:,:,5,3*(a-1)+1) = B(:,:,3,3*a);
-    B(:,:,5,3*a)   = B(:,:,1,3*(a-1)+1);
-    
-    B(:,:,6,3*(a-1)+2) = B(:,:,3,3*a);
-    B(:,:,6,3*a)   = B(:,:,2,3*(a-1)+2);
+dNds1 = zeros(gridSize, gridSize, 8);
+dNds2 = zeros(gridSize, gridSize, 8);
+dNds3 = zeros(gridSize, gridSize, 8);
+B = zeros(gridSize, gridSize, 6, 24);
+U = zeros(gridSize, gridSize, 24);
+sigma = zeros(6, gridSize, gridSize);
+for i = 1:gridSize
+    for j = 1:gridSize
+        for a = 1:8
+            dNds1(i,j,a) = 1/8*pm1(a)*(1+pm2(a)*s2(i,j))*(1+pm3(a)*s3(i,j));
+            dNds2(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*pm2(a)*(1+pm3(a)*s3(i,j));
+            dNds3(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*(1+pm2(a)*s2(i,j))*pm3(a);
+
+            B(i,j,1,3*(a-1)+1) = dNds1(i,j,a)*ds1dx;
+            B(i,j,2,3*(a-1)+2) = dNds2(i,j,a)*ds2dy;
+            B(i,j,3,3*(a-1)+3) = dNds3(i,j,a)*ds3dz;
+
+            B(i,j,4,3*(a-1)+1) = B(i,j,2,3*(a-1)+2);
+            B(i,j,4,3*(a-1)+2) = B(i,j,1,3*(a-1)+1);
+
+            B(i,j,5,3*(a-1)+1) = B(i,j,3,3*a);
+            B(i,j,5,3*a)   = B(i,j,1,3*(a-1)+1);
+
+            B(i,j,6,3*(a-1)+2) = B(i,j,3,3*a);
+            B(i,j,6,3*a)   = B(i,j,2,3*(a-1)+2);
+            
+            U(i,j, 3*a-2) = uhat(3*nc(p(i,j),a)-2);
+            U(i,j, 3*a-1) = uhat(3*nc(p(i,j),a)-1);
+            U(i,j, 3*a  ) = uhat(3*nc(p(i,j),a)  );
+        end
+    end
 end
 
-sigma = xc;
+for i = 1:gridSize % Traverse first dimension
+    for j = 1:gridSize % Traverse second dimension
+        Utmp = squeeze(U(i,j,:));
+        Btmp = squeeze(B(i,j,:,:));
+        sigma(:,i,j) = D*(Btmp*Utmp);
+    end
 end
 
-%%
+sxx = squeeze(sigma(1,:,:));
+syy = squeeze(sigma(2,:,:));
+szz = squeeze(sigma(3,:,:));
+sxy = squeeze(sigma(4,:,:));
+sxz = squeeze(sigma(5,:,:));
+syz = squeeze(sigma(6,:,:));
+
+% sigmaA(:,:)=D*(B(:,:)*U(:));
 % 
-% B=zeros(6,24);
-% for a= 1:8
-%     dNds1(a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
-%     dNds2(a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
-%     dNds3(a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
-%     
-%     B(1,3*(a-1)+1) = dNds1(a)*ds1dx;
-%     B(2,3*(a-1)+2) = dNds2(a)*ds2dy;
-%     B(3,3*(a-1)+3) = dNds3(a)*ds3dz;
-%     
-%     B(4,3*(a-1)+1) = B(2,3*(a-1)+2);
-%     B(4,3*(a-1)+2) = B(1,3*(a-1)+1);
-%     
-%     B(5,3*(a-1)+1) = B(3,3*a);
-%     B(5,3*a)   = B(1,3*(a-1)+1);
-%     
-%     B(6,3*(a-1)+2) = B(3,3*a);
-%     B(6,3*a)   = B(2,3*(a-1)+2);
+% sigma=zeros(3);
+% sigma(1,1)=sigmaA(1); %11
+% sigma(2,2)=sigmaA(2); %22
+% sigma(3,3)=sigmaA(3); % 33
+% sigma(1,2)=sigmaA(4);% 12
+% sigma(1,3)=sigmaA(5);% 13
+% sigma(2,3)=sigmaA(6);% 23
+% sigma(2,1)=sigma(1,2);
+% sigma(3,1)=sigma(1,3);
+% sigma(3,2)=sigma(2,3);
+
+end
+
+function sigma=hatStressStatic(uhat,nc,x,D,mx,mz,w,h,d,x0)
+                              
+% returns stress tensor at a point x=x0 by constructing B matrix B(x)
+% notes with mx=90 dx=6,dy=dz=1, agrees with S(1:5) agree with Abaqus to 1% 
+% S(6) is approx zero so the error is huge!
+
+i=ceil(x0(1)/w);
+i = max(i,1);
+j=ceil(x0(2)/h);
+j =max(j,1);
+k=ceil(x0(3)/d);
+k=max(k,1);
+p = i + (k-1)*mx + (j-1)*mx*mz;
+% if any(x0<0) || p > mx*mz*mz || isnan(p) 
+%     %disp('Node outside domain! See hatStress.m')
+%     %disp(strcat('x0 = [',num2str(x0),']')); 
+%     %Usually stemming from NaN in utilda!
+%     %pause;
+%     sigma = zeros(3); % do something better like remeshing later...
+%     %Sort of have to do this when using int_trapezium.m because real
+%     %segment will move out of domain during trial before it can be
+%     %remeshed?
+%     return;
 % end
-% 
-% %
+
+% 4. ----- .3
+%  �\       �\
+%  � \      � \
+% 1. -\---- .2 \ 
+%   \  \     \  \
+%    \ 8. ----\- .7
+%     \ �      \ �
+%      \�       \�
+%      5. ----- .6
+
+
+%  s2   s3    
+%    \  ^ 
+%     \ �      
+%      \�       
+%       . -----> s1
+% redefine local corordinate system (s1,s2,s3) to have same orientation as
+% the global system (x,y,z) this should save calcualting Jij and inv(J)
+xc = zeros(3,1);
+for i=1:3
+    xc(i)= 0.5*(x(nc(p,1),i)+x(nc(p,7),i)); %xc is center of element p
+end
+
+a = w/2; % element dx
+b = h/2; % element dy
+c = d/2; % element dz
+
+s1 =  (x0(1) - xc(1))/a;
+s2 = (x0(2) - xc(2))/b;
+s3 = (x0(3) - xc(3))/c;
+
+ds1dx=1/a;
+ds2dy=1/b;
+ds3dz=1/c;
+
+pm1 =[-1  1  1 -1 -1  1  1 -1];
+pm2 =[ 1  1  1  1 -1 -1 -1 -1];
+pm3 =[-1 -1  1  1 -1 -1  1  1];
+%eg shape function a: Na = 1/8*(1+pm1(a)*s1)(1+pm2(a)*s2)(1+pm3(a)*s3)
+% dNa/ds1 = 1/8* pm1(a)*(1+pm2(a)*s2)(1+pm3(a)*s3)
+% dNa/dx = (dNa/ds1)(ds1/dx) where ds1/dx = 1/a
+% dN1/dx = 1/a(dNa/ds1) = -b*c*(1+s2)(1-s3)/(abc)
+
+B=zeros(6,24);
+for a= 1:8
+    dNds1(a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
+    dNds2(a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
+    dNds3(a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
+    
+    B(1,3*(a-1)+1) = dNds1(a)*ds1dx;
+    B(2,3*(a-1)+2) = dNds2(a)*ds2dy;
+    B(3,3*(a-1)+3) = dNds3(a)*ds3dz;
+    
+    B(4,3*(a-1)+1) = B(2,3*(a-1)+2);
+    B(4,3*(a-1)+2) = B(1,3*(a-1)+1);
+    
+    B(5,3*(a-1)+1) = B(3,3*a);
+    B(5,3*a)   = B(1,3*(a-1)+1);
+    
+    B(6,3*(a-1)+2) = B(3,3*a);
+    B(6,3*a)   = B(2,3*(a-1)+2);
+end
+%
+%----------------------------------------------------------------------
+U=zeros(24,1); sigmaA = zeros(6,1);
+for a=1:8
+    U(3*a-2)=uhat(3*nc(p,a)-2);
+    U(3*a-1)=uhat(3*nc(p,a)-1);
+    U(3*a)=uhat(3*nc(p,a));
+end
+
+sigmaA=D*(B*U); % 
+
+sigma = sigmaA;
+
+% sigma=zeros(3);
+% sigma(1,1)=sigmaA(1); %11
+% sigma(2,2)=sigmaA(2); %22
+% sigma(3,3)=sigmaA(3); % 33
+% sigma(1,2)=sigmaA(4);% 12
+% sigma(1,3)=sigmaA(5);% 13
+% sigma(2,3)=sigmaA(6);% 23
+% sigma(2,1)=sigma(1,2);
+% sigma(3,1)=sigma(1,3);
+% sigma(3,2)=sigma(2,3);
+
+end
+
+
 % %----------------------------------------------------------------------
 % U=zeros(24,1); sigmaA = zeros(6,1);
 % for a=1:8
@@ -347,6 +500,7 @@ end
 % % uhat2 = uhat(fixedDofs);
 % pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 
+
 function [txx, tyy, txy] = imageStressAnalyticEdge1(E, b, nu, x, y, a, c)
 %%%
 % Stress on point (x, y) induced by edge dislocation parallel to the 
@@ -438,119 +592,4 @@ for i =1:nseg % evaluate sigmahat at midpoint of each segment (do something bett
     f(i,:)=cross(sigb',l);
 end
 end
-
-
-function sigma=hatStressStatic(uhat,nc,x,D,mx,mz,w,h,d,x0)
-                              
-% returns stress tensor at a point x=x0 by constructing B matrix B(x)
-% notes with mx=90 dx=6,dy=dz=1, agrees with S(1:5) agree with Abaqus to 1% 
-% S(6) is approx zero so the error is huge!
-
-i=ceil(x0(1)/w);
-i = max(i,1);
-j=ceil(x0(2)/h);
-j =max(j,1);
-k=ceil(x0(3)/d);
-k=max(k,1);
-p = i + (k-1)*mx + (j-1)*mx*mz;
-% if any(x0<0) || p > mx*mz*mz || isnan(p) 
-%     %disp('Node outside domain! See hatStress.m')
-%     %disp(strcat('x0 = [',num2str(x0),']')); 
-%     %Usually stemming from NaN in utilda!
-%     %pause;
-%     sigma = zeros(3); % do something better like remeshing later...
-%     %Sort of have to do this when using int_trapezium.m because real
-%     %segment will move out of domain during trial before it can be
-%     %remeshed?
-%     return;
-% end
-
-% 4. ----- .3
-%  �\       �\
-%  � \      � \
-% 1. -\---- .2 \ 
-%   \  \     \  \
-%    \ 8. ----\- .7
-%     \ �      \ �
-%      \�       \�
-%      5. ----- .6
-
-
-%  s2   s3    
-%    \  ^ 
-%     \ �      
-%      \�       
-%       . -----> s1
-% redefine local corordinate system (s1,s2,s3) to have same orientation as
-% the global system (x,y,z) this should save calcualting Jij and inv(J)
-
-for i=1:3
-    xc(i)= 0.5*(x(nc(p,1),i)+x(nc(p,7),i)); %xc is center of element p
-end
-
-a = w/2; % element dx
-b = h/2; % element dy
-c = d/2; % element dz
-
-s1 =  (x0(1) - xc(1))/a;
-s2 = (x0(2) - xc(2))/b;
-s3 = (x0(3) - xc(3))/c;
-
-ds1dx=1/a;
-ds2dy=1/b;
-ds3dz=1/c;
-
-pm1 =[-1  1  1 -1 -1  1  1 -1];
-pm2 =[ 1  1  1  1 -1 -1 -1 -1];
-pm3 =[-1 -1  1  1 -1 -1  1  1];
-%eg shape function a: Na = 1/8*(1+pm1(a)*s1)(1+pm2(a)*s2)(1+pm3(a)*s3)
-% dNa/ds1 = 1/8* pm1(a)*(1+pm2(a)*s2)(1+pm3(a)*s3)
-% dNa/dx = (dNa/ds1)(ds1/dx) where ds1/dx = 1/a
-% dN1/dx = 1/a(dNa/ds1) = -b*c*(1+s2)(1-s3)/(abc)
-
-B=zeros(6,24);
-for a= 1:8
-    dNds1(a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
-    dNds2(a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
-    dNds3(a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
-    
-    B(1,3*(a-1)+1) = dNds1(a)*ds1dx;
-    B(2,3*(a-1)+2) = dNds2(a)*ds2dy;
-    B(3,3*(a-1)+3) = dNds3(a)*ds3dz;
-    
-    B(4,3*(a-1)+1) = B(2,3*(a-1)+2);
-    B(4,3*(a-1)+2) = B(1,3*(a-1)+1);
-    
-    B(5,3*(a-1)+1) = B(3,3*a);
-    B(5,3*a)   = B(1,3*(a-1)+1);
-    
-    B(6,3*(a-1)+2) = B(3,3*a);
-    B(6,3*a)   = B(2,3*(a-1)+2);
-end
-
-%
-%----------------------------------------------------------------------
-U=zeros(24,1); sigmaA = zeros(6,1);
-for a=1:8
-    U(3*a-2)=uhat(3*nc(p,a)-2);
-    U(3*a-1)=uhat(3*nc(p,a)-1);
-    U(3*a)=uhat(3*nc(p,a));
-end
-
-sigmaA=D*(B*U); % 
-
-sigma=zeros(3);
-sigma(1,1)=sigmaA(1); %11
-sigma(2,2)=sigmaA(2); %22
-sigma(3,3)=sigmaA(3); % 33
-sigma(1,2)=sigmaA(4);% 12
-sigma(1,3)=sigmaA(5);% 13
-sigma(2,3)=sigmaA(6);% 23
-sigma(2,1)=sigma(1,2);
-sigma(3,1)=sigma(1,3);
-sigma(3,2)=sigma(2,3);
-
-end
-
-
 
