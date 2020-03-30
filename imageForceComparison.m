@@ -142,7 +142,7 @@ hold off
 segments=constructsegmentlist(rn,links);
 image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 %%
-gridSize = 3;
+gridSize = 100;
 x = linspace(0, 2*lvec*scale, gridSize);
 y = linspace(0.5*dy, 0.5*dy, gridSize);
 z = linspace(0.5*dz-lvec*scale, 0.5*dz+lvec*scale, gridSize);
@@ -171,6 +171,7 @@ Y = meshgrid(y);
 function [sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,x,D,mx,mz,w,h,d,X,Y,Z)
 
 gridSize = size(X,1);
+
 i = ceil(X/w);
 j = ceil(Y/h);
 k = ceil(Z/d);
@@ -220,9 +221,10 @@ dNds3 = zeros(gridSize, gridSize, 8);
 B = zeros(gridSize, gridSize, 6, 24);
 U = zeros(gridSize, gridSize, 24);
 sigma = zeros(6, gridSize, gridSize);
-for i = 1:gridSize
+tic
+for a = 1:8
     for j = 1:gridSize
-        for a = 1:8
+        for i = 1:gridSize
             dNds1(i,j,a) = 1/8*pm1(a)*(1+pm2(a)*s2(i,j))*(1+pm3(a)*s3(i,j));
             dNds2(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*pm2(a)*(1+pm3(a)*s3(i,j));
             dNds3(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*(1+pm2(a)*s2(i,j))*pm3(a);
@@ -246,9 +248,8 @@ for i = 1:gridSize
         end
     end
 end
-
-for i = 1:gridSize % Traverse first dimension
-    for j = 1:gridSize % Traverse second dimension
+for j = 1:gridSize % Traverse first dimension
+    for i = 1:gridSize % Traverse second dimension
         Utmp = squeeze(U(i,j,:));
         Btmp = squeeze(B(i,j,:,:));
         sigma(:,i,j) = D*(Btmp*Utmp);
