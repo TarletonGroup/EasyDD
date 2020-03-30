@@ -140,7 +140,7 @@ for i=1:size(slipsys,1)
         r8=r7-fixvec;
         
         rn((i-1)*NUM_SOURCES*8+(p-1)*8+1,:)=[r1,7];
-        rn((i-1)*NUM_SOURCES*8+(p-1)*8+2,:)=[r2,0];
+        rn((i-1)*NUM_SOURCES*8+(p-1)*8+2,:)=[r2,7];
         rn((i-1)*NUM_SOURCES*8+(p-1)*8+3,:)=[r3,7];
         rn((i-1)*NUM_SOURCES*8+(p-1)*8+4,:)=[r4,7];
         rn((i-1)*NUM_SOURCES*8+(p-1)*8+5,:)=[r5,7];

@@ -101,7 +101,7 @@ NU = 0.28;
 
 %%
 %Edge and screw glide and climb mobility parameters
-mobility='mobbcc1'; 
+mobility='Hmobbcc10rotation'; 
 global Bscrew Bedge Beclimb Bline
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
@@ -124,19 +124,19 @@ doseparation=1; %flat set to 0 or 1 that turns splitting algorithm for highly co
 dovirtmesh=1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
 
 %Simulation time
-dt0=1E6;
+dt0=1E10;
 
 intSimTime = 0;
 sinTime = 0;
 %dtplot=2E-9; %2ns
 dtplot=5E4;
 doplot=1; % frame recording: 1 == on, 0 == off
-totalSimTime = (2/amag)/(100*1E3*dx*(1E-4/160E9));
+totalSimTime = (2/amag)/(0.0001*1E3*dx*(1E-4/160E9));
 curstep = 0;
 simTime = 0;
 
 %Integrator
-integrator='int_trapezoid'; 
+integrator='int_trapezoid_bb'; 
 %integrator='int_trapezoid_stoc'; %in development
 a=lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
@@ -155,4 +155,7 @@ printnode=2;
 use_gpu = 0;
 n_threads=256;
 
-save('./mat_files/20191108')
+% tractions
+a_trac = 1;
+
+save('./mat_files/test')

@@ -3,7 +3,7 @@
 
 function [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
+    w,h,d,my,mz,mel,unfixedDofs] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
 
 % E Tarleton edmund.tarleton@materials.ox.ac.uk
 % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) per element
@@ -313,24 +313,52 @@ disp('global K...');
 % end
 % toc
 
-kg = sparse(mno*3,mno*3);
-tic;
-a =1:8;
-% b =1:8;
+%% kg old
+% % kg = sparse(mno*3,mno*3);
+% % tic;
+% % a =1:8;
+% % % b =1:8;
+% % for p =1:mel
+% %     percentage = 100*p/mel;
+% %     if mod(percentage,1)==0
+% %         fprintf('Assembly %d percent complete \n',100*p/mel);
+% %     end
+% %     gn=nc(p,a);
+% % %     gnb=nc(p,b);
+% %     dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
+% % %     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
+% %     dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
+% % %     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
+% %     kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
+% %     
+% % end
+
+%% kg Haiyang
+a=1:8; %local node numbers 
+dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
+ntriplets = 3*mno;
+I = zeros(ntriplets,1);
+J = zeros(ntriplets,1);
+X = zeros(ntriplets,1);
+ntriplets = 0;
+
 for p =1:mel
-    percentage = 100*p/mel;
-    if mod(percentage,1)==0
-        fprintf('Assembly %d percent complete \n',100*p/mel);
+    gn=nc(p,a); % global node numbers
+    dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3]; % global degree of freedom
+    for i =1:24
+        for j =1:24
+            ntriplets = ntriplets + 1;
+            I(ntriplets) = dof(i);
+            J(ntriplets) = dof(j);
+            X(ntriplets) = ke(dofLocal(i),dofLocal(j),p);
+        end
     end
-    gn=nc(p,a);
-%     gnb=nc(p,b);
-    dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
-%     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
-    dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
-%     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
-    kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
-    
+  %  K{N}(dof,dof)= K{N}(dof,dof)+Ke(dofLocal,dofLocal,p); %the (full) global stiffness matrix
+
 end
+
+kg= sparse(I,J,X,3*mno,3*mno); %the (full) global stiffness matrix
+
 toc
 
 %------------------------------ boundary conditions ---------------------
@@ -554,6 +582,13 @@ hold off
 % [L,U] = lu(K);    
 % toc;
 
+
+%% Haiyang's addition
+allDofs = [1:3*mno];
+unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
+K = K(unfixedDofs,unfixedDofs);
+
+%%
 disp('Cholesky Factorization of K...'); %should be symmetric!
 tic;
 U = chol(K);

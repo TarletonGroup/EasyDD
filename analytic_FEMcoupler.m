@@ -1,7 +1,8 @@
 function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
     gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,t,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
-    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps, Ubar, dt)
+    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps, Ubar, dt...
+    , unfixedDofs,Kred,Lred,Ured) % Haiyang's additions
 
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -13,9 +14,9 @@ Udot = 0.0001*1E3*dx*(1E-4/160E9); %for tungsten...
 %Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
 
 % Changed from:
-% Ubar = Udot*t;
+Ubar = Udot*t;
 % to:
-Ubar = Ubar + Udot*dt;
+% Ubar = Ubar + Udot*dt;
 
 %Ubar = 0.1*1E4; for debucontourfggin
 u=zeros(3*(mno),1);
@@ -71,11 +72,18 @@ f_hat(freeDofs) = -f_dln(freeDofs)';% no applied forces
 
 f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt = mean(diag(kg));%=trace(K)/length(K)
-bcwt = full(bcwt);
+% Old way
+% bcwt = mean(diag(kg));%=trace(K)/length(K)
+% bcwt = full(bcwt);
+% 
+% f(fixedDofs) = bcwt*uhat(fixedDofs);
+% uhat = U\(L\f); %using LU decomposition
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+%% Haiyang's addtion
+fred = f(unfixedDofs);
+u_new = U\(L\fred);
+uhat(unfixedDofs) = u_new;
+%%
 
 rhat=kg*uhat;
 

@@ -153,18 +153,18 @@ for n=1:L1
 %         %         disp('rcond(Btotal)<eps')
 %         %         end
 %         
-        [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
-        evalmax=eval(1,1);
-        eval=eval./evalmax;
-        fvec=fn(n,:)'./evalmax;
-        for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
-            if eval(i,i)>eps
-                eval(i,i)=1/eval(i,i);
-            else
-                eval(i,i)=0.0d0;
-            end
-        end
-        vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity
+%         [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
+%         evalmax=eval(1,1);
+%         eval=eval./evalmax;
+%         fvec=fn(n,:)'./evalmax;
+%         for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
+%             if eval(i,i)>eps
+%                 eval(i,i)=1/eval(i,i);
+%             else
+%                 eval(i,i)=0.0d0;
+%             end
+%         end
+%         vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity
 %         %         vn(n,:)./mdir
 %         %         dot(linedir,vn(n,:))
         Btotal = Btotal + eye(3)*max(max(abs(Btotal)))*10^(-6);

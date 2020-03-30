@@ -2,8 +2,8 @@
 % mx=1,dx=6,dy=1,dz=1,mu=1,nu=.3,loading=1; 
 
 function [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-    Sfront,Sback,Smixed,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel] = STATIC_finiteElement3D(dx,dy,dz,mx,mu,nu,loading)         
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    w,h,d,my,mz,mel,unfixedDofs,Kred,Lred,Ured] = finiteElement3D_haiyang2(dx,dy,dz,mx,mu,nu,loading)         
 
 % E Tarleton edmund.tarleton@materials.ox.ac.uk
 % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) per element
@@ -206,13 +206,10 @@ for q =1:8
     ns(q,8,3) = 1/8*(1-z(q,1))*(1+z(q,2));
 end
 
+ 
 pm1 =[-1  1  1 -1 -1  1  1 -1];
 pm2 =[-1 -1  1  1 -1 -1  1  1];
 pm3 =[-1 -1 -1 -1  1  1  1  1];
-
-% pm1 =[-1  1  1 -1 -1  1  1 -1]
-% pm2 =[-1 -1  1  1 -1 -1  1  1]
-% pm3 =[-1 -1 -1 -1  1  1  1  1]
 dNds=zeros(8,8,3); 
 % Na(s1,s2,s3) = 1/8 *(1+pm1(a)s1)(1+pm2(a)s2)(1+pm3(a)s3)
 for q=1:8
@@ -295,14 +292,18 @@ end
 
 % ensure ke is symmetric eg remove any very small entries due to numerical
 % error.
-disp('global K...');
-
+% disp('global K...');
+% 
 % kg = sparse(mno*3,mno*3);
 % tic
 % a =1:8;
 % b =1:8;
 % for p =1:mel
 % %     disp(['assembly ', num2str(100*p/mel), ' % complete'])
+%      percentage = 100*p/mel;
+%      if mod(percentage,1)==0
+%          fprintf('Assembly %d percent complete \n',100*p/mel);
+%      end
 %     gna=nc(p,a);
 %     gnb=nc(p,b);
 %     for i =1:3
@@ -313,27 +314,32 @@ disp('global K...');
 % end
 % toc
 
-% % kg = sparse(mno*3,mno*3);
-% % tic;
-% % a =1:8;
-% % % b =1:8;
-% % for p =1:mel
-% %     percentage = 100*p/mel;
-% %     if mod(percentage,1)==0
-% %         fprintf('Assembly %d percent complete \n',100*p/mel);
-% %     end
-% %     gn=nc(p,a);
-% % %     gnb=nc(p,b);
-% %     dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
-% % %     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
-% %     dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
-% % %     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
-% %     kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
-% %     
-% % end
+% kg = sparse(mno*3,mno*3);
+% tic;
+% a =1:8;
+% % b =1:8;
+% for p =1:mel
+%     percentage = 100*p/mel;
+%     if mod(percentage,1)==0
+%         fprintf('Assembly %d percent complete \n',100*p/mel);
+%     end
+%     gn=nc(p,a);
+% %     gnb=nc(p,b);
+%     dof(1:24)=[3*(gn-1)+1,3*(gn-1)+2,3*(gn-1)+3];
+% %     dofb(1:24)=[3*(gnb-1)+1,3*(gnb-1)+2,3*(gnb-1)+3]
+%     dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
+% %     dofbl=[3*(b-1)+1,3*(b-1)+2,3*(b-1)+3]
+%     kg(dof,dof)= kg(dof,dof)+ke(dofLocal,dofLocal,p);
+%     
+% end
+% toc
 
-%% kg Haiyang
+% %HY20171204: modified by Haiyang following Ed's instruction
+% % see http://blogs.mathworks.com/loren/2007/03/01/creating-sparse-finite-element-matrices-in-matlab/
+% % instead of K(i,k) = K(i,j) + ... construct I J X tripletes and use sparse
+% % as it's much faster O(nlog(n)) compared to O(n^2)
 tic
+disp('global stifness matrix assembly new (fast) method...')
 a=1:8; %local node numbers 
 dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
 ntriplets = 3*mno;
@@ -358,7 +364,6 @@ for p =1:mel
 end
 
 kg= sparse(I,J,X,3*mno,3*mno); %the (full) global stiffness matrix
-
 toc
 
 %------------------------------ boundary conditions ---------------------
@@ -545,53 +550,85 @@ elseif loading == 0 % used for debugging
     fixedDofs =[3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];        
     
     freeDofs = [];
+elseif loading == 4 % HY201130: modified for relaxation to get initial structure
+    Smixed = [];
+    gammaMixed=Smixed;
+    gammat = [Stop;Sbot;Sleft;Sright;Sfront;Sback];
+    gammau = []; 
+    
+    fixedDofs =[];        
+    
+    freeDofs = [3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
 else
    disp('loading not specified correctly')
    pause
 end
 
-for m = 1:length(fixedDofs)    
-    i = fixedDofs(m);
-    K(:,i) = 0;
-    K(i,:) = 0;
-    K(i,i) = bcwt; 
-end
-
- if length([fixedDofs;freeDofs])>length(unique([fixedDofs;freeDofs]))
-        disp('error')
-        pause    
- end
+% for m = 1:length(fixedDofs)    
+%     i = fixedDofs(m);
+%     K(:,i) = 0;
+%     K(i,:) = 0;
+%     K(i,i) = bcwt; 
+% end
+% 
+%  if length([fixedDofs;freeDofs])>length(unique([fixedDofs;freeDofs]))
+%         disp('error')
+%         pause    
+%  end
 
 % {freeDofs,fixedDofs} should contain every degree of freedom on boundary +
 % any internal Dofs with a force or displacement specified.
-figure(2);clf;hold on;view(3)
-xlabel('x');ylabel('y');zlabel('z')
+% figure(2);clf;hold on;view(3)
+% xlabel('x');ylabel('y');zlabel('z')
 % plot3(xnodes(Stop(:,1),1),xnodes(Stop(:,1),2),xnodes(Stop(:,1),3),'r*')
 % plot3(xnodes(Sbot(:,1),1),xnodes(Sbot(:,1),2),xnodes(Sbot(:,1),3),'r*')
 % plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
-plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
+% plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
 % plot3(xnodes(Sfront(:,1),1),xnodes(Sfront(:,1),2),xnodes(Sfront(:,1),3),'k*')
 % plot3(xnodes(Sback(:,1),1),xnodes(Sback(:,1),2),xnodes(Sback(:,1),3),'k*')
-% plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'g*')
-axis('equal')
-hold off
-
+% % plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'g*')
+% axis('equal')
+% hold off
+%pause
 % disp('LU decomposition of K...')
 % %L=0;U=0;
 % tic;
 % [L,U] = lu(K);    
 % toc;
 
-disp('Cholesky Factorization of K...'); %should be symmetric!
-tic;
-U = chol(K);
-L = U';
-toc;
+% disp('Cholesky Factorization of K...'); %should be symmetric!
+% tic;
+% U = chol(K);
+% L = U';
+% toc;
+%pause
 
 % if max(abs(diag( U\(L\K) )))-1 > 1000*eps
 %     disp('Error in inverse K')
 %     pause
 % end
 
+%HY20171206:********************************************************
+%HY20171206: modified by HY to make the code cleaner by removing the
+%equations related to the fixedDofs; since FreeDofs has been used to
+%represent the free boundary nodes, a new term, unfixedDofs, is used to
+%represent all the nodes other than the fixed ones. i.e.
+%unfixedDofs=allDofs - fixedDofs
+
+allDofs = [1:3*mno];
+unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
+Kred = K(unfixedDofs,unfixedDofs);
+% tic
+% disp('LU decomposition of Kred')
+% [Lred, Ured] = lu(Kred);
+% toc
+disp('Cholesky Factorization of Kred...'); %should be symmetric!
+tic;
+Ured = chol(Kred);
+Lred = Ured';
+toc;
+L=[];
+U=[];
+%HY20171206:********************************************************
 disp('finished FEM')
 %-------------------------------------------------------------------
