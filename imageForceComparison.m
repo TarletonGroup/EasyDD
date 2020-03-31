@@ -46,10 +46,10 @@ plim=12/amag; %12microns
     w,h,d,my,mz,mel] = STATIC_finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
 %%
 planes = 0;
-length = 100; % good behaviour 1000
+length = 1000; % good behaviour 1000
 range = linspace(0,dy,length);
 lvec = range(2)-range(1);
-scale = 1; % good behaviour 10
+scale = 10; % good behaviour 10
 % Parameters with nice fend plots length = 1000, scale = 100
 scenario = 2;
 if scenario == 1
@@ -142,7 +142,7 @@ hold off
 segments=constructsegmentlist(rn,links);
 image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 %%
-gridSize = 100;
+gridSize = 1000;
 x = linspace(0, 2*lvec*scale, gridSize);
 y = linspace(0.5*dy, 0.5*dy, gridSize);
 z = linspace(0.5*dz-lvec*scale, 0.5*dz+lvec*scale, gridSize);
@@ -159,6 +159,53 @@ Y = meshgrid(y);
 % Z = xi(3);
 
 [sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+figure(1)
+contourf(X,Z,sxx);
+colormap(parula)
+colorbar
+title('sxx')
+xlabel('x')
+ylabel('z')
+
+figure(2)
+contourf(X,Z,syy);
+colormap(parula)
+colorbar
+title('syy')
+xlabel('x')
+ylabel('z')
+
+figure(3)
+contourf(X,Z,szz);
+colormap(parula)
+colorbar
+title('szz')
+xlabel('x')
+ylabel('z')
+
+figure(4)
+contourf(X,Z,sxy);
+colormap(parula)
+colorbar
+title('sxy')
+xlabel('x')
+ylabel('z')
+
+figure(5)
+contourf(X,Z,sxz);
+colormap(parula)
+colorbar
+title('sxz')
+xlabel('x')
+ylabel('z')
+
+figure(6)
+contourf(X,Z,syz);
+colormap(parula)
+colorbar
+title('syz')
+xlabel('x')
+ylabel('z')
 
 % xi(1),xi(2),xi(3)); test that it works
 
@@ -378,42 +425,18 @@ sigmaA=D*(B*U); %
 
 sigma = sigmaA;
 
-% sigma=zeros(3);
-% sigma(1,1)=sigmaA(1); %11
-% sigma(2,2)=sigmaA(2); %22
-% sigma(3,3)=sigmaA(3); % 33
-% sigma(1,2)=sigmaA(4);% 12
-% sigma(1,3)=sigmaA(5);% 13
-% sigma(2,3)=sigmaA(6);% 23
-% sigma(2,1)=sigma(1,2);
-% sigma(3,1)=sigma(1,3);
-% sigma(3,2)=sigma(2,3);
+sigma=zeros(3);
+sigma(1,1)=sigmaA(1); %11
+sigma(2,2)=sigmaA(2); %22
+sigma(3,3)=sigmaA(3); % 33
+sigma(1,2)=sigmaA(4);% 12
+sigma(1,3)=sigmaA(5);% 13
+sigma(2,3)=sigmaA(6);% 23
+sigma(2,1)=sigma(1,2);
+sigma(3,1)=sigma(1,3);
+sigma(3,2)=sigma(2,3);
 
 end
-
-
-% %----------------------------------------------------------------------
-% U=zeros(24,1); sigmaA = zeros(6,1);
-% for a=1:8
-%     U(3*a-2)=uhat(3*nc(p,a)-2);
-%     U(3*a-1)=uhat(3*nc(p,a)-1);
-%     U(3*a)=uhat(3*nc(p,a));
-% end
-% 
-% sigmaA=D*(B*U); % 
-% 
-% sigma=zeros(3);
-% sigma(1,1)=sigmaA(1); %11
-% sigma(2,2)=sigmaA(2); %22
-% sigma(3,3)=sigmaA(3); % 33
-% sigma(1,2)=sigmaA(4);% 12
-% sigma(1,3)=sigmaA(5);% 13
-% sigma(2,3)=sigmaA(6);% 23
-% sigma(2,1)=sigma(1,2);
-% sigma(3,1)=sigma(1,3);
-% sigma(3,2)=sigma(2,3);
-% 
-% end
 
 
 % x = linspace(0,5e2,1000);
