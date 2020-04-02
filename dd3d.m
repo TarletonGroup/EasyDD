@@ -139,7 +139,7 @@ while simTime < totalSimTime
     %DDD+FEM coupling
     %load('./mat_files/20181001_debug.mat')
     if a_trac == 0
-    [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+    [uhat,fend,Ubar,~] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
                      gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime, unfixedDofs);
 %     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
 %     num = fend;    
@@ -151,12 +151,21 @@ while simTime < totalSimTime
 %     fprintf("fend = %d, curstep = %d, errs = %d\n",fend, curstep,(num-ser)/ser*100);
 %     reset(gpuDevice);
     else
-    [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+    [uhat,fend,Ubar,~] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
                        gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance, Ubar, dt...
                        ,unfixedDofs);% Haiyang's additions
-%     reset(gpuDevice);
+
+    % Compare both methods
+%     plot(fan,fnum,'.','MarkerSize',10)
+%     axis('equal')
+%     ylim([min(fnum),max(fnum)])
+%     xlim([min(fan), max(fan)])
+%     xlabel('analytic tractions'); ylabel('numeric tractions');
+%     yline(min(fan))
+%     yline(max(fan))
+    
     end
 %     par = fend;            
 %     fprintf("fend = %d, curstep = %d, erra = %d\n",fend, curstep,(num-par)/par*100);
@@ -288,9 +297,9 @@ while simTime < totalSimTime
 %         save(sprintf('./mat_files/20200128_%d_%d_%d_HYmob', curstep, a_trac, simple));
 %         pause
 %     end
-    if (mod(curstep, 10000) == 0)
+    if (mod(curstep, 1000) == 0)
         close all
-        save(sprintf('./mat_files/HaiMesh_%d.m', curstep));
+        save(sprintf('./mat_files/HaiMesh_%d', curstep));
 %         save(sprintf('./mat_files/20200128_%d_%d_%d_HYmob', curstep, a_trac, simple));
 %         save(sprintf('./mat_files/20191216_%d_%d_%d_HYmob', curstep, a_trac, simple));
 %         save(sprintf('./mat_files/20180928_%d', curstep));

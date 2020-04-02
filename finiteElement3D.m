@@ -334,6 +334,7 @@ disp('global K...');
 % % end
 
 %% kg Haiyang
+tic
 a=1:8; %local node numbers 
 dofLocal=[3*(a-1)+1,3*(a-1)+2,3*(a-1)+3];
 ntriplets = 3*mno;
