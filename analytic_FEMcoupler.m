@@ -79,11 +79,11 @@ f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
 % f(fixedDofs) = bcwt*uhat(fixedDofs);
 % uhat = U\(L\f); %using LU decomposition
 
-%% Haiyang's addtion
+% Haiyang's addtion
 fred = f(unfixedDofs);
 u_new = U\(L\fred);
 uhat(unfixedDofs) = u_new;
-%%
+%
 
 rhat=kg*uhat;
 

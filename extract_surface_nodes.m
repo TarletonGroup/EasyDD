@@ -115,12 +115,12 @@ function [labels, coords, n_se] = extract_surface_nodes(            ...
         surf_node_util = zeros(n_nodes+2, 6);
         % For rectangular surface elements. Add an if statement and redifine
         % matrix to generalise it for triangular surface elements.
-        surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1 ~Sleft
-        surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2 ~Sright
-        surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4 ~Sfront
-        surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3 ~Sback
-        surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
-        surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6 ~Stop
+        surf_node_util(1:6, 1) = [1, 5, 4, 8, yz, 1]; % min(x), yz-plane, face 1 ~Sleft
+        surf_node_util(1:6, 2) = [6, 2, 7, 3, yz, 1]; % max(x), yz-plane, face 2 ~Sright
+        surf_node_util(1:6, 3) = [5, 6, 8, 7, xz, 2]; % min(y), xz-plane, face 3 ~Sfront
+        surf_node_util(1:6, 4) = [2, 1, 3, 4, xz, 2]; % max(y), xz-plane, face 4 ~Sback
+        surf_node_util(1:6, 5) = [6, 5, 2, 1, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
+        surf_node_util(1:6, 6) = [3, 4, 7, 8, xy, 3]; % max(z), xy-plane, face 6 ~Stop
     end %if
     
     %% Calculate number of surface elements.

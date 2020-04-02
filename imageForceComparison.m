@@ -14,9 +14,9 @@ simTime = 0;
 use_gpu=0;
 para_scheme = 0;
 n_threads = 0;
-dx=1/amag;
-dy=5/amag;
-dz=5/amag;
+dx=300;
+dy=60;
+dz=300;
 
 mx=30; % number of elements along beam length
 loading=1; 
@@ -36,103 +36,105 @@ NU = 0.28;
 lmin = 0.1/amag;
 a=lmin/sqrt(3)*0.5;
 
-links = [1, 2, 0, 1, 1,  1, -1,  1];
-
 
 
 plim=12/amag; %12microns
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,Smixed,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
     w,h,d,my,mz,mel] = STATIC_finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
-save('./mat_files/StaticMeshL')
+% save('./mat_files/StaticMeshL')
 %%
-planes = 0;
-length = 1000; % good behaviour 1000
-range = linspace(0,dy,length);
-lvec = range(2)-range(1);
-scale = 10; % good behaviour 10
-% Parameters with nice fend plots length = 1000, scale = 100
-scenario = 2;
-if scenario == 1
-%     range = flip(range);
-    gammat = Sleft;
-    gammau = Sleft;
-    gammaMixed = Sleft;
-    midPoints = [0 - scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
-    planes = 1;    
-elseif scenario == 2
-    gammat = Sleft;
-    gammau = Sleft;
-    gammaMixed = Sleft;
-    midPoints = [0 + lvec*scale; 0.5*dy; 0.5*dz];
-    planes = 1;
-elseif scenario == 3
-    gammat = [Sright;Smixed];
-    gammau = [Sright;Smixed];
-    gammaMixed = [Sright;Smixed];
-    midPoints = [dx - lvec*scale; 0.5*dy; 0.5*dz];%[0.5*dx; 0.5*dy; 0.5*dz];%
-    planes = 2;
-elseif scenario == 4
-    gammat = [Sright;Smixed];
-    gammau = [Sright;Smixed];
-    gammaMixed = [Sright;Smixed];
-    midPoints = [dx + lvec*scale; 0.5*dy; 0.5*dz];
-    planes = 2;
-end
+% yz plane with x=0
+% planes = 1;
+% gammat = Sleft;
+% gammau = Sleft;
+% gammaMixed = Sleft;
+
+planes = 1;
+gammat = Sleft;%[Sleft;Sright;Stop;Sbot;Sfront;Sback;Smixed];
+gammau = [Sright;Stop;Sbot];
+gammaMixed = [];
+
 gamma_dln = gammat(:,1);
 fixedDofs =[3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
-freeDofs = [3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
+freeDofs = [3*gammat(:,1)-2; 3*gammat(:,1)-1; 3*gammat(:,1)];
+
+
+len = 100; % good behaviour 1000
+x = linspace(0.1*dx,0.1*dx,len);
+y = linspace(0,dy,len);
+z = linspace(0.5*dz,0.5*dz,len);
+x1 = x(1);
+z1 = z(1);
 t = [0 1 0];
-b = [1 0 0];
+b = -[1 0 0];
 n = [0 0 1];
-rn = zeros(length,3);
-rn(:,1) = midPoints(1);
-rn(:,2) = range;
-rn(:,3) = midPoints(3);
-links = zeros(length-1,8);
-for i = 1:length-1
+rn = zeros(len,3);
+rn(:,1) = x;
+rn(:,2) = y;
+rn(:,3) = z;
+links = zeros(len-1,8);
+for i = 1:len-1
     links(i,:) = [i, i+1, b,  n];
 end
 
  % Set surface node labels for surface node extraction.
-        n_nodes = 4;
-        surf_node_util = zeros(n_nodes+2, 6);
-        xy = mx*my;
-        xz = mx*mz;
-        yz = my*mz;
-        % For rectangular surface elements. Add an if statement and redifine
-        % matrix to generalise it for triangular surface elements.
-        surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1 Sleft
-        surf_node_util(1:6, 1) = [8, 5, 4, 1, yz, 1]; % min(x), yz-plane, face 1 Sleft
-        surf_node_util(1:6, 1) = [4, 8, 1, 5, yz, 1]; % min(x), yz-plane, face 1 Sleft
-        surf_node_util(1:6, 1) = [1, 4, 5, 8, yz, 1]; % min(x), yz-plane, face 1 Sleft
-% Next one is inverted.
-%         surf_node_util(1:6, 1) = [1, 5, 4, 8, yz, 1]; % min(x), yz-plane, face 1 Sleft
-        surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2 Sright+SMixed
-%         surf_node_util(1:6, 2) = [6, 2, 7, 3, yz, 1]; % max(x), yz-plane, face 2 Sright+SMixed
-        surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 4 Sfront
-        surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 3 Sback
-        surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5 Sbot
-        surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6 Stop
+n_nodes = 4;
+surf_node_util = zeros(n_nodes+2, 6);
+xy = mx*my;
+xz = mx*mz;
+yz = my*mz;
+
 
 f_hat = zeros(3*mno, 1);
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
-                                               planes, 4, surf_node_util);
+                                               planes, 4);
 [f_dln_node, f_dln_se,...
  f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
 tolerance = dx/10^6;
 
-% figure(1)
-% hold on
-% plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
-% plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
-% plot3(x3x6(1:3:end,3), x3x6(2:3:end,3), x3x6(3:3:end,3),'ko')
-% plot3(x3x6(1:3:end,4), x3x6(2:3:end,4), x3x6(3:3:end,4),'ko')
-% plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
-% plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
-% plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'b.')
-% plot3(rn(:,1),rn(:,2),rn(:,3),'r.')
-% hold off
+
+figure(25);clf;hold on;view(3)
+xlabel('x');ylabel('y');zlabel('z')
+%
+plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
+plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
+plot3(x3x6(1:3:end,3), x3x6(2:3:end,3), x3x6(3:3:end,3),'ko')
+plot3(x3x6(1:3:end,4), x3x6(2:3:end,4), x3x6(3:3:end,4),'ko')
+%
+plot3(xnodes(Stop(:,1),1),xnodes(Stop(:,1),2),xnodes(Stop(:,1),3),'r*')
+plot3(xnodes(Sbot(:,1),1),xnodes(Sbot(:,1),2),xnodes(Sbot(:,1),3),'r*')
+plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
+plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
+plot3(xnodes(Sfront(:,1),1),xnodes(Sfront(:,1),2),xnodes(Sfront(:,1),3),'k*')
+plot3(xnodes(Sback(:,1),1),xnodes(Sback(:,1),2),xnodes(Sback(:,1),3),'k*')
+plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'g*')
+plot3(rn(:,1),rn(:,2),rn(:,3),'r.')
+axis('equal')
+hold off
+
+% surf_node_util(1:6, 1) = [1, 5, 4, 8, yz, 1]; % min(x), yz-plane, face 1 ~Sleft
+% surf_node_util(1:6, 2) = [6, 2, 7, 3, yz, 1]; % max(x), yz-plane, face 2 ~Sright
+% surf_node_util(1:6, 3) = [5, 6, 8, 7, xz, 2]; % min(y), xz-plane, face 3 ~Sfront
+% surf_node_util(1:6, 4) = [2, 1, 3, 4, xz, 2]; % max(y), xz-plane, face 4 ~Sback
+% surf_node_util(1:6, 5) = [6, 5, 2, 1, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
+% surf_node_util(1:6, 6) = [3, 4, 7, 8, xy, 3]; % max(z), xy-plane, face 6 ~Stop
+% 4. ----- .3
+%  |\       |\
+%  | \      | \
+% 1. -\---- .2 \
+%   \  \     \  \
+%    \ 8. ----\- .7
+%     \ |      \ |
+%      \|       \|
+%      5. ----- .6
+% ^z
+% |  y
+% | /
+% |/
+% |------>x
+%        
+
 
 [uhat,fend,Ubar] = STATIC_analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
                        0, 0, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
@@ -149,170 +151,134 @@ tolerance = dx/10^6;
 % image_force = pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 % image_force2 = pkforcevec(uhat2,nc,xnodes,D,mx,mz,w,h,d,segments);
 
-gridSize = 4501;
+%%
+% gridSize = mx;
+% X = linspace(0,dx,gridSize)';
+% Y = linspace(0.5*dy,0.5*dy,gridSize)';
+% Z = linspace(0,dz,gridSize)';
+% 
+% X_size = length(X);
+% Y_size = length(Y);
+% Z_size = length(Z);
+% 
+% Sxxu = zeros(X_size,Y_size);
+% Syyu = zeros(X_size,Y_size);
+% Szzu = zeros(X_size,Y_size);
+% Sxyu = zeros(X_size,Y_size);
+% Sxzu = zeros(X_size,Y_size);
+% Syzu = zeros(X_size,Y_size);
+% 
+% 
+% for i= 1:X_size
+%         for j = 1:Z_size
+% %             x0 = [X(i) 0.5*dy Z(j)]; % field point
+%             x0 = [X(i) 0.5*dy Z(j)]; % field point
+%             sigmahat = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,x0);
+%             Sxxu(i,j) = sigmahat(1,1);
+%             Syyu(i,j) = sigmahat(2,2);
+%             Szzu(i,j) = sigmahat(3,3);
+% 
+%             Sxyu(i,j) = sigmahat(1,2); %isotropic
+%             Sxzu(i,j) = sigmahat(1,3); %isotropic
+%             Syzu(i,j) = sigmahat(2,3); %isotropic
+%         end
+% end
+% figure(1)
+% surf(X,Z,Sxxu','EdgeColor','none');
+%
+gridSize = mx;
 x = linspace(0, dx, gridSize);
 y = linspace(0.5*dy, 0.5*dy, gridSize);
 z = linspace(0, dz, gridSize);
 [X,Z] = meshgrid(x,z);
 Y = meshgrid(y);
-clear x y z;
-% r0=segments(50,6:8);
-% r1=segments(55,9:11);
-% r01=r1-r0;
-% rmid = 0.5*(r0+r1);
-% xi = rmid(1:3);
-% X = xi(1);
-% Y = xi(2);
-% Z = xi(3);
 
-[sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+clear x y z;
+
+sigma = hatStressSurf(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+
+sxxA = squeeze(sigma(1,1,:,:));
 figure(1)
-contourf(X,Z,sxx);
+contourf(X,Z,sxxA);
 colormap(parula)
 colorbar
 title('A sxx')
 xlabel('x')
 ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
-% figure(2)
-% contourf(X,Z,syy);
-% colormap(parula)
-% colorbar
-% title('A syy')
-% xlabel('x')
-% ylabel('z')
-
-figure(3)
-contourf(X,Z,szz);
+szzA = squeeze(sigma(3,3,:,:));
+figure(2)
+contourf(X,Z,szzA);
 colormap(parula)
 colorbar
 title('A szz')
 xlabel('x')
 ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
-% figure(4)
-% contourf(X,Z,sxy);
-% colormap(parula)
-% colorbar
-% title('A sxy')
-% xlabel('x')
-% ylabel('z')
-
-figure(5)
-contourf(X,Z,sxz);
+sxzA = squeeze(sigma(1,3,:,:));
+figure(3)
+contourf(X,Z,sxzA);
 colormap(parula)
 colorbar
 title('A sxz')
 xlabel('x')
 ylabel('z')
-
-% figure(6)
-% contourf(X,Z,syz);
-% colormap(parula)
-% colorbar
-% title('A syz')
-% xlabel('x')
-% ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
 
-[sxx2, syy, szz2, sxy, sxz2, syz] = hatStress(uhat2,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
-figure(7)
-contourf(X,Z,sxx2);
+sigma = hatStressSurf(uhat2,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+
+sxxN = squeeze(sigma(1,1,:,:));
+figure(4)
+contourf(X,Z,sxxN);
 colormap(parula)
 colorbar
-title('N sxx2')
+title('N sxx')
 xlabel('x')
 ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
-% figure(8)
-% contourf(X,Z,syy);
-% colormap(parula)
-% colorbar
-% title('N syy')
-% xlabel('x')
-% ylabel('z')
-
-figure(9)
-contourf(X,Z,szz2);
+szzN = squeeze(sigma(3,3,:,:));
+figure(5)
+contourf(X,Z,szzN);
 colormap(parula)
 colorbar
-title('N szz2')
+title('N szz')
 xlabel('x')
 ylabel('z')
-% 
-% figure(10)
-% contourf(X,Z,sxy);
-% colormap(parula)
-% colorbar
-% title('N sxy')
-% xlabel('x')
-% ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
-figure(11)
-contourf(X,Z,sxz2);
+sxzN = squeeze(sigma(1,3,:,:));
+figure(6)
+contourf(X,Z,sxzN);
 colormap(parula)
 colorbar
-title('N sxz2')
+title('N sxz')
 xlabel('x')
 ylabel('z')
-save('./mat_files/stresses_bperp_surf', 'uhat', 'uhat2', 'fend', 'fend2', 'sxx', 'szz', 'sxz', 'sxx2', 'szz2', 'sxz2')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
-% figure(12)
-% contourf(X,Z,syz);
-% colormap(parula)
-% colorbar
-% title('N syz')
-% xlabel('x')
-% ylabel('z')
 
-x = linspace(0,5e2,1000);
-z = linspace(0,5e2,1000);
+x = linspace(0,dx,gridSize);
+z = linspace(0,dz,gridSize);
+b = sqrt(3)/2;
 [X,Z] = meshgrid(x,z);
-[txx,tzz,txz] = imageStressAnalyticEdgePerp(200e3, 1, 0.28, X, Z, 1e2, 2.5e2);
-figure(13)
-txx = txx;%./norm(txx);
-meantxx = mean(txx,'all');
-stdtxx = std(txx,0,'all');
-displace = 5*stdtxx;
-limits = [meantxx - displace, meantxx + displace];
-contourf(X,Z,txx,300);
-colormap(parula(300))
-colorbar
-caxis(limits)
-title('b perp sxx')
-xlabel('b')
-ylabel('b')
-
-figure(14)
-tzz = tzz;%./norm(tzz);
-meantzz = mean(tzz,'all');
-stdtzz = std(tzz,0,'all');
-displace = 5*stdtzz;
-limits = [meantzz - displace, meantzz + displace];
-contourf(X,Z,tzz,300);
-colormap(parula(300))
-colorbar
-caxis(limits)
-title('b perp szz')
-xlabel('b')
-ylabel('b')
-
-figure(15)
-txz = txz;%./norm(txz);
-meantxz = mean(txz,'all');
-stdtxz = std(txz,0,'all');
-displace = 5*stdtxz;
-limits = [meantxz - displace, meantxz + displace];
-contourf(X,Z,txz,300);
-colormap(parula(300))
-colorbar
-caxis(limits)
-title('b perp sxz')
-xlabel('b')
-ylabel('b')
-
-[txx,tzz,txz] = imageStressAnalyticEdgePar(200e3, 1, 0.28, X, Z, 1e2, 2.5e2);
-figure(16)
+[txx,tzz,txz] = imageStressAnalyticEdgePerp(200e3, b, 0.28, X, Z, x1, z1);
+figure(7)
 txx = txx;%./norm(txx);
 meantxx = mean(txx,'all');
 stdtxx = std(txx,0,'all');
@@ -322,273 +288,39 @@ contourf(X,Z,txx);
 colormap(parula)
 colorbar
 caxis(limits)
-title('b par sxx')
+title('b perp sxx')
 xlabel('b')
 ylabel('b')
 
-figure(17)
+figure(8)
 tzz = tzz;%./norm(tzz);
 meantzz = mean(tzz,'all');
 stdtzz = std(tzz,0,'all');
 displace = 5*stdtzz;
 limits = [meantzz - displace, meantzz + displace];
-contourf(X,Z,tzz,300);
+contourf(X,Z,tzz);
 colormap(parula)
 colorbar
 caxis(limits)
-title('b par szz')
+title('b perp szz')
 xlabel('b')
 ylabel('b')
 
-figure(18)
+figure(9)
 txz = txz;%./norm(txz);
 meantxz = mean(txz,'all');
 stdtxz = std(txz,0,'all');
 displace = 5*stdtxz;
 limits = [meantxz - displace, meantxz + displace];
-contourf(X,Z,txz,300);
+contourf(X,Z,txz);
 colormap(parula)
 colorbar
 caxis(limits)
-title('b par sxz')
+title('b perp sxz')
 xlabel('b')
 ylabel('b')
 
-%
-% xnodes2 = xnodes(gammau(:,1),1:3);
-% uhat2 = uhat(fixedDofs);
-% pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
 
-% xi(1),xi(2),xi(3)); test that it works
-
-
-% sigma2 = hatStressStatic(uhat,nc,xnodes,D,mx,mz,w,h,d,[X,Y,Z]);
-% % xi); test that it works
-% difference = max(abs(sigma2 - [sxx; syy; szz; sxy; sxz; syz]))
-
-% pkforcevec(uhat,nc,xnodes,D,mx,mz,w,h,d,segments);
-function [sxx, syy, szz, sxy, sxz, syz] = hatStress(uhat,nc,x,D,mx,mz,w,h,d,X,Y,Z)
-
-gridSize = size(X,1);
-
-i = ceil(X/w);
-j = ceil(Y/h);
-k = ceil(Z/d);
-
-i0 = find(i==0);
-j0 = find(j==0);
-k0 = find(k==0);
-if any(i0)
-    i(i0) = 1;
-end
-if any(j0)
-    i(j0) = 1;
-end
-if any(k0)
-    i(k0) = 1;
-end
-p = i + (k-1)*mx + (j-1)*mx*mz;
-
-
-xc = [0.5*(x(nc(p,1),1) + x(nc(p,7),1)),... % midpoint x
-      0.5*(x(nc(p,1),2) + x(nc(p,7),2)),... % midpoint y
-      0.5*(x(nc(p,1),3) + x(nc(p,7),3))];   % midpoint z
-
-Xc = reshape(xc(:,1), gridSize, gridSize);
-Yc = reshape(xc(:,2), gridSize, gridSize);
-Zc = reshape(xc(:,3), gridSize, gridSize);
-
-a = 0.5*w;
-b = 0.5*h;
-c = 0.5*d;
-
-s1 = (X-Xc)/a;
-s2 = (Y-Yc)/b;
-s3 = (Z-Zc)/c;
-
-ds1dx=1/a;
-ds2dy=1/b;
-ds3dz=1/c;
-
-pm1 =[-1  1  1 -1 -1  1  1 -1];
-pm2 =[ 1  1  1  1 -1 -1 -1 -1];
-pm3 =[-1 -1  1  1 -1 -1  1  1];
-
-dNds1 = zeros(gridSize, gridSize, 8);
-dNds2 = zeros(gridSize, gridSize, 8);
-dNds3 = zeros(gridSize, gridSize, 8);
-B = zeros(gridSize, gridSize, 6, 24);
-U = zeros(gridSize, gridSize, 24);
-sigma = zeros(6, gridSize, gridSize);
-tic
-for a = 1:8
-    for j = 1:gridSize
-        for i = 1:gridSize
-            dNds1(i,j,a) = 1/8*pm1(a)*(1+pm2(a)*s2(i,j))*(1+pm3(a)*s3(i,j));
-            dNds2(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*pm2(a)*(1+pm3(a)*s3(i,j));
-            dNds3(i,j,a) = 1/8*(1+pm1(a)*s1(i,j))*(1+pm2(a)*s2(i,j))*pm3(a);
-
-            B(i,j,1,3*(a-1)+1) = dNds1(i,j,a)*ds1dx;
-            B(i,j,2,3*(a-1)+2) = dNds2(i,j,a)*ds2dy;
-            B(i,j,3,3*(a-1)+3) = dNds3(i,j,a)*ds3dz;
-
-            B(i,j,4,3*(a-1)+1) = B(i,j,2,3*(a-1)+2);
-            B(i,j,4,3*(a-1)+2) = B(i,j,1,3*(a-1)+1);
-
-            B(i,j,5,3*(a-1)+1) = B(i,j,3,3*a);
-            B(i,j,5,3*a)   = B(i,j,1,3*(a-1)+1);
-
-            B(i,j,6,3*(a-1)+2) = B(i,j,3,3*a);
-            B(i,j,6,3*a)   = B(i,j,2,3*(a-1)+2);
-            
-            U(i,j, 3*a-2) = uhat(3*nc(p(i,j),a)-2);
-            U(i,j, 3*a-1) = uhat(3*nc(p(i,j),a)-1);
-            U(i,j, 3*a  ) = uhat(3*nc(p(i,j),a)  );
-        end
-    end
-end
-for j = 1:gridSize % Traverse first dimension
-    for i = 1:gridSize % Traverse second dimension
-        Utmp = squeeze(U(i,j,:));
-        Btmp = squeeze(B(i,j,:,:));
-        sigma(:,i,j) = D*(Btmp*Utmp);
-    end
-end
-
-sxx = squeeze(sigma(1,:,:));
-syy = squeeze(sigma(2,:,:));
-szz = squeeze(sigma(3,:,:));
-sxy = squeeze(sigma(4,:,:));
-sxz = squeeze(sigma(5,:,:));
-syz = squeeze(sigma(6,:,:));
-
-% sigmaA(:,:)=D*(B(:,:)*U(:));
-% 
-% sigma=zeros(3);
-% sigma(1,1)=sigmaA(1); %11
-% sigma(2,2)=sigmaA(2); %22
-% sigma(3,3)=sigmaA(3); % 33
-% sigma(1,2)=sigmaA(4);% 12
-% sigma(1,3)=sigmaA(5);% 13
-% sigma(2,3)=sigmaA(6);% 23
-% sigma(2,1)=sigma(1,2);
-% sigma(3,1)=sigma(1,3);
-% sigma(3,2)=sigma(2,3);
-
-end
-
-function sigma=hatStressStatic(uhat,nc,x,D,mx,mz,w,h,d,x0)
-                              
-% returns stress tensor at a point x=x0 by constructing B matrix B(x)
-% notes with mx=90 dx=6,dy=dz=1, agrees with S(1:5) agree with Abaqus to 1% 
-% S(6) is approx zero so the error is huge!
-
-i=ceil(x0(1)/w);
-i = max(i,1);
-j=ceil(x0(2)/h);
-j =max(j,1);
-k=ceil(x0(3)/d);
-k=max(k,1);
-p = i + (k-1)*mx + (j-1)*mx*mz;
-% if any(x0<0) || p > mx*mz*mz || isnan(p) 
-%     %disp('Node outside domain! See hatStress.m')
-%     %disp(strcat('x0 = [',num2str(x0),']')); 
-%     %Usually stemming from NaN in utilda!
-%     %pause;
-%     sigma = zeros(3); % do something better like remeshing later...
-%     %Sort of have to do this when using int_trapezium.m because real
-%     %segment will move out of domain during trial before it can be
-%     %remeshed?
-%     return;
-% end
-
-% 4. ----- .3
-%  �\       �\
-%  � \      � \
-% 1. -\---- .2 \ 
-%   \  \     \  \
-%    \ 8. ----\- .7
-%     \ �      \ �
-%      \�       \�
-%      5. ----- .6
-
-
-%  s2   s3    
-%    \  ^ 
-%     \ �      
-%      \�       
-%       . -----> s1
-% redefine local corordinate system (s1,s2,s3) to have same orientation as
-% the global system (x,y,z) this should save calcualting Jij and inv(J)
-xc = zeros(3,1);
-for i=1:3
-    xc(i)= 0.5*(x(nc(p,1),i)+x(nc(p,7),i)); %xc is center of element p
-end
-
-a = w/2; % element dx
-b = h/2; % element dy
-c = d/2; % element dz
-
-s1 =  (x0(1) - xc(1))/a;
-s2 = (x0(2) - xc(2))/b;
-s3 = (x0(3) - xc(3))/c;
-
-ds1dx=1/a;
-ds2dy=1/b;
-ds3dz=1/c;
-
-pm1 =[-1  1  1 -1 -1  1  1 -1];
-pm2 =[ 1  1  1  1 -1 -1 -1 -1];
-pm3 =[-1 -1  1  1 -1 -1  1  1];
-%eg shape function a: Na = 1/8*(1+pm1(a)*s1)(1+pm2(a)*s2)(1+pm3(a)*s3)
-% dNa/ds1 = 1/8* pm1(a)*(1+pm2(a)*s2)(1+pm3(a)*s3)
-% dNa/dx = (dNa/ds1)(ds1/dx) where ds1/dx = 1/a
-% dN1/dx = 1/a(dNa/ds1) = -b*c*(1+s2)(1-s3)/(abc)
-
-B=zeros(6,24);
-for a= 1:8
-    dNds1(a) = 1/8*pm1(a)*(1+pm2(a)*s2)*(1+pm3(a)*s3);
-    dNds2(a) = 1/8*(1+pm1(a)*s1)*pm2(a)*(1+pm3(a)*s3);
-    dNds3(a) = 1/8*(1+pm1(a)*s1)*(1+pm2(a)*s2)*pm3(a);
-    
-    B(1,3*(a-1)+1) = dNds1(a)*ds1dx;
-    B(2,3*(a-1)+2) = dNds2(a)*ds2dy;
-    B(3,3*(a-1)+3) = dNds3(a)*ds3dz;
-    
-    B(4,3*(a-1)+1) = B(2,3*(a-1)+2);
-    B(4,3*(a-1)+2) = B(1,3*(a-1)+1);
-    
-    B(5,3*(a-1)+1) = B(3,3*a);
-    B(5,3*a)   = B(1,3*(a-1)+1);
-    
-    B(6,3*(a-1)+2) = B(3,3*a);
-    B(6,3*a)   = B(2,3*(a-1)+2);
-end
-%
-%----------------------------------------------------------------------
-U=zeros(24,1); sigmaA = zeros(6,1);
-for a=1:8
-    U(3*a-2)=uhat(3*nc(p,a)-2);
-    U(3*a-1)=uhat(3*nc(p,a)-1);
-    U(3*a)=uhat(3*nc(p,a));
-end
-
-sigmaA=D*(B*U); % 
-
-sigma = sigmaA;
-
-sigma=zeros(3);
-sigma(1,1)=sigmaA(1); %11
-sigma(2,2)=sigmaA(2); %22
-sigma(3,3)=sigmaA(3); % 33
-sigma(1,2)=sigmaA(4);% 12
-sigma(1,3)=sigmaA(5);% 13
-sigma(2,3)=sigmaA(6);% 23
-sigma(2,1)=sigma(1,2);
-sigma(3,1)=sigma(1,3);
-sigma(3,2)=sigma(2,3);
-
-end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePerp(E, b, nu, x, y, a, c)
 %%%
@@ -607,21 +339,217 @@ den1 = (xma2 + ymc2).^2;
 den2 = (xpa2 + ymc2).^2;
 den3 = den2 .* (xpa2 + ymc2);
 
-txx =       -ymc .* (3.*xma2 + ymc2)./den1 + ...
-             ymc .* (3.*xpa2 + ymc2)./den2 + ...
+txx =       ...-ymc .* (3.*xma2 + ymc2)./den1 + ...
+            ymc .* (3.*xpa2 + ymc2)./den2 + ...
   4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
 txx = D.*txx;
 
-tyy =     ymc .* (xma2 - ymc2)./den1 + ...
+tyy =     ... %ymc .* (xma2 - ymc2)./den1 + ...
          -ymc .* (xpa2 - ymc2)./den2 + ...
   4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
 tyy = D.*tyy;
 
-txy =       xma .* (xma2 - ymc2)./den1 + ...
+txy =       ... %xma .* (xma2 - ymc2)./den1 + ...
            -xpa .* (xpa2 - ymc2)./den2 + ...
   2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
 txy = D.*txy;
 end
+
+
+% [sxx2, syy, szz2, sxy, sxz2, syz] = hatStress(uhat2,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+% figure(7)
+% contourf(X,Z,sxx2);
+% colormap(parula)
+% colorbar
+% title('N sxx2')
+% xlabel('x')
+% ylabel('z')
+
+% figure(8)
+% contourf(X,Z,syy);
+% colormap(parula)
+% colorbar
+% title('N syy')
+% xlabel('x')
+% ylabel('z')
+
+% figure(9)
+% contourf(X,Z,szz2);
+% colormap(parula)
+% colorbar
+% title('N szz2')
+% xlabel('x')
+% ylabel('z')
+% 
+% figure(10)
+% contourf(X,Z,sxy);
+% colormap(parula)
+% colorbar
+% title('N sxy')
+% xlabel('x')
+% ylabel('z')
+
+% figure(11)
+% contourf(X,Z,sxz2);
+% colormap(parula)
+% colorbar
+% title('N sxz2')
+% xlabel('x')
+% ylabel('z')
+% save('./mat_files/stresses_bperp_surf', 'uhat', 'uhat2', 'fend', 'fend2', 'sxx', 'szz', 'sxz', 'sxx2', 'szz2', 'sxz2')
+
+% figure(12)
+% contourf(X,Z,syz);
+% colormap(parula)
+% colorbar
+% title('N syz')
+% xlabel('x')
+% ylabel('z')
+
+% gridSize = 40;
+% 
+% x = linspace(0,5e2,gridSize);
+% z = linspace(0,5e2,gridSize);
+% b = sqrt(3)/2;
+% [X,Z] = meshgrid(x,z);
+% [txx,tzz,txz] = imageStressAnalyticEdgePerp(200e3, b, 0.28, X, Z, 1e2, 2.5e2);
+% figure(13)
+% txx = txx;%./norm(txx);
+% meantxx = mean(txx,'all');
+% stdtxx = std(txx,0,'all');
+% displace = 5*stdtxx;
+% limits = [meantxx - displace, meantxx + displace];
+% contourf(X,Z,txx);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b perp sxx')
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(14)
+% tzz = tzz;%./norm(tzz);
+% meantzz = mean(tzz,'all');
+% stdtzz = std(tzz,0,'all');
+% displace = 5*stdtzz;
+% limits = [meantzz - displace, meantzz + displace];
+% contourf(X,Z,tzz);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b perp szz')
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(15)
+% txz = txz;%./norm(txz);
+% meantxz = mean(txz,'all');
+% stdtxz = std(txz,0,'all');
+% displace = 5*stdtxz;
+% limits = [meantxz - displace, meantxz + displace];
+% contourf(X,Z,txz);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b perp sxz')
+% xlabel('b')
+% ylabel('b')
+% 
+% [txx,tzz,txz] = imageStressAnalyticEdgePar(200e3, b, 0.28, X, Z, 1e2, 2.5e2);
+% figure(16)
+% txx = txx;%./norm(txx);
+% meantxx = mean(txx,'all');
+% stdtxx = std(txx,0,'all');
+% displace = 5*stdtxx;
+% limits = [meantxx - displace, meantxx + displace];
+% contourf(X,Z,txx);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b par sxx')
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(17)
+% tzz = tzz;%./norm(tzz);
+% meantzz = mean(tzz,'all');
+% stdtzz = std(tzz,0,'all');
+% displace = 5*stdtzz;
+% limits = [meantzz - displace, meantzz + displace];
+% contourf(X,Z,tzz);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b par szz')
+% xlabel('b')
+% ylabel('b')
+% 
+% figure(18)
+% txz = txz;%./norm(txz);
+% meantxz = mean(txz,'all');
+% stdtxz = std(txz,0,'all');
+% displace = 5*stdtxz;
+% limits = [meantxz - displace, meantxz + displace];
+% contourf(X,Z,txz);
+% colormap(parula)
+% colorbar
+% caxis(limits)
+% title('b par sxz')
+% xlabel('b')
+% ylabel('b')
+
+% sigma2 = hatStressSurf(uhat,nc,xnodes,D,mx,mz,w,h,d,X,Y,Z);
+% surf(X*amag,Y*amag,mumag*PKresolved1','EdgeColor','none'); 
+
+function sigma = hatStressSurf(uhat,nc,x,D,mx,mz,w,h,d,X,Y,Z)
+
+gridSize = size(X);
+
+sigma = zeros(3,3,gridSize(1),gridSize(2));
+x0 = zeros(3,1);
+for col = 1:gridSize(2)
+    for row = 1:gridSize(1)
+        x0(1) = X(row,col);
+        x0(2) = Y(row,col);
+        x0(3) = Z(row,col);
+        sigma(:,:,row,col) = hatStress(uhat,nc,x,D,mx,mz,w,h,d,x0);
+    end
+end
+end
+
+% function [txx, tyy, txy] = imageStressAnalyticEdgePerp(E, b, nu, x, y, a, c)
+% %%%
+% % Stress on point (x, y) induced by edge dislocation parallel to the 
+% % surface at x = 0. Dislocation coordinates are (a, c).
+% % b perpendicular to surface.
+% %%%
+% D = E.*b./(4.*pi.*(1-nu.^2));
+% ymc = y-c;
+% ymc2 = ymc.^2;
+% xma = x-a;
+% xma2 = xma.^2;
+% xpa = x+a;
+% xpa2 = xpa.^2;
+% den1 = (xma2 + ymc2).^2;
+% den2 = (xpa2 + ymc2).^2;
+% den3 = den2 .* (xpa2 + ymc2);
+% 
+% txx =       -ymc .* (3.*xma2 + ymc2)./den1 + ...
+%              ymc .* (3.*xpa2 + ymc2)./den2 + ...
+%   4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
+% txx = D.*txx;
+% 
+% tyy =     ymc .* (xma2 - ymc2)./den1 + ...
+%          -ymc .* (xpa2 - ymc2)./den2 + ...
+%   4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
+% tyy = D.*tyy;
+% 
+% txy =       xma .* (xma2 - ymc2)./den1 + ...
+%            -xpa .* (xpa2 - ymc2)./den2 + ...
+%   2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+% txy = D.*txy;
+% end
+
 function [txx, tyy, txy] = imageStressAnalyticEdgePar(E, b, nu, x, y, a, c)
 %%%
 % Stress on point (a, c) induced by edge dislocation parallel to the 

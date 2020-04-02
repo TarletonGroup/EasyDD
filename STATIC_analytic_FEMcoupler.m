@@ -16,7 +16,7 @@ Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debucontourfggin
 u=zeros(3*(mno),1);
 
-u(3*gamma_mixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes
+% u(3*gamma_mixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes
 
 uhat=zeros(3*mno,1);
 % utilda=zeros(3*mno,1);

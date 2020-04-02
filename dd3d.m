@@ -140,7 +140,7 @@ while simTime < totalSimTime
     %load('./mat_files/20181001_debug.mat')
     if a_trac == 0
     [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-                     gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+                     gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime, unfixedDofs);
 %     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
 %     num = fend;    
 %     [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...

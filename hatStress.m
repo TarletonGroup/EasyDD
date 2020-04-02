@@ -50,7 +50,7 @@ a = w/2; % element dx
 b = h/2; % element dy
 c = d/2; % element dz
 
-s1 =  (x0(1) - xc(1))/a;
+s1 = (x0(1) - xc(1))/a;
 s2 = (x0(2) - xc(2))/b;
 s3 = (x0(3) - xc(3))/c;
 

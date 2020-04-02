@@ -281,6 +281,7 @@ for p = 1:mel % all elements
             B(6,(a-1)*3+3,p,q)=nx(p,q,a,2);
             
         end
+        
     end
 end
 
@@ -564,17 +565,17 @@ end
 
 % {freeDofs,fixedDofs} should contain every degree of freedom on boundary +
 % any internal Dofs with a force or displacement specified.
-figure(2);clf;hold on;view(3)
-xlabel('x');ylabel('y');zlabel('z')
+% figure(2);clf;hold on;view(3)
+% xlabel('x');ylabel('y');zlabel('z')
 % plot3(xnodes(Stop(:,1),1),xnodes(Stop(:,1),2),xnodes(Stop(:,1),3),'r*')
 % plot3(xnodes(Sbot(:,1),1),xnodes(Sbot(:,1),2),xnodes(Sbot(:,1),3),'r*')
 % plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
-plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
+% plot3(xnodes(Sleft(:,1),1),xnodes(Sleft(:,1),2),xnodes(Sleft(:,1),3),'b.')
 % plot3(xnodes(Sfront(:,1),1),xnodes(Sfront(:,1),2),xnodes(Sfront(:,1),3),'k*')
 % plot3(xnodes(Sback(:,1),1),xnodes(Sback(:,1),2),xnodes(Sback(:,1),3),'k*')
 % plot3(xnodes(Smixed(:,1),1),xnodes(Smixed(:,1),2),xnodes(Smixed(:,1),3),'g*')
-axis('equal')
-hold off
+% axis('equal')
+% hold off
 
 % disp('LU decomposition of K...')
 % %L=0;U=0;

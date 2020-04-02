@@ -1,5 +1,5 @@
 function [uhat,fend,Ubar,ftilda] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t)
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t, unfixedDofs)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
@@ -70,11 +70,17 @@ fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
 %f=zeros(2*(mno),1);
 f=fhat-kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt=mean(diag(kg));%=trace(K)/length(K)
-bcwt = full(bcwt);
+% Old way
+% bcwt = mean(diag(kg));%=trace(K)/length(K)
+% bcwt = full(bcwt);
+% 
+% f(fixedDofs) = bcwt*uhat(fixedDofs);
+% uhat = U\(L\f); %using LU decomposition
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+% Haiyang's addtion
+fred = f(unfixedDofs);
+u_new = U\(L\fred);
+uhat(unfixedDofs) = u_new;
 % uhat2=K\f; 
 
 rhat=kg*uhat; % reaction force

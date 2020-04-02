@@ -16,7 +16,7 @@ Ubar = Udot*t;
 u=zeros(3*(mno),1);
 % gamma=[gammau;gammaMixed];
 
-u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
+% u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
 
 uhat=zeros(3*mno,1);
 % utilda=zeros(3*mno,1); 
