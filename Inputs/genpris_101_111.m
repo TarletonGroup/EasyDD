@@ -133,7 +133,7 @@ sinTime = 0;
 dtplot=5E4;
 doplot=1; % frame recording: 1 == on, 0 == off
 % totalSimTime = (2/amag)/(100*1E3*dx*(1E-4/160E9));
-totalSimTime = (2/amag)/(1*1E3*dx*(1E-4/160E9));
+totalSimTime = (2/amag)/(0.001*1E3*dx*(1E-4/160E9));
 curstep = 0;
 simTime = 0;
 

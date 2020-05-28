@@ -174,10 +174,10 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
                                 burgers(:), mu, nu, a, n_se, n_dln, eps);
     end %if
 
-    f_dln_node(:, 1) = f_dln_se*0.25;
-    f_dln_node(:, 2) = f_dln_se*0.25;
-    f_dln_node(:, 3) = f_dln_se*0.25;
-    f_dln_node(:, 4) = f_dln_se*0.25;
+%     f_dln_node(:, 1) = f_dln_se*0.25;
+%     f_dln_node(:, 2) = f_dln_se*0.25;
+%     f_dln_node(:, 3) = f_dln_se*0.25;
+%     f_dln_node(:, 4) = f_dln_se*0.25;
     
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Loop through the number of nodes.
