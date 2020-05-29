@@ -1,4 +1,4 @@
-function [uhat,fend,Ubar,ftilda] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+function [uhat,fend,Ubar,fout] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
     gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,t, unfixedDofs)
     
 %Coupling of FEM and DDD
@@ -7,7 +7,7 @@ function [uhat,fend,Ubar,ftilda] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xn
 
 segments = constructsegmentlist(rn,links);
 
-Udot = 0.01*1E3*dx*(1E-4/160E9); %for tungsten...
+Udot = 0.001*1E3*dx*(1E-4/160E9); %for tungsten...
 % Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
 %Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
 
@@ -84,6 +84,8 @@ uhat(unfixedDofs) = u_new;
 % uhat2=K\f; 
 
 rhat=kg*uhat; % reaction force
+
+fout = ftilda;
 
 fend = rhat(3*gammaMixed(:,1))+ftilda(3*gammaMixed(:,1));
 fend = sum(fend);

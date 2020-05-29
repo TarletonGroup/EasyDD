@@ -50,14 +50,14 @@ plim=12/amag; %12microns
 % gammau = Sleft;
 % gammaMixed = Sleft;
 
-planes = 1;
-gammat = Sleft;%[Sleft;Sright;Stop;Sbot;Sfront;Sback;Smixed];
-gammau = [Sright;Stop;Sbot];
-gammaMixed = [];
+planes = [1;2;3;4;5;6];
+% % gammat = [Sleft];%[Stop;Sbot;Sright;Sfront;Sback];%[Sleft;Sright;Stop;Sbot;Sfront;Sback;Smixed];
+% % gammau = [Stop;Sright;Sbot;Smixed;Sfront;Sback];
+% % gammaMixed = [];%Smixed
 
-gamma_dln = gammat(:,1);
-fixedDofs =[3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
-freeDofs = [3*gammat(:,1)-2; 3*gammat(:,1)-1; 3*gammat(:,1)];
+gamma_dln = [gammat(:,1)];%, gammaMixed(:,1)];
+% % fixedDofs =[3*gammau(:,1)-2; 3*gammau(:,1)-1; 3*gammau(:,1)];
+% % freeDofs = [3*gammat(:,1)-2; 3*gammat(:,1)-1; 3*gammat(:,1)];
 
 
 len = 100; % good behaviour 1000
@@ -97,11 +97,10 @@ tolerance = dx/10^6;
 figure(25);clf;hold on;view(3)
 xlabel('x');ylabel('y');zlabel('z')
 %
-plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
-plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
-plot3(x3x6(1:3:end,3), x3x6(2:3:end,3), x3x6(3:3:end,3),'ko')
-plot3(x3x6(1:3:end,4), x3x6(2:3:end,4), x3x6(3:3:end,4),'ko')
-%
+% plot3(x3x6(1:3:end,1), x3x6(2:3:end,1), x3x6(3:3:end,1),'ko')
+% plot3(x3x6(1:3:end,2), x3x6(2:3:end,2), x3x6(3:3:end,2),'ko')
+% plot3(x3x6(1:3:end,3), x3x6(2:3:end,3), x3x6(3:3:end,3),'ko')
+% plot3(x3x6(1:3:end,4), x3x6(2:3:end,4), x3x6(3:3:end,4),'ko')
 plot3(xnodes(Stop(:,1),1),xnodes(Stop(:,1),2),xnodes(Stop(:,1),3),'r*')
 plot3(xnodes(Sbot(:,1),1),xnodes(Sbot(:,1),2),xnodes(Sbot(:,1),3),'r*')
 plot3(xnodes(Sright(:,1),1),xnodes(Sright(:,1),2),xnodes(Sright(:,1),3),'b.')
@@ -136,12 +135,12 @@ hold off
 %        
 
 
-[uhat,fend,Ubar] = STATIC_analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+[uhat,fend,Ubar,fan] = STATIC_analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
                        0, 0, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
                        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node,...
                        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
                    
-[uhat2,fend2,Ubar2] = STATIC_FEMcoupler(rn,links,0,a,MU,NU,xnodes,mno,kg,L,U,...
+[uhat2,fend2,Ubar2,fnum] = STATIC_FEMcoupler(rn,links,0,a,MU,NU,xnodes,mno,kg,L,U,...
                      gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
 % [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
 %                        gamma_disp, gammat, gammaMixed,fixedDofs,freeDofs,dx,simTime ,...
@@ -277,7 +276,7 @@ x = linspace(0,dx,gridSize);
 z = linspace(0,dz,gridSize);
 b = sqrt(3)/2;
 [X,Z] = meshgrid(x,z);
-[txx,tzz,txz] = imageStressAnalyticEdgePerp(200e3, b, 0.28, X, Z, x1, z1);
+[txx,tzz,txz] = imageStressAnalyticEdgePerp(1, b, 0.28, X, Z, x1, z1);
 figure(7)
 txx = txx;%./norm(txx);
 meantxx = mean(txx,'all');
@@ -320,7 +319,92 @@ title('b perp sxz')
 xlabel('b')
 ylabel('b')
 
+%%
+segments=constructsegmentlist(rn,links);
+FPStress = gridFieldPointStress(segments, a, MU, NU, X,Y,Z);
+sxx = squeeze(FPStress(1,:,:));
+figure(1)
+contourf(X,Z,sxx);
+colormap(parula)
+colorbar
+title('A fpxx')
+xlabel('x')
+ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
+szz = squeeze(FPStress(3,:,:));
+figure(2)
+contourf(X,Z,szz);
+colormap(parula)
+colorbar
+title('A fpzz')
+xlabel('x')
+ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
+
+sxz = squeeze(FPStress(6,:,:));
+figure(3)
+contourf(X,Z,sxz);
+colormap(parula)
+colorbar
+title('A fpxz')
+xlabel('x')
+ylabel('z')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
+
+
+x = linspace(0,dx,gridSize);
+z = linspace(0,dz,gridSize);
+b = sqrt(3)/2;
+[X,Z] = meshgrid(x,z);
+[txx,tzz,txz] = DlnStressAnalyticEdgePerp(1, b, 0.28, X, Z, x1, z1);
+figure(7)
+txx = txx;%./norm(txx);
+meantxx = mean(txx,'all');
+stdtxx = std(txx,0,'all');
+displace = 5*stdtxx;
+limits = [meantxx - displace, meantxx + displace];
+contourf(X,Z,txx,30);
+colormap(parula)
+colorbar
+caxis(limits)
+title('b perp sxx')
+xlabel('b')
+ylabel('b')
+
+figure(8)
+tzz = tzz;%./norm(tzz);
+meantzz = mean(tzz,'all');
+stdtzz = std(tzz,0,'all');
+displace = 5*stdtzz;
+limits = [meantzz - displace, meantzz + displace];
+contourf(X,Z,tzz,30);
+colormap(parula)
+colorbar
+caxis(limits)
+title('b perp szz')
+xlabel('b')
+ylabel('b')
+
+figure(9)
+txz = txz;%./norm(txz);
+meantxz = mean(txz,'all');
+stdtxz = std(txz,0,'all');
+displace = 5*stdtxz;
+limits = [meantxz - displace, meantxz + displace];
+contourf(X,Z,txz,30);
+colormap(parula)
+colorbar
+caxis(limits)
+title('b perp sxz')
+xlabel('b')
+ylabel('b')
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePerp(E, b, nu, x, y, a, c)
 %%%
@@ -352,6 +436,40 @@ tyy = D.*tyy;
 txy =       ... %xma .* (xma2 - ymc2)./den1 + ...
            -xpa .* (xpa2 - ymc2)./den2 + ...
   2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+txy = D.*txy;
+end
+
+
+function [txx, tyy, txy] = DlnStressAnalyticEdgePerp(E, b, nu, x, y, a, c)
+%%%
+% Stress on point (x, y) induced by edge dislocation parallel to the 
+% surface at x = 0. Dislocation coordinates are (a, c).
+% b perpendicular to surface.
+%%%
+D = E.*b./(4.*pi.*(1-nu.^2));
+ymc = y-c;
+ymc2 = ymc.^2;
+xma = x-a;
+xma2 = xma.^2;
+xpa = x+a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
+
+txx =       -ymc .* (3.*xma2 + ymc2)./den1;% + ...
+%             ymc .* (3.*xpa2 + ymc2)./den2 + ...
+%   4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
+txx = D.*txx;
+
+tyy =     ymc .* (xma2 - ymc2)./den1;% + ...
+%          -ymc .* (xpa2 - ymc2)./den2 + ...
+%   4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
+tyy = D.*tyy;
+
+txy =       xma .* (xma2 - ymc2)./den1;% + ...
+%            -xpa .* (xpa2 - ymc2)./den2 + ...
+%   2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
 txy = D.*txy;
 end
 
@@ -412,7 +530,7 @@ end
 % z = linspace(0,5e2,gridSize);
 % b = sqrt(3)/2;
 % [X,Z] = meshgrid(x,z);
-% [txx,tzz,txz] = imageStressAnalyticEdgePerp(200e3, b, 0.28, X, Z, 1e2, 2.5e2);
+% [txx,tzz,txz] = imageStressAnalyticEdgePerp(145, b, 0.28, X, Z, 1e2, 2.5e2);
 % figure(13)
 % txx = txx;%./norm(txx);
 % meantxx = mean(txx,'all');
@@ -455,7 +573,7 @@ end
 % xlabel('b')
 % ylabel('b')
 % 
-% [txx,tzz,txz] = imageStressAnalyticEdgePar(200e3, b, 0.28, X, Z, 1e2, 2.5e2);
+% [txx,tzz,txz] = imageStressAnalyticEdgePar(145, b, 0.28, X, Z, 1e2, 2.5e2);
 % figure(16)
 % txx = txx;%./norm(txx);
 % meantxx = mean(txx,'all');
@@ -515,6 +633,30 @@ for col = 1:gridSize(2)
         sigma(:,:,row,col) = hatStress(uhat,nc,x,D,mx,mz,w,h,d,x0);
     end
 end
+end
+
+function sigma = gridFieldPointStress(segments, a, mu, nu, X,Y,Z)
+
+gridSize = size(X);
+
+sigma = zeros(6, gridSize(1),gridSize(2));
+
+x1 = [segments(:,6), segments(:,7), segments(:,8)];
+x2 = [segments(:,9), segments(:,10), segments(:,11)];
+
+b = [segments(:,3), segments(:,4), segments(:,5)];
+
+x0 = zeros(1,3);
+for col = 1:gridSize(2)
+    for row = 1:gridSize(1)
+        x0(1,1) = X(row,col);
+        x0(1,2) = Y(row,col);
+        x0(1,3) = Z(row,col);
+        sigma(:,row,col)=FieldPointStress(x0,x1,x2,b,a,mu,nu);
+    end
+end
+
+
 end
 
 % function [txx, tyy, txy] = imageStressAnalyticEdgePerp(E, b, nu, x, y, a, c)
