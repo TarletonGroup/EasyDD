@@ -18,9 +18,7 @@ fseg=segforcevec(MU,NU,a,Ec,rn,links,0,vertices,...
 for p=1:size(vn,1)
 
     if rn(p,4) == 7 || rn(p,4) == 67
-
         vn(p,:)=[0 0 0];
-
     end
     
     % Daniel Celis Garza 20200120: Surface node has zero velocity in the 
@@ -38,9 +36,9 @@ for p=1:size(vn,1)
         if ~isempty(virtual_connection)
             if size(virtual_connection,1)>1
                 virtual_connection = mean(virtual_connection);
+                virtual_connection = virtual_connection/norm(virtual_connection);
             end
-            [~, idx] = max(abs(virtual_connection));
-            vn(p,idx) = 0;
+            vn(p,:) = vn(p,:) - dot(vn(p,:), virtual_connection)*virtual_connection;
         end
     end
     
