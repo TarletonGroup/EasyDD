@@ -14,11 +14,11 @@ simTime = 0;
 use_gpu=0;
 para_scheme = 0;
 n_threads = 0;
-dx=300;
-dy=60;
-dz=300;
+dx=25;
+dy=50;
+dz=50;
 
-mx=30; % number of elements along beam length
+mx=10; % number of elements along beam length
 loading=1; 
 vertices = [0,0,0;...
             dx,0,0;...
@@ -42,7 +42,7 @@ plim=12/amag; %12microns
 [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,Smixed,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
     w,h,d,my,mz,mel] = STATIC_finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
-% save('./mat_files/StaticMeshL')
+% save('./mat_files/StaticMesh')
 %%
 % yz plane with x=0
 % planes = 1;
@@ -68,6 +68,7 @@ x1 = x(1);
 z1 = z(1);
 t = [0 1 0];
 b = -[1 0 0];
+% b = -[0 0 1];
 n = [0 0 1];
 rn = zeros(len,3);
 rn(:,1) = x;
@@ -78,7 +79,7 @@ for i = 1:len-1
     links(i,:) = [i, i+1, b,  n];
 end
 
- % Set surface node labels for surface node extraction.
+% Set surface node labels for surface node extraction.
 n_nodes = 4;
 surf_node_util = zeros(n_nodes+2, 6);
 xy = mx*my;
@@ -277,6 +278,7 @@ z = linspace(0,dz,gridSize);
 b = sqrt(3)/2;
 [X,Z] = meshgrid(x,z);
 [txx,tzz,txz] = imageStressAnalyticEdgePerp(1, b, 0.28, X, Z, x1, z1);
+% [txx,tzz,txz] = imageStressAnalyticEdgePar(1, b, 0.28 , X, Z, x1, z1);
 figure(7)
 txx = txx;%./norm(txx);
 meantxx = mean(txx,'all');
@@ -290,6 +292,9 @@ caxis(limits)
 title('b perp sxx')
 xlabel('b')
 ylabel('b')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
 figure(8)
 tzz = tzz;%./norm(tzz);
@@ -304,6 +309,9 @@ caxis(limits)
 title('b perp szz')
 xlabel('b')
 ylabel('b')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
 figure(9)
 txz = txz;%./norm(txz);
@@ -318,6 +326,9 @@ caxis(limits)
 title('b perp sxz')
 xlabel('b')
 ylabel('b')
+hold on
+plot(x1,z1,'.','color','black','MarkerSize',10)
+hold off
 
 %%
 segments=constructsegmentlist(rn,links);
@@ -436,6 +447,40 @@ tyy = D.*tyy;
 txy =       ... %xma .* (xma2 - ymc2)./den1 + ...
            -xpa .* (xpa2 - ymc2)./den2 + ...
   2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+txy = D.*txy;
+end
+
+
+function [txx, tyy, txy] = imageStressAnalyticEdgePar(E, b, nu, x, y, a, c)
+%%%
+% Stress on point (a, c) induced by edge dislocation parallel to the 
+% surface at x = 0. Dislocation coordinates are (x, y).
+% p parallel to surface.
+%%%
+D = E.*b./(4.*pi.*(1-nu.^2));
+ymc = y-c;
+ymc2 = ymc.^2;
+xma = x-a;
+xma2 = xma.^2;
+xpa = x+a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
+
+txx =     ...%xma .* (xma2 - ymc2) ./ den1 + ...
+         -xpa .* (xpa2 - ymc2) ./ den2 + ...
+  2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
+txx = D.*txx;
+   
+tyy =       ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...
+           -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
+  -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
+tyy = D.*tyy;
+
+txy =        ...%ymc .* (xma2 - ymc2) ./ den1 + ...
+            -ymc .* (xpa2 - ymc2) ./ den2 + ...
+  4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
 txy = D.*txy;
 end
 
@@ -692,7 +737,7 @@ end
 % txy = D.*txy;
 % end
 
-function [txx, tyy, txy] = imageStressAnalyticEdgePar(E, b, nu, x, y, a, c)
+function [txx, tyy, txy] = StressAnalyticEdgePar(E, b, nu, x, y, a, c)
 %%%
 % Stress on point (a, c) induced by edge dislocation parallel to the 
 % surface at x = 0. Dislocation coordinates are (x, y).
@@ -709,7 +754,7 @@ den1 = (xma2 + ymc2).^2;
 den2 = (xpa2 + ymc2).^2;
 den3 = den2 .* (xpa2 + ymc2);
 
-txx =     xma .* (xma2 - ymc2) ./ den1 + ... % + ymc2
+txx =     xma .* (xma2 - ymc2) ./ den1 + ...
          -xpa .* (xpa2 - ymc2) ./ den2 + ...
   2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
 txx = D.*txx;
