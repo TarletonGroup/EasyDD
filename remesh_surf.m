@@ -45,12 +45,6 @@ for n=1:L1
     end
 end
 
-%     for i=1:size(rnnew,1) %move surface nodes back onto surface
-%        if rnnew(i,end)==6
-%            [rnnew] = movetosurf(rnnew,linksnew,i,vertices);
-%        end
-%     end
-
 %Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
 for n=1:L1
    if rnnew(n,end)==65 && rnnew(n,1)<=0
@@ -75,9 +69,7 @@ for n=1:L1
     % Find outside nodes connected with inside node with flag 0
     if rnnew(n0,end)==0
 
-
         numNbrs=conlist(n,1); % the number of neighbor nodes
-        %rt=zeros(numNbrs,3);
 
         for i=1:numNbrs
             ii=conlist(n,i+1); % connectionid for this connection
@@ -107,9 +99,6 @@ for i=1:rn_size
     %find surface normal associated with centroid
     Index(i)=index;
 
-    %move exited node to surface
-    %[rnnew] = movetosurf(rnnew,linksnew,i,vertices);
-
     %extend far away
     rnnew = extend(rnnew,linksnew,i,index,fn);
     if any(any(isnan(rnnew)))
@@ -134,9 +123,6 @@ for i=1:L1 %length(rnnew)  ET updated- check!
         end
         if rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==0 %if the surface node is not connected to a virtual node : break M
             break;
-%         elseif dot(fn(Index(i),:),rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),1:3)-rnnew(i,1:3))<0
-%             [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,i,linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),j,j,vertices);
-%             break
         else
             test=test+1;
         end
@@ -146,17 +132,6 @@ for i=1:L1 %length(rnnew)  ET updated- check!
         rnnew = extend(rnnew,linksnew,i,index,fn);
     end
 end
-
-%plotting (debug)
-%trisurf(tri, Xb(:,1), Xb(:,2), Xb(:,3), 'FaceColor', 'cyan','FaceAlpha', 0.5);
-%hold on
-%scatter3(rn(:,1),rn(:,2),rn(:,3),'r');
-
-%     for i=1:size(rnnew,1) %move surface nodes back onto surface
-%        if rnnew(i,end)==6
-%            [rnnew] = movetosurf(rnnew,linksnew,i,vertices);
-%        end
-%     end
 
 end
 
@@ -170,131 +145,8 @@ else
 end
 end
 
-function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
-    %% Option (1) extend using burgers vector
-%     %Has issues with screw segments
-%     %extend point to "infinity", or far away, along Burgers vector of segment.
-%     p_inf=1e7;
-%     burg = [linksnew(linksnew(:,1)==rn_id,3:5);linksnew(linksnew(:,2)==rn_id,3:5)];
-%     %if the node is connected is part to multiple segments, i.e. a junction
-%     %with segments of differing burgers vector, take the resultant as the
-%     %vector along which to extend the node.
-%     burg = sum(burg,1);
-%     burg = burg/norm(burg);
-%     %flip sign if angle between b-vec and plane normal is negative to avoid
-%     %the point being extended back into the material.
-%     proj_vector = sign(dot(fn(plane_id,1:3),burg))*burg;
-%     if norm(proj_vector)<eps
-%        proj_vector=fn(plane_id,1:3);
-%     end
-%     rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + p_inf*proj_vector; %far away...
-%     rnnew(rn_id,end) = 67;   %flag node as virtual
-
-    %% Option (2) extend using vector orthogonal to line direction and slip plane
-    %has issues with screw segments
-%     linkID = linksnew(linksnew(:,1)==rn_id,1:2);
-%     l_vec = rnnew(linkID(:,2),1:3) - rnnew(linkID(:,1),1:3);
-%     l_vec = sum(l_vec,1)/norm(l_vec);
-%
-%     slip_plane = linksnew(linksnew(:,1)==rn_id,6:8);
-%     slip_plane = sum(slip_plane,1)/norm(slip_plane);
-%
-%     ortho_vec = cross(l_vec,slip_plane);
-%
-%     if dot(fn(plane_id,1:3),ortho_vec)<0
-%         ortho_vec = -ortho_vec;
-%     end
-%
-%     rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + 10^5*ortho_vec;
-%
-%     %fix point at infinity, using flag=67
-%     rnnew(rn_id,end) = 67;
-
-    %% Option (3) extend based on projection of surface plane normal onto slip plane
-
-    %slip plane normal taken from input file!!! must be correct.
-    %could calculate as vector orthogonal to b vec and line vec
-    %but will be ill-defined for screw segments.
-%     slip_plane = linksnew(linksnew(:,1)==rn_id,6:8);
-%     if isempty(slip_plane)
-%         slip_plane = linksnew(linksnew(:,2)==rn_id,6:8);
-%     end
-%     slip_plane = sum(slip_plane,1)/norm(slip_plane);
-%
-%     %surface normal
-%     surf_plane = fn(plane_id,1:3);
-%     %surf_plane = surf_plane/norm(surf_plane);
-%
-%     proj_matrix = slip_plane' * slip_plane;
-%     proj_vec = surf_plane * ( eye(3) - proj_matrix );
-%
-%     %Check (1) - make sure projection is pointing outwards of body
-%     if sum(surf_plane.*proj_vec)<0
-%          proj_vec = -proj_vec;
-%     end
-%
-%     %Check (2) - make sure slip plane and surface normal do no coincide.
-%     %scenario unlikely to happen if climb drag is very high...
-%     normprojvec = norm(proj_vec);
-%     if normprojvec < eps
-%          disp('Climb?');
-%          proj_vec = surf_plane/norm(surf_plane);
-%     end
-%
-%     proj_vec = proj_vec/normprojvec;
-%
-%     rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + 10^5*proj_vec;
-%     rnnew(rn_id,end) = 67;
-
-    %% Option (4) extend based on projection of surface normal on to slip plane calculated from burgers vector or nodal velocity
-
-%     p_inf=10^5;   %large number used to desegnate pseudo-infinity. Should be updated to releated to simulated volume size
-%     vel_vec=rnnew(rn_id,4:6);   %nodal velocity vector
-%     vel_vec=vel_vec/norm(vel_vec);   %normalise velocity
-%     b_vec=linksnew(linksnew(:,1)==rn_id,3:5);   %find burgers vector of first connected link
-%     if isempty(b_vec)
-%         b_vec=linksnew(linksnew(:,2)==rn_id,3:5);
-%     end
-%     b_vec=b_vec/norm(b_vec);   %normalise burgers vector
-%
-%     [n,~]=size(linksnew);   %find line direction
-%     for i=1:n
-%         if linksnew(i,1)==rn_id
-%             lin_vec=rnnew(linksnew(i,2),1:3)-rnnew(rn_id,1:3);
-%             break
-%         elseif linksnew(i,2)==rn_id
-%              lin_vec=rnnew(linksnew(i,1),1:3)-rnnew(rn_id,1:3);
-%             break
-%         end
-%     end
-%
-%     lin_vec=lin_vec/norm(lin_vec);   %normalise line direction
-%     slip_plane=cross(b_vec,lin_vec);   %calculate slip plane normal for non-screw type
-%     check=dot(b_vec,lin_vec);   %check if dislocation is screw type
-%     check=sqrt(check*check);
-%     if 1-check<eps
-%     slip_plane=cross(vel_vec,lin_vec);   %calculate slip plane normal if screw type
-%     end
-%     slip_plane=slip_plane/norm(slip_plane);   %normalise slip plane
-%
-%     %surface normal
-%     surf_plane = fn(plane_id,1:3);
-%     surf_plane = surf_plane/norm(surf_plane);   %normalise surface normal
-%
-%     proj_matrix = slip_plane' * slip_plane;   %calculate projection matrix
-%     proj_vec = surf_plane * ( eye(3) - proj_matrix );   %calculate extension direction
-%
-%     %Check (1) - make sure extension is pointing outwards of body
-%     if sum(surf_plane.*proj_vec)<0
-%          proj_vec = -proj_vec;
-%     end
-%
-%     proj_vec = proj_vec/norm(proj_vec);   %normalise extension vector
-%
-%     rnnew(rn_id,1:3) = rnnew(rn_id,1:3) + p_inf*proj_vec;   %extend node to pseudo-infinity in extension direction
-%     rnnew(rn_id,end) = 67;   %flag node as virtual
-
-    %% Option (5) extend along surface normal
+function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)    
+    % Extend along surface normal
 
     %N.B. This method should not be used with Fivel's displacement code
 
@@ -381,7 +233,6 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index
    [~,point_id] = min((surfpts(:,1)-rnnew(n0,1)).^2+(surfpts(:,2)-rnnew(n0,2)).^2+(surfpts(:,3)-rnnew(n0,3)).^2);
    newsurfNode = surfpts(point_id,:);
 
-
    % Split only the flag 0 node connected with the flag 6 node.
              % The velocity of flag 6 node is given to the new node to
              % compute new glide planes of new links in splitnode().
@@ -408,82 +259,3 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index
                 end
              end
 end
-
-function [rnnew] = movetosurf(rnnew,linksnew,i,vertices)
-    faces = [1,3,4,2;                                             %Faces of cuboid as defined by vertices
-             1,2,6,5;
-             1,5,7,3;
-             2,4,8,6;
-             3,7,8,4;
-             5,6,8,7];
-    % i is the node label
-    % linksnew(:,1)==i finds the links where node i is the first node
-    % linksnew(linksnew(:,1)==i,2) is the list of nodes (indices of rnnew)
-    % connected to node i
-    % connodes are the coordinates and node type of nodes connected to node i
-    connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,end]);
-                rnnew(linksnew(linksnew(:,2)==i,1),[1:3,end])];
-    % we want to find the external node/nodes (67) connected to the surface
-    % node because it will tell us which surface it should be on.
-    connodes = connodes(connodes(:,end)==67,1:3);
-    if size(connodes,1)>1
-        connodes = mean(connodes);
-    end
-    vec=zeros(size(connodes,1),size(connodes,2));
-
-    for j=1:size(connodes,1)
-       vec(j,1:3)=connodes(j,1:3)-rnnew(i,1:3);
-    end
-    
-    vec = vec/norm(vec);
-    vec = abs(vec);
-    vec(vec~=max(vec)) = 0;
-    vec(vec==max(vec)) = 1;
-
-%
-%     vec = [rnnew(linksnew(linksnew(:,1)==i,2),1:3)-rnnew(i,1:3);rnnew(linksnew(linksnew(:,2)==i,1),1:3)-rnnew(i,1:3)];
-%     vec = sum(vec,1)/size(vec,1);
-
-    % Build a line from the offending node in the direction of vec.
-    line = [rnnew(i,1:3),vec];
-    % Find the intersect between the line and the fem mesh.
-    surfpts = intersectLineMesh3d(line, vertices, faces);
-    % Find the closest of the two surfaces that intersect the line.
-    [~,point_id] = min((surfpts(:,1)-rnnew(i,1)).^2+(surfpts(:,2)-rnnew(i,2)).^2+(surfpts(:,3)-rnnew(i,3)).^2);
-    % The new surface node is this point.
-    newsurfNode = surfpts(point_id,:);
-    if isempty(newsurfNode)
-        rnnew(i,end) = 0;
-    else
-        rnnew(i,1:3) = newsurfNode;
-    end
-%     rnnew(i,1:3) = rnnew(i,1:3)+vec;
-
-end
-
-% function [rnnew] = movetosurf(rnnew,linksnew,i,vertices)
-% %     faces = [1,2,3,4;                                             %Faces of cuboid as defined by vertices
-% %              1,2,5,6;
-% %              1,3,5,7;
-% %              2,4,6,8;
-% %              3,4,7,8;
-% %              5,6,7,8];
-% %
-% %     vec = [rnnew(linksnew(linksnew(:,1)==i,2),1:3)-rnnew(i,1:3);rnnew(linksnew(linksnew(:,2)==i,1),1:3)-rnnew(i,1:3)];
-% %     vec = sum(vec,1)/size(vec,1);
-% %     line = [rnnew(i,1:3),vec];
-% %     surfpts = intersectLineMesh3d(line, vertices, faces);
-% %     [~,point_id] = min((surfpts(:,1)-rnnew(i,1)).^2+(surfpts(:,2)-rnnew(i,2)).^2+(surfpts(:,3)-rnnew(i,3)).^2);
-% %     newsurfNode = surfpts(point_id,:);
-% %     rnnew(i,1:3) = newsurfNode;
-%     connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,5]);rnnew(linksnew(linksnew(:,2)==i,1),[1:3,5])];
-%     connodes = connodes(connodes(:,4)~=67,1:3);
-%     vec=zeros(size(connodes,1),size(connodes,2));
-%
-%     for j=1:size(connodes,1)
-%        vec(j,1:3)=connodes(j,1:3)-rnnew(i,1:3);
-%     end
-%
-%     vec = sum(vec,1)/size(vec,1);
-%     rnnew(i,1:3) = rnnew(i,1:3)+vec;
-% end
