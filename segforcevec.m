@@ -151,25 +151,25 @@ else  %calculate force on segment specified by linkid
     fseg=[fpk, fpk]*0.5 + [fs0, fs1] + [fr0, fr1]; %sum force contributions
 
     %project forces on surface nodes into plane of surface
-    if rn(segments(linkid,1),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,1),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,1),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal,1);
-       fseg(1:3) = 2*(fseg(1:3)-planenormal*dot(fseg(1:3),planenormal));
-    elseif rn(segments(linkid,2),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,2),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,2),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal);
-       fseg(4:6) = 2*(fseg(4:6)-planenormal*dot(fseg(4:6),planenormal));
-    end
+%     if rn(segments(linkid,1),end)==6
+%        relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,1),:);
+%        relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,1),:);
+%        planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%        planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%        planenormal=[planenormal1;planenormal2];
+%        planenormal=sum(planenormal,1);
+%        planenormal=planenormal/norm(planenormal,1);
+%        fseg(1:3) = 2*(fseg(1:3)-planenormal*dot(fseg(1:3),planenormal));
+%     elseif rn(segments(linkid,2),end)==6
+%        relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,2),:);
+%        relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,2),:);
+%        planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%        planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%        planenormal=[planenormal1;planenormal2];
+%        planenormal=sum(planenormal,1);
+%        planenormal=planenormal/norm(planenormal);
+%        fseg(4:6) = 2*(fseg(4:6)-planenormal*dot(fseg(4:6),planenormal));
+%     end
 
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
