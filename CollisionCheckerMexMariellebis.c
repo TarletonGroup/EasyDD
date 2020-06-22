@@ -182,14 +182,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
             i=i+1;
             continue;
         }
-        // Bruce Bromage and Daniel Celis 22/06/2020.
-        // Node i is the hinge node. We only want to collide it if it is a junction. Else it gets
-        // remeshed by remesh all. This was causing problems by colliding and remeshing the same
-        // segment, thus undoing any changes and preventing the evolution of the network.
-        if ((int)round(connectivity[0][i] < 3)){
-            i = i + 1;
-            continue;
-        }
+        
         j=0;
         while (j<=(int)round(connectivity[0][i])-1 /*correct for matlab indexing*/){
             link_row = (int)round(connectivity[2*j+1][i])-1/*correct for matlab indexing*/;
