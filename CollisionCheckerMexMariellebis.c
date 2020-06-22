@@ -187,7 +187,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
         // remeshed by remesh all. This was causing problems by colliding and remeshing the same
         // segment, thus undoing any changes and preventing the evolution of the network.
         if ((int)round(connectivity[0][i] < 3)){
-            i = i + 1
+            i = i + 1;
             continue;
         }
         j=0;
