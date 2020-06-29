@@ -3,7 +3,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
                      n_nodes_t    , n_se          , n_dln      , idxf   ,...
                      idxi         , f_dln_node    , f_dln_se   , f_dln  ,...
                      mu, nu, a    , use_gpu       , n_threads  , para_scheme, ...
-                     eps)
+                     para_tol)
     %%===================================================================%%
     %---------------------------------------------------------------------%
     % Written by famed MATLAB hater and fan of compiled languages,
@@ -157,13 +157,14 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
             % Parallelise over dislocations.
             para_scheme = 1;
         end %if
+
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4),...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex_cuda(        ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2)   ,...
                                 se_node_coord (:, 1), se_node_coord (:, 2)   ,...
                                 se_node_coord (:, 3), se_node_coord (:, 4)   ,...
                                 burgers(:), mu, nu, a, n_se, n_dln, n_threads,...
-                                para_scheme, eps);
+                                para_scheme, para_tol);
     % Serial force calculation in C.
     elseif use_gpu == 0
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
@@ -171,14 +172,14 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
                                 dln_node_coord(:, 1), dln_node_coord(:, 2),...
                                 se_node_coord (:, 1), se_node_coord (:, 2),...
                                 se_node_coord (:, 3), se_node_coord (:, 4),...
-                                burgers(:), mu, nu, a, n_se, n_dln, eps);
+                                burgers(:), mu, nu, a, n_se, n_dln, para_tol);
     end %if
 
 %     f_dln_node(:, 1) = f_dln_se*0.25;
 %     f_dln_node(:, 2) = f_dln_se*0.25;
 %     f_dln_node(:, 3) = f_dln_se*0.25;
 %     f_dln_node(:, 4) = f_dln_se*0.25;
-    
+
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Loop through the number of nodes.
     k = 0;
@@ -202,6 +203,5 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
         k = k + 4;
     end %for
     clear tmp; clear tmp2; clear k;
-
 
 end % function
