@@ -19,14 +19,14 @@ for i=1:LINKMAX,
     bvec = links(i,3:5);
     normb=bvec/norm(bvec);
     plane_n = cross(lvec/norm(lvec),bvec/norm(bvec));
-    check1pos=norm(normb-[1 1 1]*(1/sqrt(3)));
-    check1neg=norm(normb+[1 1 1]*(1/sqrt(3)));
-    check2pos=norm(normb-[-1 1 1]*(1/sqrt(3)));
-    check2neg=norm(normb+[-1 1 1]*(1/sqrt(3)));
-    check3pos=norm(normb-[1 -1 1]*(1/sqrt(3)));
-    check3neg=norm(normb+[1 -1 1]*(1/sqrt(3)));
-    check4pos=norm(normb-[1 1 -1]*(1/sqrt(3)));
-    check4neg=norm(normb+[1 1 -1]*(1/sqrt(3)));
+    check1pos=norm(normb-[1 1 1]*0.5);
+    check1neg=norm(normb+[1 1 1]*0.5);
+    check2pos=norm(normb-[-1 1 1]*0.5);
+    check2neg=norm(normb+[-1 1 1]*0.5);
+    check3pos=norm(normb-[1 -1 1]*0.5);
+    check3neg=norm(normb+[1 -1 1]*0.5);
+    check4pos=norm(normb-[1 1 -1]*0.5);
+    check4neg=norm(normb+[1 1 -1]*0.5);
 %     if plane_n == [-1 0 1]/sqrt(2)
     r0 = rn(n0,1:3)*amag;
 %      if rn(n0,4)==0
@@ -77,12 +77,6 @@ side = vertices_scaled([3 7],:);
 plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
 side = vertices_scaled([4 8],:);
 plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
-
-
-
-
-
-
 
 % plot virtual segments
 % if isempty(virtual_seg)
