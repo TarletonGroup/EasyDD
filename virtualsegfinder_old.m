@@ -50,7 +50,6 @@ for i = 1:S
                 indexR2(row(j)) = 2; %surf node 1st col of links array
             end
         end
-
     end
 
 end
@@ -86,5 +85,4 @@ for i=1:SR
         end
     end
 end
-
 end
