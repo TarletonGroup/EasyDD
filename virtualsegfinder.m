@@ -25,18 +25,18 @@ index2(index_a==true) = 1;
 index2(index_b==true) = 2;
 indexR_a=(rn(links(:,1),end)==6 & rn(links(:,2),end)==0);  %finds links attaching surface nodes to real nodes
 indexR_b=(rn(links(:,2),end)==6 & rn(links(:,1),end)==0);
-indexR_c=(rn(links(:,1),end)==6 & rn(links(:,2),end)==7);
-indexR_d=(rn(links(:,2),end)==6 & rn(links(:,1),end)==7);
-indexR = (indexR_a | indexR_b | indexR_c | indexR_d);                            %index for said links
+indexR = (indexR_a | indexR_b);                            %index for said links
 indexR2 = zeros(Slinks,1);                                 %flags whether surface node is 1st or 2nd in links
-indexR2(indexR_a==true | indexR_c==true) = 1;
-indexR2(indexR_b==true | indexR_d==true) = 2;
+indexR2(indexR_a==true) = 1;
+indexR2(indexR_b==true) = 2;
+
 
 index2(index2==0) = [];                                    %removes zeros from index2 and indexR2
 indexR2(indexR2==0) = [];
 
 virtsegs=segments(index,:);                                %lists segments attached to surface nodes that are virtual
 realsegs=segments(indexR,:);                               %lists segments attached to surface nodes that are real
+
 SR = size(realsegs,1);                                     %number of real segments attached to surface nodes
 SV = size(virtsegs,1);                                     %number of virtual segments attached to surface nodes
 
