@@ -3,8 +3,17 @@ function [vn,fn] = mobbcc_bb(fseg,rn,links,connectivity,nodelist,conlist,pn_stre
 % pn_stress is the Peierls Nabarro stress for a given bcc material.
 global Bscrew Bedge Beclimb Bline
 
+if ~exists(var(pn_stress))
+    pn_stress = 0;
+end
 %numerical tolerance
 tol=1e-7;
+planelist=(1/sqrt(2))*[1 1 0;
+           1 0 1;
+           0 1 1;
+           1 -1 0;
+           1 0 -1;
+           0 1 -1];
 
 % length of the nodelist for which the velocity will be calculated
 L1=size(nodelist,1);
@@ -52,19 +61,55 @@ for n=1:L1
             check2=sum(abs(1-checkv(:)/2)<tol);
             check3=sum(abs(1-checkv(:)/3)<tol);
             linedir=rt./L;
-            checkmag=abs(1-mag);
+
+            checkmag=abs(sqrt(3)*0.5-mag);
              if check1==3 && checkmag<=eps || check1==2 && check2==1 && checkmag<=eps || check1==1 && check2==1 && check3==1 && checkmag<=eps
                 costh2=(linedir*burgv')^2/(burgv*burgv'); % (lhat.bhat)^2 = cos^2(theta)                                              % calculate how close to screw the link is
                 sinth2=1-costh2;
-                Btotal=Btotal+mag.*((0.5*L).*((Bscrew).*eye(3)+(Bline-Bscrew).*(linedir'*linedir)));           % build the drag matrix assuming that the dislocation is screw type
+%                 Btotal=Btotal+mag.*((0.5*L).*((Bscrew).*eye(3)+(Bline-Bscrew).*(linedir'*linedir)));           % build the drag matrix assuming that the dislocation is screw type
                 if sinth2 >tol % not pure screw segment
-                    ndir=cross(burgv,linedir)./sqrt((burgv*burgv')*sinth2);                                            % correct the drag matrix for dislocations that are not screw type
+                    dotprods=planelist*burgv'/mag;
+                    slipplanes=planelist(abs(dotprods)<eps,:);
+                    dotprods2=slipplanes*linedir';
+                    cosdev=dotprods2(abs(dotprods2)==min(abs(dotprods2)));
+                    if size(cosdev,1)>1
+                        cosdev=cosdev(1);
+                    end
+                    ndir=slipplanes(dotprods2==cosdev,:);
+                    if size(ndir,1)>1
+                        ndir=ndir(1,:);
+                    end
+%                     ndir=cross(burgv,linedir)./sqrt((burgv*burgv')*sinth2);                                            % correct the drag matrix for dislocations that are not screw type
                     mdir=cross(ndir,linedir);
+                    clinedir=cross(mdir,ndir);
+                    linecos2=(linedir*clinedir')^2;
+                    linesin2=1-linecos2;
                     %fprintf('ndir= %f %f %f \n',ndir(1),ndir(2),ndir(3));
                     %fprintf('mdir= %f %f %f \n',mdir(1),mdir(2),mdir(3));
                     Bglide=1 / sqrt( (1 / Bedge^2) * sinth2 + ( 1 / Bscrew^2 ) * costh2); % Eqn (112) from Arsenlis et al 2007 MSMSE 15 553
-                    Bclimb=sqrt( (Beclimb^2 ) * sinth2 + ( Bscrew^2 ) * costh2);
-                    Btotal=Btotal+mag.*((0.5*L).*(( Bglide - Bscrew ).* ( mdir' * mdir ) + ( Bclimb - Bscrew ) .* ( ndir' * ndir ) ));
+                    Bline2=sqrt((Beclimb)*linesin2+(Bline)*linecos2);
+%                     Bclimb=sqrt( (Beclimb^2 ) * sinth2 + ( Bscrew^2 ) * costh2);
+                    Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline2 ).*(clinedir'*clinedir) ));
+                else % pure screw segment
+                    if norm(fsegn0)>eps
+                        fnorm=fsegn0/norm(fsegn0);
+                        dotprods=planelist*burgv'/mag;
+                        slipplanes=planelist(abs(dotprods)==min(abs(dotprods)),:);
+                        dotprods2=slipplanes*fnorm';
+                        cosdev=dotprods2(abs(dotprods2)==min(abs(dotprods2)));
+                        if size(cosdev,1)>1
+                            cosdev=cosdev(1);
+                        end
+                        ndir=slipplanes(dotprods2==cosdev,:);
+                        if size(ndir,1)>1
+                            ndir=ndir(1,:);
+                            mdir=cross(ndir,linedir);
+                            Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline ).*(linedir'*linedir) ));
+                        else
+                            mdir=cross(ndir,linedir);
+                            Btotal=Btotal+mag.*((0.5*L).*(( Bscrew ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline ).*(linedir'*linedir) ));
+                        end
+                    end
                 end
              else
                  Btotal=Btotal+mag.*((0.5*L).*((Beclimb).*eye(3)+(Bline-Beclimb).*(linedir'*linedir)));
@@ -76,36 +121,19 @@ for n=1:L1
 %         fprintf('%f %f %f \n',Btotal(z,1),Btotal(z,2),Btotal(z,3));
 %     end
 %     fprintf('\n');
-    if rcond(Btotal)<tol
-
-        [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
-        evalmax=eval(1,1);
-        eval=eval./evalmax;
-        fvec=fn(n,:)'./evalmax;
-        for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
-            if eval(i,i)>tol
-                eval(i,i)=1/eval(i,i);
-            else
-                eval(i,i)=0.0d0;
-            end
-        end
-        vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity
+    if norm(Btotal)<eps
+        vn(n,:)=[0 0 0];
+    elseif rcond(Btotal)<1e-15
+        Btotal_temp=Btotal+1e-6*max(max(abs(Btotal)))*eye(3);
+        Btotal_temp2=Btotal-1e-6*max(max(abs(Btotal)))*eye(3);
+        vn_temp=(Btotal_temp\fn(n,:)')';
+        vn_temp2=(Btotal_temp2\fn(n,:)')';
+        vn(n,:)=0.5*(vn_temp+vn_temp2);
     else
         vn(n,:)=(Btotal\fn(n,:)')';                 % Btotal was wellconditioned so just take the inverse
     end
 
     if any(isnan(vn))
-        disp('YDFUS');
+        disp('YDFUS, see line 137 of mobbcc_bb');
     end
-
-%    if numNbrs==2
-%        ii=conlist(n,2);
-%        n1=links(connectivity(n0,2*ii),3-connectivity(n0,2*ii+1));
-%        ii=conlist(n,3);
-%        n2=links(connectivity(n0,2*ii),3-connectivity(n0,2*ii+1));
-%        rt=rn(n1,1:3)-rn(n2,1:3);
-%        L=norm(rt);
-%        linedir=rt./L;
-%        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
-%    end
 end
