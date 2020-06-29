@@ -100,7 +100,7 @@ function [labels, coords, n_se] = extract_surface_nodes(            ...
     % n_se := number of surface elements in the calculation.
     %
     %%===================================================================%%
-    
+
     %% Calculate face dimensions.
     xy = fem_dim(1)*fem_dim(2);
     xz = fem_dim(1)*fem_dim(3);
@@ -122,19 +122,19 @@ function [labels, coords, n_se] = extract_surface_nodes(            ...
         surf_node_util(1:6, 5) = [6, 5, 2, 1, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
         surf_node_util(1:6, 6) = [3, 4, 7, 8, xy, 3]; % max(z), xy-plane, face 6 ~Stop
     end %if
-    
+
     %% Calculate number of surface elements.
     n_se = 0;
     n_nodes_p1 = n_nodes + 1;
     for i = 1: size(fem_planes, 1)
         n_se = n_se + surf_node_util(n_nodes_p1, fem_planes(i));
-    end %for    
-    
+    end %for
+
     %% Extract relevant node planes in the correct order.
     [labels, coords] = extract_node_planes(                           ...
                             fem_nodes , fem_node_cnct, surf_node_util,...
                             fem_planes, n_se         , n_nodes);
-    
+
     %% Cleanup.
     if util_flag
         clear surf_node_util;
