@@ -10,7 +10,6 @@ nu = 0.29;
 %  |       |
 %  |       |
 %  x3------x4
-
 %%
 x3 = [-0.5E3 -0.5E3 0];
 x4 = [ 0.5E3 -0.5E3 0];
@@ -104,7 +103,7 @@ end %for
 % a   = 5*norm(b(1,:));
 % dim = size(x1i,1)*size(x1i,2);
 % dist = a + [0; 1E-1; 1E0; 1E1; 1E2; 1E3; 1E4; 1E5; 1E6; 1E7; 1E8; 1E9];
-% 
+%
 % save("spar_params.mat")
 % for i = 1: size(n_q)
 %     [q, w] = lgwt(n_q(i), -0.5E3, 0.5E3);
@@ -266,10 +265,9 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
 
      Lx = (x4(1)-x3(1));
      Ly = (x5(2)-x3(2));
-
      LxLy = Lx*Ly;
-     factor = 1/LxLy;
 
+     factor = 1/LxLy;
      fx1 = zeros(1,3);
      fx2 = zeros(1,3);
      fx3 = zeros(1,3);
@@ -277,7 +275,6 @@ function [fx1, fx2, fx3, fx4, ftot] = f_num(x1, x2, x3, x4, x5, x6, b, mu, nu, a
      ftot = zeros(1,3);
 
      n_q = size(quad, 1);
-
      for i = 1: n_q
          y  = quad(i, 1);
          wy = quad(i, 2);
@@ -365,5 +362,4 @@ x=(a*(1-y)+b*(1+y))/2;
 
 % Compute the weights
 w=(b-a)./((1-y.^2).*Lp.^2)*(N2/N1)^2;
-
 end
