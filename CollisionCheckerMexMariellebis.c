@@ -3,6 +3,9 @@
 #include <mex.h>
 #include <matrix.h>
 
+/* Old windows compilers do not have a round function. If this does not compile on your machine as
+a result of undefined round function, uncomment this section C-preprosessor function.
+*/
 /*#ifdef _WIN32
     // this function does rounding as MS visual studio can't do it!
     int round( double r ) {
@@ -11,6 +14,7 @@
 #endif
 */
 
+
 void MinDistCalc(double x0[3], double x1[3], double y0[3], double y1[3], double vx0[3], double vx1[3], double vy0[3], double vy1[3], double dist2[1], double ddist2dt[1], double L1[1], double L2[1]);
 
 /************************** MEX gateway function ***********************/
@@ -18,7 +22,6 @@ void MinDistCalc(double x0[3], double x1[3], double y0[3], double y1[3], double 
 void mexFunction(int nlhs, mxArray *plhs[],
                 int nrhs, const mxArray *prhs[])
 {
-
     /********* variable definitions *********/
     double *rn_x, *rn_y, *rn_z;
     double *v_x, *v_y, *v_z;
@@ -42,7 +45,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
     int connectivity_M, connectivity_N;
     double *floop;
     double * segpair;
-
     /********* MEX memory management *********/
     rn_x = (double *) mxGetPr(prhs[0]);
     rn_y = (double *) mxGetPr(prhs[1]);
@@ -55,10 +57,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
     links_c2 = (double *) mxGetPr(prhs[8]);
     connectivity_pointer = (double *) mxGetPr(prhs[9]);
     mindist = mxGetScalar(prhs[10]);
-
     rn_length = mxGetNumberOfElements(prhs[0]);
     links_length = mxGetNumberOfElements(prhs[7]);
-
     /*printf("links_length=%i \n",links_length);*/
     /*create 2D array for connectivity */
     connectivity_M = mxGetM(prhs[9]);
@@ -67,7 +67,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
     for (j=0;j<connectivity_N;j++){
         connectivity[j]=connectivity_pointer+connectivity_M*j;
     }
-
     /*printf("%i x %i \n",connectivity_M,connectivity_N);
     for (i=0;i<connectivity_M;i++){
         printf("\n");
@@ -75,7 +74,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
             printf("%f ",connectivity[j][i]);
         }
     }*/
-
     plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
     plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL);
     plhs[2] = mxCreateDoubleMatrix(1,1,mxREAL);
@@ -95,7 +93,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
     s1 = (double *) mxGetPr(plhs[6]);
     s2 = (double *) mxGetPr(plhs[7]);
     segpair = (double *) mxGetPr(plhs[8]);
-
 
     /********* collision checker routine *********/
     mindist2 = mindist*mindist;
@@ -120,11 +117,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
             n2s2_int = (int)round(links_c2[j])-1; /*correct for matlab indexing*/
             /*printf("n1s1=%i, n2s1=%i, n1s2=%i, n2s2=%i \n",n1s1_int,n2s1_int,n1s2_int,n2s2_int);*/
             if ((n1s1_int!=n1s2_int)&&(n1s1_int!=n2s2_int)&&(n2s1_int!=n1s2_int)&&(n2s1_int!=n2s2_int)){
-
                 /*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/
                 /*printf("n1s1=%i, n2s1=%i, n1s2=%i, n2s2=%i \n",n1s1_int,n2s1_int,n1s2_int,n2s2_int);*/
                 segpair[0]=segpair[0]+1;
-
                 x0[0] = rn_x[n1s1_int];
                 x0[1] = rn_y[n1s1_int];
                 x0[2] = rn_z[n1s1_int];
@@ -182,6 +177,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
             i=i+1;
             continue;
         }
+
         // Bruce Bromage and Daniel Celis 22/06/2020.
         // Node i is the hinge node. We only want to collide it if it is a junction. Else it gets
         // remeshed by remesh all. This was causing problems by colliding and remeshing the same
@@ -245,7 +241,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     vy1[2] = v_z[nodenoti];
 
                     MinDistCalc(x0,x1,y0,y1,vx0,vx1,vy0,vy1,dist2,ddist2dt,L1,L2);
-
                     logic=(dist2[0]<mindist2)&(ddist2dt[0]<-eps);
 
                     if (logic == 1){
@@ -256,6 +251,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
                         n2s2[0] = (double)(nodenoti+1); /*correct for matlab indexing*/
                         s1[0] = (double) linkid + 1;
                         s2[0] = (double) link_row + 1;
+
                         floop[0] = 2;
                         printf("Hinge condition found... Running collision correction");
                         /*remember to de-allocate 2D connectivity array*/
