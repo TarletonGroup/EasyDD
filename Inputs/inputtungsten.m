@@ -138,10 +138,10 @@ simTime = 0;
 %Integrator
 integrator='int_trapezoid'; 
 %integrator='int_trapezoid_stoc'; %in development
-a=lmin/sqrt(3)*0.5; 
+a=(lmin/sqrt(3)*0.5)/4; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 0.5*a; 
-rntol = 0.5*rann; % need to do convergence studies on all these parameters
+rann = 2*a; 
+rntol = 0.5*rann*100; % need to do convergence studies on all these parameters
 rmax = lmax;
 
 %Plotting

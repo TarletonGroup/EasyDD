@@ -57,21 +57,21 @@ NU = 0.28;
 %% DDLab PARAMETERS
 
 c=1/amag;
-x=0.5/(amag*sqrt(2));
-y=0.5/(amag*sqrt(6));
+x=0.5/(amag*sqrt(6));
+y=0.5/(amag*sqrt(3));
 
-rn=[         2*c   2.5*c+2*y           1.5*c   7;
-           2*c+x   2.5*c+2*y         1.5*c-x   0;
-         2*c+2*x   2.5*c+2*y       1.5*c-2*x   7;
-       2*c+2*x+y       2.5*c     1.5*c-2*x+y   0;
-     2*c+2*x+2*y   2.5*c-2*y   1.5*c-2*x+2*y   7;
-       2*c+x+2*y   2.5*c-2*y     1.5*c-x+2*y   0;
-         2*c+2*y   2.5*c-2*y       1.5*c+2*y   7;
-           2*c+y       2.5*c         1.5*c+y   0];
+rn=[         2*c   2.5*c+2*x-y           0.5*c   0;
+           2*c+x       2.5*c-y         0.5*c+x   0;
+         2*c+2*x   2.5*c-2*x-y       0.5*c+2*x   0;
+       2*c+2*x+y     2.5*c-2*x     0.5*c+2*x+y   0;
+     2*c+2*x+2*y   2.5*c-2*x+y   0.5*c+2*x+2*y   0;
+       2*c+x+2*y       2.5*c+y     0.5*c+x+2*y   0;
+         2*c+2*y   2.5*c+2*x+y       0.5*c+2*y   0;
+           2*c+y     2.5*c+2*x         0.5*c+y   0];
        
-b1=[1 1 1]/sqrt(3);
+b1=[-1 -1 -1]/sqrt(3);
 n1=[-1 0 1]/sqrt(2);
-n2=[1 -2 1]/sqrt(6);
+n2=[1 0 -1]/sqrt(2);
 
 links=[1 2   b1 n1;
        2 3   b1 n1;
@@ -94,7 +94,7 @@ links=[1 2   b1 n1;
 
 %%
 %Edge and screw glide and climb mobility parameters
-mobility='mobbcc_bb'; 
+mobility='mobbcc1'; 
 global Bscrew Bedge Beclimb Bline
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
@@ -102,13 +102,13 @@ global Bscrew Bedge Beclimb Bline
 %Bline=1e-4*min(Bscrew,Bedge);
 Bedge=1;
 Bscrew=100; 
-Beclimb=1e5;
+Beclimb=1e4;
 Bline=20e-4*min(Bscrew,Bedge);
 
 %Meshing
 maxconnections=4; 
 lmax =0.25/amag;
-lmin = 0.1/amag;
+lmin = 0.05/amag;
 areamin=lmin*lmin*sin(60/180*pi)*0.5; 
 areamax=20*areamin; 
 doremesh=1; %flat set to 0 or 1 that turns the remesh functions off or on
@@ -124,23 +124,23 @@ intSimTime = 0;
 %dtplot=2E-9; %2ns
 dtplot=5E4;
 doplot=1; % frame recording: 1 == on, 0 == off
-totalSimTime = 3.3608e12;
+totalSimTime = 1E7;
 curstep = 0;
 simTime = 0;
 
 %Integrator
-integrator='int_trapezoid_bb_old'; 
+integrator='int_trapezoid'; 
 %integrator='int_trapezoid_stoc'; %in development
-a=(lmin/sqrt(3)*0.5)/4; 
+a=lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 2*a; 
-rntol = 0.5*rann*100; % need to do convergence studies on all these parameters
-rmax = 0.5*lmin;
+rann = 0.5*a; 
+rntol = 0.5*rann; % need to do convergence studies on all these parameters
+rmax = lmax;
 
 %Plotting
-plotfreq=10; 
+plotfreq=5; 
 plim=12/amag; %12microns
 viewangle=[-35,15]; 
-printfreq=500; 
+printfreq=1; 
 printnode=2; 
 

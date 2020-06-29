@@ -6,7 +6,7 @@ function [rn,links,connectivity,linksinconnect,fseg]=remesh(rn,links,connectivit
 % do not change the order of these two subroutines
 [rn,links,connectivity,linksinconnect,fseg]=meshcoarsen(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamin,MU,NU,a,Ec,mobility,vertices,...
         uhat,nc,xnodes,D,mx,mz,w,h,d);
-[rn,links,connectivity,linksinconnect,fseg]=meshrefine(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamax,MU,NU,a,Ec,mobility,vertices,...
+[rn,links,connectivity,linksinconnect,fseg]=meshrefine(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamax,areamin,MU,NU,a,Ec,mobility,vertices,...
         uhat,nc,xnodes,D,mx,mz,w,h,d);
 
 function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=meshcoarsen(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamin,MU,NU,a,Ec,mobility,vertices,...
@@ -55,7 +55,11 @@ while i<=length(rnnew(:,1))
             darea2dt=darea2dt+s*(dsdt-dr1dt)*(s-r2)*(s-r3);
             darea2dt=darea2dt+s*(s-r1)*(dsdt-dr2dt)*(s-r3);
             darea2dt=darea2dt+s*(s-r1)*(s-r2)*(dsdt-dr3dt);
-            if ((area2<areamin2)&&(darea2dt<0.0d0))||((r1<lmin)||(r2<lmin))%remove single node critierion
+            v1=norm(vec1);
+            v2=norm(vec2);
+            vmag=max(v1,v2);
+            distcheck=norm(vmag*(vec1/v1-vec2/v2));
+            if ((area2<areamin2)&&(darea2dt<0.0d0))||((r1<lmin)||(r2<lmin))||(distcheck<2*a)%remove single node critierion
                 %the area is less than minimum and shrinking or one of the arms is less than lmin and shrinking
                 [rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,mergednodeid]=mergenodes(rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,link2_nodenoti,i,MU,NU,a,Ec);
                 if mergednodeid>0 %&& (rnnew(mergednodeid,end)==0)
@@ -86,7 +90,7 @@ while i<=length(rnnew(:,1))
 end %while loop
 
 
-function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=meshrefine(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamax,MU,NU,a,Ec,mobility,vertices,...
+function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=meshrefine(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamax,areamin,MU,NU,a,Ec,mobility,vertices,...
     uhat,nc,xnodes,D,mx,mz,w,h,d)
 [lrn, lrn2]=size(rn);
 lrn3=lrn2-1;
@@ -97,6 +101,8 @@ linksinconnectnew=linksinconnect;
 fsegnew=fseg;
 lmin2=2*lmin;
 areamax2=areamax*areamax;
+areamin2=areamin*areamin;
+F=(areamax-2*lmin*lmin)/(sqrt(4*lmin*lmin*lmin*lmin-areamin2));
 for i=1:lrn
     if (connectivitynew(i,1)==2) && (rnnew(i,end)==0)
         firstconnection=1;
@@ -117,7 +123,11 @@ for i=1:lrn
         r3=sqrt(vec3*vec3');
         s=0.5*(r1+r2+r3);
         area2=(s*(s-r1)*(s-r2)*(s-r3));
-        if (((area2>areamax2)&&(r2>=lmin2)&&(link2_nodenoti<=lrn))||(r2>lmax))
+        R1=norm(r1);
+        R2=norm(r2);
+        costheta=(r1/R1)*(r2/R2)';
+        acheck2=0.5*R1*R2*(1+F*costheta);
+        if (((area2>areamax2)&&(r2>=lmin2)&&(link2_nodenoti<=lrn)&&(costheta<=0))||((costheta>0)&&(r2>=lmin2)&&(link2_nodenoti<=lrn)&&(acheck2>areamax)&&(area2>areamin2))||(r2>lmax))
             %conditions necessary to bisect the second link are met 
             posvel=(rnnew(i,1:lrn3)+rnnew(link2_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,secondconnection,posvel);
@@ -139,7 +149,7 @@ for i=1:lrn
             clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
             [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
         end
-        if (((area2>areamax2)&&(r1>=lmin2)&&(link1_nodenoti<=lrn))||(r1>lmax))
+        if (((area2>areamax2)&&(r1>=lmin2)&&(link1_nodenoti<=lrn)&&(costheta<=0))||((costheta>0)&&(r1>=lmin2)&&(link1_nodenoti<=lrn)&&(acheck2>areamax)&&(area2>areamin2))||(r1>lmax))
             %conditions necessary to bisect the first link are met
             posvel=(rnnew(i,1:lrn3)+rnnew(link1_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,firstconnection,posvel);

@@ -24,7 +24,7 @@
 clear all
 %% SOURCE GENERATION PARAMETERS
 amag=3.18e-4; 
-mumag = 160E3; % MPa only used for plotting  
+mumag = 135E3; % MPa only used for plotting  
 
 CRYSTAL_STRUCTURE = 'bcc';
 NUM_SOURCES = 1;
@@ -33,9 +33,9 @@ DIST_SOURCE = 0.5/amag;
 %% FEM PARAMETERS
 %Cantilever
 
-dx=30/amag; %10micron
-dy=5/amag; %2micron
-dz=5/amag; %2micron
+dx=19.5/amag; %10micron
+dy=5.4/amag; %2micron
+dz=5.3/amag; %2micron
 
 mx=40; % number of elements along beam length
 loading=1; 
@@ -52,7 +52,7 @@ vertices = [0,0,0;...
 
 %MU = 160E9; %160GPa
 MU = 1;
-NU = 0.305; 
+NU = 0.28; 
 
 %% DDLab PARAMETERS
 
@@ -94,21 +94,21 @@ links=[1 2   b1 n1;
 
 %%
 %Edge and screw glide and climb mobility parameters
-mobility='mobbcc1'; 
+mobility='mobbcc_bb'; 
 global Bscrew Bedge Beclimb Bline
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
 %Beclimb=1e5; %Pa s - really big
 %Bline=1e-4*min(Bscrew,Bedge);
 Bedge=1;
-Bscrew=10; 
-Beclimb=1e10;
-Bline=1e-4*min(Bscrew,Bedge);
+Bscrew=100; 
+Beclimb=1e5;
+Bline=20e-4*min(Bscrew,Bedge);
 
 %Meshing
 maxconnections=4; 
 lmax =0.25/amag;
-lmin = 0.1/amag;
+lmin = 0.05/amag;
 areamin=lmin*lmin*sin(60/180*pi)*0.5; 
 areamax=20*areamin; 
 doremesh=1; %flat set to 0 or 1 that turns the remesh functions off or on
@@ -117,30 +117,30 @@ doseparation=1; %flat set to 0 or 1 that turns splitting algorithm for highly co
 dovirtmesh=1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
 
 %Simulation time
-dt0=1E5;
+dt0=2.048e9;
 
 intSimTime = 0;
-sinTime = 0;
+%sinTime = 0;
 %dtplot=2E-9; %2ns
 dtplot=5E4;
 doplot=1; % frame recording: 1 == on, 0 == off
-totalSimTime = 1E7;
+totalSimTime = 3.3608e12;
 curstep = 0;
 simTime = 0;
 
 %Integrator
-integrator='int_trapezoid'; 
+integrator='int_trapezoid_bb_old'; 
 %integrator='int_trapezoid_stoc'; %in development
-a=lmin/sqrt(3)*0.5; 
+a=(lmin/sqrt(3)*0.5)/4; 
 Ec = MU/(4*pi)*log(a/0.1); 
-rann = 0.5*a; 
-rntol = 0.5*rann; % need to do convergence studies on all these parameters
-rmax = lmax;
+rann = 2*a; 
+rntol = 0.5*rann*100; % need to do convergence studies on all these parameters
+rmax = 0.5*lmin;
 
 %Plotting
-plotfreq=5; 
+plotfreq=10; 
 plim=12/amag; %12microns
 viewangle=[-35,15]; 
-printfreq=1; 
+printfreq=500; 
 printnode=2; 
 

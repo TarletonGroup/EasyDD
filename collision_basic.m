@@ -1,7 +1,8 @@
-function [rn,links,connectivity,linksinconnect,fseg]=collision_basic(rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
+function [rn,links,connectivity,linksinconnect,fseg,colliding_segments]=collision_basic(rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
     uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,~)
 %floop to know wich loop has to be run 
 
+colliding_segments=1;
 mindist2=mindist*mindist;
 lrn2=length(rn(1,:));
 lrn3=lrn2-1; %lnr2-1 to count every column execpt the one with the flag
@@ -40,14 +41,25 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                 vec=rn(n1s1,1:3)-rn(n2s1,1:3);
                 close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
                 close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
+                small_link=((vec*vec')<(4*mindist2));
+                tiny_link=((vec*vec')<(mindist2));
                 % if collision point is close to one of the existing nodes use that node
-                if close_to_n1s1
+                if close_to_n1s1 && connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
                     mergenode1=n1s1;
-                elseif close_to_n2s1
+                elseif close_to_n2s1 && connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
                     mergenode1=n2s1;
+                elseif tiny_link
+                    fprintf('Error detected in collision_basic. See Line 52\n')
+                    pause
+%                     colliding_segments=0;
                 else
                     spnode=n1s1;
                     splitconnection=linksinconnect(s1,1); % linki=s1 M
+                    if close_to_n1s1
+                        L1=mindist/norm(vec);
+                    elseif close_to_n2s1
+                        L1=1-(mindist/norm(vec));
+                    end
                     posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode1=length(rn(:,1)); %nodeid of mergenode1 M
@@ -60,14 +72,25 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                 vec=rn(n1s2,1:3)-rn(n2s2,1:3);
                 close_to_n1s2=((L2*L2*(vec*vec'))<mindist2);
                 close_to_n2s2=(((1-L2)*(1-L2)*(vec*vec'))<mindist2);
+                small_link=((vec*vec')<(4*mindist2));
+                tiny_link=((vec*vec')<(mindist2));
                 % if collision point is close to one of the existing nodes use that node
-                if close_to_n1s2 
+                if close_to_n1s2 && connectivity(n1s2,1)<5 || connectivity(n2s2,1)<5 && small_link && ~tiny_link 
                     mergenode2=n1s2;
-                elseif close_to_n2s2
+                elseif close_to_n2s2 && connectivity(n2s2,1)<5 || connectivity(n1s2,1)<5 && small_link && ~tiny_link
                     mergenode2=n2s2;
+                elseif tiny_link
+                    fprintf('Error detected in collision_basic. See Line 83\n')
+                    pause
+%                     colliding_segments=0;
                 else
                     spnode=n1s2;
                     splitconnection=linksinconnect(s2,1); %linkj=s2 M
+                    if close_to_n1s2
+                        L2=mindist/norm(vec);
+                    elseif close_to_n2s2
+                        L2=1-(mindist/norm(vec));
+                    end
                     posvel=rn(n1s2,1:lrn3).*(1-L2)+rn(n2s2,1:lrn3).*L2;
                     [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
                     mergenode2=length(rn(:,1));
@@ -75,22 +98,24 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                     %links(linknew,6:8)=links(s2,6:8);
                     fseg=[fseg;zeros(1,6)];
                 end
-                % merge the two colliding nodes
-%                 disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
-                collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links);
-                rn(mergenode1,1:lrn2)=[collisionpoint 0 0 0 max(rn(mergenode1,lrn2),rn(mergenode2,lrn2)) ];
-                [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,mergenode1,mergenode2,MU,NU,a,Ec);
-                if mergednodeid>0
-                    for k=1:connectivity(mergednodeid,1)
-                        linkid=connectivity(mergednodeid,2*k);
-                        fseg(linkid,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-                        othernode=links(linkid,3-connectivity(mergednodeid,2*k+1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M 
-                        clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
-                        [rn(othernode,4:6),~]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
+                if colliding_segments==1
+                    % merge the two colliding nodes
+                    %                 disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
+                    collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity,links);
+                    rn(mergenode1,1:lrn2)=[collisionpoint 0 0 0 max(rn(mergenode1,lrn2),rn(mergenode2,lrn2)) ];
+                    [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,mergenode1,mergenode2,MU,NU,a,Ec);
+                    if mergednodeid>0
+                        for k=1:connectivity(mergednodeid,1)
+                            linkid=connectivity(mergednodeid,2*k);
+                            fseg(linkid,:)=segforcevec(MU,NU,a,Ec,rn(:,[1 2 3 lrn2]),links,linkid,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+                            othernode=links(linkid,3-connectivity(mergednodeid,2*k+1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M
+                            clist=[connectivity(othernode,1) linspace(1,connectivity(othernode,1),connectivity(othernode,1))];
+                            [rn(othernode,4:6),~]=feval(mobility,fseg,rn,links,connectivity,othernode,clist);
+                        end
+                        numbcon=connectivity(mergednodeid,1);
+                        conlist=[numbcon linspace(1,numbcon,numbcon)];
+                        [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                     end
-                    numbcon=connectivity(mergednodeid,1);
-                    conlist=[numbcon linspace(1,numbcon,numbcon)];
-                    [rn(mergednodeid,4:6),~]=feval(mobility,fseg,rn,links,connectivity,mergednodeid,conlist);
                 end
             end  
 else

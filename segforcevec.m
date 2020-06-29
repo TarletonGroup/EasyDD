@@ -19,8 +19,8 @@ end
 segments=constructsegmentlist(rn,links);
 
 %find segments that are virtual with a surface node.
-[virtindex,~,realindex,realID,~] = virtualsegfinder(rn,links,segments);
-virtsegs = segments(virtindex,:);
+% [virtindex,~,~,~,~] = virtualsegfinder(rn,links,segments);
+% virtsegs = segments(virtindex,:);
 
 S=size(segments,1);
 %get only "real" segments, not virtual ones.
@@ -33,7 +33,7 @@ end
 segments = segments(index,:);
 
 if any(any(isnan(segments)))
-    disp('YDFUS')
+    disp('YDFUS. See segforcevec line 36')
 end
 
 if linkid==0 %calculate forces on all segments
@@ -91,25 +91,27 @@ if linkid==0 %calculate forces on all segments
     
     fseg=[fpk, fpk]*0.5+[fs0, fs1]+[fr0, fr1];   %combine all force contributions
     
-    if ~isempty(virtsegs) 
-        %project forces on surface nodes into the plane of the surface
-        realtosurfsegs=find(realindex==1);
-        for i=1:length(realtosurfsegs)
-            realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
-            relevantsegs1=virtsegs(virtsegs(:,1)==segments(realtosurfsegs(i),realID(i)),:);
-            relevantsegs2=virtsegs(virtsegs(:,2)==segments(realtosurfsegs(i),realID(i)),:);
-            planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-            planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-            planenormal=[planenormal1;planenormal2];
-            planenormal=sum(planenormal,1);
-            planenormal=planenormal/norm(planenormal);
-            if realID(i) == 1 %surface node is in first column of links entry
-                fseg(realtosurfsegs(i),1:3) = 2*(fseg(realtosurfsegs(i),1:3)-planenormal*dot(fseg(realtosurfsegs(i),1:3),planenormal)); 
-            else %surface node is in second column of links entry
-                fseg(realtosurfsegs(i),4:6) = 2*(fseg(realtosurfsegs(i),4:6)-planenormal*dot(fseg(realtosurfsegs(i),4:6),planenormal));
-            end   
-        end
-    end
+%     if ~isempty(virtsegs) 
+%         %project forces on surface nodes into the plane of the surface
+%         realtosurfsegs=find(realindex==1);
+%         for i=1:length(realtosurfsegs)
+%             realtosurfsegs(i) = sum(index(1:realtosurfsegs(i))); %update for local indexing
+%             relevantsegs1=virtsegs(virtsegs(:,1)==segments(realtosurfsegs(i),realID(i)),:);  %find all virtual segments connecting to the surface at relevant surface node
+%             relevantsegs2=virtsegs(virtsegs(:,2)==segments(realtosurfsegs(i),realID(i)),:);
+%             planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%             planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%             planenormal=[planenormal1;planenormal2];   %find the mean direction of all virtual segments
+%             planenormal=sum(planenormal,1);
+% %             planenormal=planenormal/norm(planenormal);
+%             planenormal(abs(planenormal)~=max(abs(planenormal)))=0;  %convert mean direction into closeset surface normal (needs to be changed for non-cuboid)
+%             planenormal(abs(planenormal)==max(abs(planenormal)))=1;
+%             if realID(i) == 1 %surface node is in first column of links entry
+%                 fseg(realtosurfsegs(i),1:3) = 2*(fseg(realtosurfsegs(i),1:3)-planenormal*dot(fseg(realtosurfsegs(i),1:3),planenormal)); 
+%             else %surface node is in second column of links entry
+%                 fseg(realtosurfsegs(i),4:6) = 2*(fseg(realtosurfsegs(i),4:6)-planenormal*dot(fseg(realtosurfsegs(i),4:6),planenormal));
+%             end   
+%         end
+%     end
     
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
@@ -127,7 +129,7 @@ if linkid==0 %calculate forces on all segments
 else  %calculate force on segment specified by linkid
     
     %update linkid based on "real" index, rather than global indexing.
-    if sum(index(1:linkid))==0
+    if index(linkid)==0
         fseg_tot=[0, 0, 0, 0, 0, 0]; %remesh.m wants to access virtual seg
         return;
     else
@@ -151,25 +153,29 @@ else  %calculate force on segment specified by linkid
     fseg=[fpk, fpk]*0.5 + [fs0, fs1] + [fr0, fr1]; %sum force contributions
     
     %project forces on surface nodes into plane of surface
-    if rn(segments(linkid,1),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,1),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,1),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal,1);
-       fseg(1:3) = 2*(fseg(1:3)-planenormal*dot(fseg(1:3),planenormal));
-    elseif rn(segments(linkid,2),end)==6
-       relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,2),:);
-       relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,2),:);
-       planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
-       planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
-       planenormal=[planenormal1;planenormal2];
-       planenormal=sum(planenormal,1);
-       planenormal=planenormal/norm(planenormal);
-       fseg(4:6) = 2*(fseg(4:6)-planenormal*dot(fseg(4:6),planenormal));
-    end
+%     if rn(segments(linkid,1),end)==6
+%        relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,1),:);
+%        relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,1),:);
+%        planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%        planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%        planenormal=[planenormal1;planenormal2];
+%        planenormal=sum(planenormal,1);
+% %        planenormal=planenormal/norm(planenormal,1);
+%        planenormal(abs(planenormal)~=max(abs(planenormal)))=0;  %convert mean direction into closeset surface normal (needs to be changed for non-cuboid)
+%        planenormal(abs(planenormal)==max(abs(planenormal)))=1;
+%        fseg(1:3) = 2*(fseg(1:3)-planenormal*dot(fseg(1:3),planenormal));
+%     elseif rn(segments(linkid,2),end)==6
+%        relevantsegs1=virtsegs(virtsegs(:,1)==segments(linkid,2),:);
+%        relevantsegs2=virtsegs(virtsegs(:,2)==segments(linkid,2),:);
+%        planenormal1=relevantsegs1(:,9:11)-relevantsegs1(:,6:8);
+%        planenormal2=relevantsegs2(:,6:8)-relevantsegs2(:,9:11);
+%        planenormal=[planenormal1;planenormal2];
+%        planenormal=sum(planenormal,1);
+% %        planenormal=planenormal/norm(planenormal);
+%        planenormal(abs(planenormal)~=max(abs(planenormal)))=0;  %convert mean direction into closeset surface normal (needs to be changed for non-cuboid)
+%        planenormal(abs(planenormal)==max(abs(planenormal)))=1;
+%        fseg(4:6) = 2*(fseg(4:6)-planenormal*dot(fseg(4:6),planenormal));
+%     end
     
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes

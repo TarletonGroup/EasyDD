@@ -1,6 +1,6 @@
-function [vn,fn] = mobbcc_bb(fseg,rn,links,connectivity,nodelist,conlist)
+function [vn,fn] = mobbcc_bb1b(fseg,rn,links,connectivity,nodelist,conlist)
 %mobility law function (model: BCC0)
-global Bscrew Bedge Beclimb Bline
+global Bscrew Bedge Beclimb
 
 %numerical tolerance
 tol=1e-7;
@@ -40,11 +40,14 @@ for n=1:L1
         linkid=connectivity(n0,2*ii);
         posinlink=connectivity(n0,2*ii+1);
         n1=links(linkid,3-posinlink);
+        if rn(n1,end)==67
+            continue
+        end
         rt=rn(n1,1:3)-rn(n0,1:3);                                                          % calculate the length of the link and its tangent line direction
         L=norm(rt);
         %fprintf('ii=%i, linkid=%i, n0=%i, n1=%i, L=%f \n',ii,linkid,n0,n1,L);
         if L>0.0
-            fsegn0=fseg(linkid,3*(posinlink-1)+[1:3]);
+            fsegn0=fseg(linkid,3*(posinlink-1)+(1:3));
 %             if norm(fsegn0)/L<0.0015
 %                 fsegn0=[0,0,0];
 %             end
@@ -82,7 +85,9 @@ for n=1:L1
                     %fprintf('ndir= %f %f %f \n',ndir(1),ndir(2),ndir(3));
                     %fprintf('mdir= %f %f %f \n',mdir(1),mdir(2),mdir(3));
                     Bglide=1 / sqrt( (1 / Bedge^2) * sinth2 + ( 1 / Bscrew^2 ) * costh2); % Eqn (112) from Arsenlis et al 2007 MSMSE 15 553
-                    Bline2=sqrt((Beclimb)*linesin2+(Bline)*linecos2);
+                    Bglide=1 / sqrt( (1/Beclimb^2)*linesin2 + ( 1 / Bglide^2 )*linecos2);
+                    Bline2=1 / sqrt( (1 / Bscrew^2) * sinth2 + ( 1 / Bedge^2 ) * costh2);
+                    Bline2=1 / sqrt( (1 /Beclimb^2)*linesin2 + ( 1 /Bline2^2 )*linecos2);
 %                     Bclimb=sqrt( (Beclimb^2 ) * sinth2 + ( Bscrew^2 ) * costh2);
                     Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline2 ).*(clinedir'*clinedir) ));
                 else % pure screw segment
@@ -99,16 +104,19 @@ for n=1:L1
                         if size(ndir,1)>1
                             ndir=ndir(1,:);
                             mdir=cross(ndir,linedir);
-                            Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline ).*(linedir'*linedir) ));
+                            Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         else
                             mdir=cross(ndir,linedir);
-                            Btotal=Btotal+mag.*((0.5*L).*(( Bscrew ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bline ).*(linedir'*linedir) ));
+                            Btotal=Btotal+mag.*((0.5*L).*(( Bscrew ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         end
                     end
                         
                 end
              else
-                 Btotal=Btotal+mag.*((0.5*L).*((Beclimb).*eye(3)+(Bline-Beclimb).*(linedir'*linedir)));
+                 costh2=(linedir*burgv')^2/(burgv*burgv'); % (lhat.bhat)^2 = cos^2(theta)                                              % calculate how close to screw the link is
+                 sinth2=1-costh2;
+                 Bline2=1 / sqrt( (1 / Bscrew^2) * sinth2 + ( 1 / Bedge^2 ) * costh2); % Adapted from Eqn (112) from Arsenlis et al 2007 MSMSE 15 553
+                 Btotal=Btotal+mag.*((0.5*L).*((Beclimb).*eye(3)+(Bline2-Beclimb).*(linedir'*linedir)));
             end
         end
     end

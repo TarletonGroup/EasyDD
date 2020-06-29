@@ -1,13 +1,15 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Francesco Ferroni
-% Defects Group / Materials for Fusion and Fission Power Group
+% Bruce Bromage
+% Oxford Micromechanics Group
 % Department of Materials, University of Oxford
-% francesco.ferroni@materials.ox.ac.uk
-% January 2014
+% bruce.bromage@materials.ox.ac.uk
+% December 2019
 %
 % Flags:
-% 7 = fixed / no burger's vector conservation (anywhere valid)
-% 6 = on free surface (z=0)
+% 0 = free moving internal node
+% 7 = fixed internal node (no burger's vector conservation)
+% 6 = on free surface
+% 65 = exited node that requires remeshing
 % 67 = outside of domain, fixed.
 %
 % inhull function - checks whether node is inside or outside (convex!)
@@ -17,8 +19,8 @@
 % flags, always use rn(:,end) or rnnew(:,end).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [rnnew,linksnew,connectivitynew,linksinconnectnew]=...
-    remesh_surf(rnnew,linksnew,connectivitynew,linksinconnectnew,vertices,P,fn)
+function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+    remesh_surf(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,vertices,P,fn)
 
 % Beginning of surface remeshing for surface nodes. %%%%%%%%%%%%%%%%%%%%
 % Flag all nodes outside of medium.
@@ -57,6 +59,7 @@ for n=1:L1
        rnnew(n,1:3)=rnnew(n,1:3)-vec;
        rnnew(n,end)=7;
        if any(isnan(rnnew(n,1:3)))
+           fprintf('Error fixing node to back end. See remesh_surf line 62')
            pause;
        end
    end
@@ -66,8 +69,8 @@ end
 for n=1:L1
     n0=nodelist(n); % the node id which is currently considered.
     
-    % Find outside nodes connected with inside node with flag 0
-    if rnnew(n0,end)==0
+    % Find outside nodes connected with inside node with flag 0 or 7
+    if rnnew(n0,end)==0 || rnnew(n0,end)==7
         
 
         numNbrs=conlist(n,1); % the number of neighbor nodes
@@ -80,7 +83,7 @@ for n=1:L1
             n1=linksnew(linkid,3-posinlink); % the neighbor node id
             
             if rnnew(n1,end)==65
-                [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,n0,n1,i,ii,vertices);
+                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,i,ii,vertices);
             end
         end
     end
@@ -94,6 +97,9 @@ for i=1:rn_size
     if rnnew(i,end) ~= 65
         continue;
     end
+    
+    %move exited node back onto surface
+    [rnnew] = movetosurf(rnnew,linksnew,i,vertices);
     
     %estimate surface centroid nearest to point
     [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
@@ -113,8 +119,36 @@ for i=1:rn_size
     
 end
 
+%find connected surface nodes and merge them
+i=1;
+while i<size(rnnew,1)
+    if rnnew(i,end)~=6
+        i=i+1;
+        continue
+    end
+    check=0;
+    numcon=connectivitynew(i,1);
+    for j=1:numcon
+        connode=linksnew(connectivitynew(i,2*j),3-connectivitynew(i,2*j+1));
+        if rnnew(connode,end)==6
+            [rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,~]=mergenodes(rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,connode,i,1,1,1,1);
+%             if nodeid~=0
+%                 [rnnew] = movetosurf(rnnew,linksnew,nodeid,vertices);
+%             end
+            i=1;
+            check=1;
+            break
+        end
+    end
+    if check==1
+        continue
+    end
+    i=i+1;
+end
+
 %find surface nodes connected only with virtual nodes and repair them
 %accordingly
+L1=size(rnnew,1);
 for i=1:L1 %length(rnnew)  ET updated- check!
     if rnnew(i,end)~=6
         continue;
@@ -122,11 +156,11 @@ for i=1:L1 %length(rnnew)  ET updated- check!
     test=0;
     for j=1:connectivitynew(i,1)
         %estimate surface centroid nearest to point
-        if Index(i) == 0 || isnan(Index(i)) %update
+        if length(Index)<i || Index(i) == 0 || isnan(Index(i))  %update
             [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
             Index(i)=index;
         end
-        if rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==0 %if the surface node is not connected to a virtual node : break M
+        if rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==0 || rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==7 %if the surface node is not connected to a virtual node : break M
             break;
 %         elseif dot(fn(Index(i),:),rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),1:3)-rnnew(i,1:3))<0
 %             [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,i,linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),j,j,vertices);
@@ -140,6 +174,47 @@ for i=1:L1 %length(rnnew)  ET updated- check!
         rnnew = extend(rnnew,linksnew,i,index,fn);
     end
 end
+
+i=1; %ensure surface nodes only connect to one virtual node
+while i<size(rnnew,1)
+    if rnnew(i,end)~=6
+       i=i+1;
+       continue
+    end
+    if connectivitynew(i,1)<=2
+       i=i+1;
+       continue
+    end
+    for j=1:connectivitynew(i,1)-1
+        nid1=linksnew(connectivitynew(i,2*j),3-connectivitynew(i,2*j+1));
+        if rnnew(nid1,end)~=67
+           continue 
+        end
+        for k=j+1:connectivitynew(i,1)
+            nid2=linksnew(connectivitynew(i,2*k),3-connectivitynew(i,2*k+1));
+            if rnnew(nid2,end)~=67
+                continue
+            end
+            [rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,~]=mergenodes(rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,nid2,nid1,1,1,1,1);
+            i=1;
+            break
+        end
+        break
+    end
+    i=i+1;
+end
+
+for i=1:size(rnnew,1) %create surface nodes where necessary
+    if rnnew(i,end)==67
+       for j=1:connectivitynew(i,1)
+          con_id=linksnew(connectivitynew(i,2*j),3-connectivitynew(i,2*j+1));
+          if rnnew(con_id,end)==0 || rnnew(con_id,end)==7
+              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,con_id,i,connectivitynew(i,1),j,vertices);
+          end
+       end
+    end
+end
+
 
 %plotting (debug)
 %trisurf(tri, Xb(:,1), Xb(:,2), Xb(:,3), 'FaceColor', 'cyan','FaceAlpha', 0.5);
@@ -157,7 +232,7 @@ else
 end
 end
 
-function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
+function rnnew = extend(rnnew,~,rn_id,plane_id,fn)
     %% Option (1) extend using burgers vector
 %     %Has issues with screw segments
 %     %extend point to "infinity", or far away, along Burgers vector of segment.
@@ -291,66 +366,66 @@ function rnnew = extend(rnnew,linksnew,rn_id,plane_id,fn)
     rnnew(rn_id,end) = 67;   %flag node as virtual
 end
 
-function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,n0,n1,i,ii)
-rt=rnnew(n1,1:3)-rnnew(n0,1:3); % calculate the length of the link and its tangent line direction
-                Lni = norm(rt);
-                if Lni>0
-                    rt = rt/Lni;
-                elseif Lni<=0
-                    disp('Zero length segment on the surface during remesh!');
-                    pause;
-                end
-                
-                %For segments constituted by a virtual and a real node, find
-                %intersection point of segment with surface plane.
-                plane_id = 0;
-                if size(Index,1)>=n1
-                plane_id = Index(n1);
-                end
-                if plane_id == 0 || isempty(plane_id) %update id
-                    [~,plane_id] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
-                end
-                plane_point = P(plane_id,:);
-                plane_normal = fn(plane_id,:);
-                sI = dot( plane_normal , (plane_point - rnnew(n0,1:3)) ) / ...
-                    dot( plane_normal , (rnnew(n1,1:3) - rnnew(n0,1:3)) );  %sI is a ratio of sclar product M 
-                if sI < 0 || sI > 1
-                    disp('Split segment does not intersect plane!');
-                end
-                newsurfNode = rnnew(n0,1:3) + rt*Lni*sI;
-                
-                % Split only the flag 0 node connected with the flag 6 node.
-                % The velocity of flag 6 node is given to the new node to
-                % compute new glide planes of new links in splitnode().
-                [rn_size1,rn_size2] = size(rnnew);
-                if rn_size2 == 4 %Pre-force evaluation, rn nx3, [rn flag]
-                    %splitnode accepts only nx6, so add dummy velocities and then
-                    %delete them. Avoids re-writing splitnode.
-                    dummy_vel = zeros(rn_size1,3);
-                    dummy_rn = [rnnew(:,1:3) , dummy_vel , rnnew(:,end)];
-                    vntemp = dummy_rn(n1,4:6);
-                    posvel = [newsurfNode, vntemp];
-                    [dummy_rn,linksnew,connectivitynew,linksinconnectnew]=splitnode(dummy_rn,linksnew,connectivitynew,linksinconnectnew,n0,ii,posvel);
-                    dummy_rn(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
-                    rnnew = dummy_rn(:,[1:3 end]);
-                    linksnew(end,6:8)=linksnew(connectivitynew(n0,2),6:8);
-                else %Post-force evaluation, rnnew nx6, [rn vel flag]
-                    vntemp = rnnew(n1,4:6);
-                    posvel = [newsurfNode, vntemp];
-                    [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,n0,ii,posvel);
-                    rnnew(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
-                    %testing beta
-                    linksnew(end,6:8)=linksnew(n0,6:8);
-                end
-
-end
-function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,n0,n1,i,ii,vertices)
-   faces = [1,2,3,4;                                             %Faces of cuboid as defined by vertices
-            1,2,5,6;
-            1,3,5,7;
-            2,4,6,8;
-            3,4,7,8;
-            5,6,7,8];
+% function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,n0,n1,i,ii)
+% rt=rnnew(n1,1:3)-rnnew(n0,1:3); % calculate the length of the link and its tangent line direction
+%                 Lni = norm(rt);
+%                 if Lni>0
+%                     rt = rt/Lni;
+%                 elseif Lni<=0
+%                     disp('Zero length segment on the surface during remesh!');
+%                     pause;
+%                 end
+%                 
+%                 %For segments constituted by a virtual and a real node, find
+%                 %intersection point of segment with surface plane.
+%                 plane_id = 0;
+%                 if size(Index,1)>=n1
+%                 plane_id = Index(n1);
+%                 end
+%                 if plane_id == 0 || isempty(plane_id) %update id
+%                     [~,plane_id] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
+%                 end
+%                 plane_point = P(plane_id,:);
+%                 plane_normal = fn(plane_id,:);
+%                 sI = dot( plane_normal , (plane_point - rnnew(n0,1:3)) ) / ...
+%                     dot( plane_normal , (rnnew(n1,1:3) - rnnew(n0,1:3)) );  %sI is a ratio of sclar product M 
+%                 if sI < 0 || sI > 1
+%                     disp('Split segment does not intersect plane!');
+%                 end
+%                 newsurfNode = rnnew(n0,1:3) + rt*Lni*sI;
+%                 
+%                 % Split only the flag 0 node connected with the flag 6 node.
+%                 % The velocity of flag 6 node is given to the new node to
+%                 % compute new glide planes of new links in splitnode().
+%                 [rn_size1,rn_size2] = size(rnnew);
+%                 if rn_size2 == 4 %Pre-force evaluation, rn nx3, [rn flag]
+%                     %splitnode accepts only nx6, so add dummy velocities and then
+%                     %delete them. Avoids re-writing splitnode.
+%                     dummy_vel = zeros(rn_size1,3);
+%                     dummy_rn = [rnnew(:,1:3) , dummy_vel , rnnew(:,end)];
+%                     vntemp = dummy_rn(n1,4:6);
+%                     posvel = [newsurfNode, vntemp];
+%                     [dummy_rn,linksnew,connectivitynew,linksinconnectnew]=splitnode(dummy_rn,linksnew,connectivitynew,linksinconnectnew,n0,ii,posvel);
+%                     dummy_rn(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
+%                     rnnew = dummy_rn(:,[1:3 end]);
+%                     linksnew(end,6:8)=linksnew(connectivitynew(n0,2),6:8);
+%                 else %Post-force evaluation, rnnew nx6, [rn vel flag]
+%                     vntemp = rnnew(n1,4:6);
+%                     posvel = [newsurfNode, vntemp];
+%                     [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,n0,ii,posvel);
+%                     rnnew(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
+%                     %testing beta
+%                     linksnew(end,6:8)=linksnew(n0,6:8);
+%                 end
+% 
+% end
+function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(~,~,~,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,~,ii,vertices)
+   faces = [1,2,4,3;                                             %Faces of cuboid as defined by vertices with normals pointing outwards
+            2,1,5,6;
+            1,3,7,5;
+            2,4,8,6;
+            3,4,8,7;
+            6,5,7,8];
    rt = rnnew(n1,1:3)-rnnew(n0,1:3);
    line = [rnnew(n1,1:3),rt];
    surfpts = intersectLineMesh3d(line, vertices, faces);
@@ -374,6 +449,7 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index
                     dummy_rn(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
                     rnnew = dummy_rn(:,[1:3 end]);
                     linksnew(end,6:8)=linksnew(connectivitynew(n0,2*ii),6:8);
+                    fsegnew(end+1,:)=[0 0 0 0 0 0];
                 else %Post-force evaluation, rnnew nx6, [rn vel flag]
                     vntemp = rnnew(n1,4:6);
                     posvel = [newsurfNode, vntemp];
@@ -381,34 +457,45 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index
                     rnnew(end,end) = 6; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
                     %testing beta
                     linksnew(end,6:8)=linksnew(connectivitynew(n0,2*ii),6:8);
+                    fsegnew(end+1,:)=[0 0 0 0 0 0];
                 end
              end
 end
 
-function [rnnew] = movetosurf(rnnew,linksnew,i,vertices)
-%     faces = [1,2,3,4;                                             %Faces of cuboid as defined by vertices
-%              1,2,5,6;
-%              1,3,5,7;
-%              2,4,6,8;
-%              3,4,7,8;
-%              5,6,7,8];
+function [rnnew] = movetosurf(rnnew,~,i,vertices)
+    faces = [1,2,4,3;                                             %Faces of cuboid as defined by vertices
+             2,1,5,6;
+             1,3,7,5;
+             2,4,8,6;
+             3,4,8,7;
+             6,5,7,8];
+%     connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,end]);rnnew(linksnew(linksnew(:,2)==i,1),[1:3,end])];
+%     connodes = connodes(connodes(:,4)==67,1:3);
+%     reps=ones(size(connodes,1),3);
+%     reps=rnnew(i,1:3).*reps;
+%     vec=connodes-reps;
+%     vec = sum(vec,1);
+%     vec=vec/norm(vec);
+%     vec(abs(vec)~=max(abs(vec)))=0;  %convert mean direction into closeset surface normal (needs to be changed for non-cuboid)
+%     vec(abs(vec)==max(abs(vec)))=1;
 %     
 %     vec = [rnnew(linksnew(linksnew(:,1)==i,2),1:3)-rnnew(i,1:3);rnnew(linksnew(linksnew(:,2)==i,1),1:3)-rnnew(i,1:3)];
 %     vec = sum(vec,1)/size(vec,1);
-%     line = [rnnew(i,1:3),vec];
-%     surfpts = intersectLineMesh3d(line, vertices, faces);
-%     [~,point_id] = min((surfpts(:,1)-rnnew(i,1)).^2+(surfpts(:,2)-rnnew(i,2)).^2+(surfpts(:,3)-rnnew(i,3)).^2);
-%     newsurfNode = surfpts(point_id,:);
-%     rnnew(i,1:3) = newsurfNode;
-    connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,5]);rnnew(linksnew(linksnew(:,2)==i,1),[1:3,5])];
-    connodes = connodes(connodes(:,4)~=67,1:3);
-    vec=zeros(size(connodes,1),size(connodes,2));
-    
-    for j=1:size(connodes,1)
-       vec(j,1:3)=connodes(j,1:3)-rnnew(i,1:3); 
+    vec = rnnew(i,4:6);
+    if norm(vec)< eps
+        fprintf('Error moving exited node back to surface. See movetosurf in remesh_surf')
+        pause
     end
-    
-    vec = sum(vec,1)/size(vec,1);
-    rnnew(i,1:3) = rnnew(i,1:3)+vec;
+    vec=vec/norm(vec);
+    line = [rnnew(i,1:3),vec];
+    surfpts = intersectLineMesh3d(line, vertices, faces);
+    [~,point_id] = min((surfpts(:,1)-rnnew(i,1)).^2+(surfpts(:,2)-rnnew(i,2)).^2+(surfpts(:,3)-rnnew(i,3)).^2);
+    newsurfNode = surfpts(point_id,:);
+    if isempty(newsurfNode)
+        rnnew(i,end) = 0;
+    else
+        rnnew(i,1:3) = newsurfNode;
+    end
+%     rnnew(i,1:3) = rnnew(i,1:3)+vec;
     
 end

@@ -1,29 +1,40 @@
-function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,utilda_0)
+function [uhat,Ftop,Uend] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+    Stop,gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,curstep,mx,my,mz,unfixedDofs,Kred,Lred,Ured,utilda_0)
     
 %Coupling of FEM and DDD
 % u = uhat + utilda
 % f = fhat + ftilda
-
+global mumag
 segments = constructsegmentlist(rn,links);
 
 % Udot = 1E3*dx*(1E-4/160E9); %test by BB
-Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
+%Udot = (1/2048)*1000000*1E3*dx*(1E-4/160E9); %for tungsten...
 % Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle 
-% Udot = dx*1e-5; %HY
+ %Udot = dx*1e-10; %HY
+% Fdot = -600/mumag*1e-3;
+% t= 2*10^1*1e3* t*(1/mumag); % B=10^3 Pa.s
+% 
+% 
+% Fbar = Fdot*t;
+ Fbar = -200/mumag*dx*dy/size(Stop,1)/100*curstep;
 
-Ubar = Udot*t;
+fbar=zeros(3*(mno),1);
+fbar(Stop(:,1)*3) = Fbar;
+Ftop = sum(fbar(Stop(:,1)*3));
+
+
+%Ubar = Udot*t;
 %Ubar = 0.1*1E4; for debuggin
 u=zeros(3*(mno),1);
 gamma=[gammau;gammaMixed];
 
-u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
+%u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes  
 
 uhat=zeros(3*mno,1);
 utilda=zeros(3*mno,1); 
 
 gn = gamma(:,1); % global node number
-% x0 = xnodes(gn,1:3); % field point
+x0 = xnodes(gn,1:3); % field point
 % point_array_length = size(x0,1);
 % segments_array_length = size(segments,1);
 
@@ -67,21 +78,31 @@ gamma=[gammat;gammaMixed];
 ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);   
 %ftilda=zeros(3*mno,1); %ET uncomment later!
 
-fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
+fhat(freeDofs) = fbar(freeDofs)-ftilda(freeDofs);% no applied forces
 
 %f=zeros(2*(mno),1);
 f=fhat-kg(:,fixedDofs)*uhat(fixedDofs);
 
-bcwt=mean(diag(kg));%=trace(K)/length(K)
-bcwt = full(bcwt);
+%%%%%%%%%%%%%%%%%%%%%%%%%
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
-% uhat2=K\f; 
+%HY20171206: modified by HY to make the code cleaner by removing the
+%equations related to the fixedDofs; since FreeDofs has been used to
+%represent the free boundary nodes, a new term, unfixedDofs, is used to
+%represent all the nodes other than the fixed ones. i.e.
+%unfixedDofs=allDofs - fixedDofs
+% tic;
+% disp('setdiff')
+uhat = uhat;
+%uhatHY = uhat;
+fred = f(unfixedDofs);
+u_new = Ured\(Lred\fred);
+uhat(unfixedDofs) = u_new;
 
 rhat=kg*uhat; % reaction force
 
-fend = rhat(3*gammaMixed(:,1))+ftilda(3*gammaMixed(:,1));
-fend = sum(fend);
+ uend = uhat(3*Stop(:,1))+utilda(3*Stop(:,1));
+% uend = uhat(3*Stop(:,1));
+Uend = mean(uend);
+%fend = sum(fend);
 
 end

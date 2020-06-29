@@ -2,19 +2,19 @@ function [output]=schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTi
 figure(1);
 clf
 %amag=1;
-Udot =100*1E3*dx*(1E-4/160E9)*100;
-xmax=Udot*totalSimTime;
-ymax=50*xmax;
+%Udot =100*1E3*dx*(1E-4/160E9)*100;
+%xmax=Udot*totalSimTime;
+%ymax=50*xmax;
 subplot(2,3,[1 2]);
 flatplot(rn,links,vertices,amag,1,3);
 subplot(2,3,3);
 flatplot(rn,links,vertices,amag,2,3);
 subplot(2,3,[4 5]);
 flatplot(rn,links,vertices,amag,1,2);
-ax4=subplot(2,3,6);
-plot(U_bar,-Fend);
-xlim(ax4,[0 xmax]);
-ylim(ax4,[0 ymax]);
+%ax4=subplot(2,3,6);
+%plot(U_bar,-Fend);
+%xlim(ax4,[0 xmax]);
+%ylim(ax4,[0 ymax]);
 
 plotHandle=gcf;
 output=plotHandle;

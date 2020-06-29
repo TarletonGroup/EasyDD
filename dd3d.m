@@ -26,65 +26,65 @@
 %   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
-% [rn,links]=cleanupnodes(rn,links);
-% 
-% % genererate the connectivity list from the list of links
-% disp('Initiliazing connectivity list. Please wait.'); 
-% [connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
-% 
-% consistencycheck(rn,links,connectivity,linksinconnect);
-% disp('Consistencycheck : Done!'); 
-% 
-% %construct stiffeness matrix K and pre-compute L,U decompositions.
-% disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
-% [B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
-%     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-%     w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
-% disp('Done! Initializing simulation.');
-% 
-% global USE_GPU;
-% USE_GPU=1; %0 if CPU only.
-% 
-% if (USE_GPU==1)
-%     disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
-%     system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
-% end  
-% 
-% 
-% %Use Delaunay triangulation to create surface mesh, used for visualisation
-% 
-% %and for dislocation remeshing algorithm.
-% [TriangleCentroids,TriangleNormals,tri,Xb] = ...
-%     MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
-% %Remesh considering surfaces in case input file incorrect.
-% %disp('Remeshing...');
-% [rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
-% 
-% %plot dislocation structure           
+[rn,links]=cleanupnodes(rn,links);
+
+% genererate the connectivity list from the list of links
+disp('Initiliazing connectivity list. Please wait.'); 
+[connectivity,linksinconnect]=genconnectivity(rn,links,maxconnections);
+
+consistencycheck(rn,links,connectivity,linksinconnect);
+disp('Consistencycheck : Done!'); 
+
+%construct stiffeness matrix K and pre-compute L,U decompositions.
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
+[B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+disp('Done! Initializing simulation.');
+
+global USE_GPU;
+USE_GPU=1; %0 if CPU only.
+
+if (USE_GPU==1)
+    disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
+    system('nvcc -ptx -m64 -arch sm_35 SegForceNBodyCUDADoublePrecision.cu');
+end  
+
+
+%Use Delaunay triangulation to create surface mesh, used for visualisation
+
+%and for dislocation remeshing algorithm.
+[TriangleCentroids,TriangleNormals,tri,Xb] = ...
+    MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright,gammaMixed);
+%Remesh considering surfaces in case input file incorrect.
+%disp('Remeshing...');
+[rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
+
+%plot dislocation structure           
 % figure(1); 
 % plotHandle = plotnodes(rn,links,plim,vertices); view(viewangle);
 % drawnow
-% 
-% % data=zeros(totalsteps,1);
-% if(~exist('dt','var'))
-%     dt=dt0;
-% end
-% dt=min(dt,dt0);
-% plotCounter=1;
-% close all
-% 
-% Fend=zeros(1e6,1); fend=[];
-% U_bar=zeros(1e6,1); Ubar=[];
-% t=zeros(1e6,1); simTime=0;
-% %%
-% gamma=[gammau;gammaMixed];
-% utilda_0=zeros(3*mno,1);
-% gn = gamma(:,1);
-% [Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
-% 
-% utilda_0(3*gn -2) = Ux;
-% utilda_0(3*gn -1) = Uy;
-% utilda_0(3*gn   ) = Uz;
+
+% data=zeros(totalsteps,1);
+if(~exist('dt','var'))
+    dt=dt0;
+end
+dt=min(dt,dt0);
+plotCounter=1;
+close all
+
+Fend=zeros(1e6,1); fend=[];
+U_bar=zeros(1e6,1); Ubar=[];
+t=zeros(1e6,1); simTime=0;
+%%
+gamma=[gammau;gammaMixed];
+utilda_0=zeros(3*mno,1);
+gn = gamma(:,1);
+[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
+
+utilda_0(3*gn -2) = Ux;
+utilda_0(3*gn -1) = Uy;
+utilda_0(3*gn   ) = Uz;
 %%
 while simTime < totalSimTime
     
@@ -198,7 +198,7 @@ while simTime < totalSimTime
 %                     end
                 end
                 
-                if mod(curstep,5)~=0
+                if mod(curstep,100)~=0 && floop==1
                     nodeids1=connectivitynew(n1s1,1);
                     nodeids1=1:nodeids1;
                     nodeids1=2*nodeids1;
@@ -232,7 +232,7 @@ while simTime < totalSimTime
 
                 fprintf(' Segment %d and segment %d are colliding\n',s1,s2);
                 if colliding_segments==1
-                    [rnnew,linksnew,~,~,fsegnew]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
+                    [rnnew,linksnew,~,~,fsegnew,colliding_segments]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
                         uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
                 end
              end
@@ -241,9 +241,17 @@ while simTime < totalSimTime
               end
     end
     
-    
+    %find blockading fixed nodes and allow code to deal with them
+    for i=1:size(rnnew,1)
+        if rnnew(i,end)~=7
+            continue
+        end
+        if connectivitynew(i,1)>7
+            rnnew(i,end)=0;
+        end
+    end
  
-    if (doseparation)
+    if (doseparation) && max(connectivitynew(:,1))>3
         %spliting of nodes with 4 or more connections
         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
             separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...

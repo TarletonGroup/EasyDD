@@ -121,7 +121,9 @@ for i=1:lrn
             % put the configuration back to the starting position 
             rn(i,1:6)=refposveli;
             [rn,connectivity,links,linksinconnect,fseg,mergednodeid]=mergenodes(rn,connectivity,links,linksinconnect,fseg,i,lastnode,MU,NU,a,Ec);
-            connectivity(i,1:size(refconnecti,2))=refconnecti; %F.Ferroni, 2013
+            if mergednodeid~=0
+                connectivity(mergednodeid,1:size(refconnecti,2))=refconnecti; %F.Ferroni, 2013; corrected by B.Bromage, 2019
+            end
             for k=1:c
                 linkid=refconnecti(2*k);
                 posi=refconnecti(2*k+1);
