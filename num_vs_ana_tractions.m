@@ -26,11 +26,9 @@ for mx = min_mx: stp_mx: max_mx
         w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);
 
     sizeSegmentList = size(segments,1);
-
     x1_array = reshape(segments(:,6:8)',sizeSegmentList*3,1);
     x2_array = reshape(segments(:,9:11)',sizeSegmentList*3,1);
     b_array  = reshape(segments(:,3:5)',sizeSegmentList*3,1);
-
     %%
     for face = 1: 1: 3
         % Analytical.
@@ -57,7 +55,6 @@ for mx = min_mx: stp_mx: max_mx
             b_array,MU,NU,a,sizeRectangleList,sizeSegmentList, 128, 1, 0);
         time_a_par = toc;
         ftilda_a_par = reshape(fxtot_array,3,dim(1))';
-
 %         ftilda_mat = NodalSurfForceLinearRectangle2(                    ...
 %                                 x1_array, x2_array,...
 %                                 x3_array, x4_array,...
@@ -263,13 +260,11 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         subplot(3, 1, i);
 
         contourf(axis1, axis2, reshape(f_dln_n(:, i), dim(2), dim(3)));
-
         mean_rel_err = mean(abs(rel_err(:, i)));
         cvec = [min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         colorvec = [min(cvec) max(cvec)];%[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
-
         title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
         ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
         xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
@@ -279,20 +274,16 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
     f_dln_a_fig = figure('DefaultAxesPosition', [0.1, 0.1, 0.8, 0.8]);
     for i = 1: 3
         subplot(3, 1, i);
-
         contourf(axis1, axis2, reshape(f_dln_a(:, i), dim(2), dim(3)));
-
         mean_rel_err = mean(abs(rel_err(:, i)));
         cvec = [min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         colorvec = [min(cvec) max(cvec)];
         caxis(colorvec);
         colorbar
-
         title(sprintf('$F^{A}_{%s}$', str_dim(i)),'Interpreter','latex');
         ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
         xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
-
     rms_rel_err = rms(rel_err);
 end %function
