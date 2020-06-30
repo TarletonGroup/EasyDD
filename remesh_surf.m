@@ -224,12 +224,12 @@ function rnnew = extend(rnnew,~,rn_id,plane_id,fn)
 end
 
 function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(~,~,~,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,~,ii,vertices)
-   faces = [1,2,4,3;                                             %Faces of cuboid as defined by vertices with normals pointing outwards
-            2,1,5,6;
-            1,3,7,5;
-            2,4,8,6;
-            3,4,8,7;
-            6,5,7,8];
+    faces = [1,3,4,2;                                             %Faces of cuboid as defined by vertices
+             5,6,8,7;
+             2,4,8,6;
+             1,5,7,3;
+             1,2,6,5;
+             3,7,8,4];
    rt = rnnew(n1,1:3)-rnnew(n0,1:3);
    line = [rnnew(n1,1:3),rt];
    surfpts = intersectLineMesh3d(line, vertices, faces);
@@ -265,14 +265,13 @@ function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnod
              end
 end
 
-% TODO: look for make cube function to ensure faces are labelled in a standard way.
 function [rnnew] = movetosurf(rnnew,~,i,vertices)
-    faces = [1,2,4,3;                                             %Faces of cuboid as defined by vertices
-             2,1,5,6;
-             1,3,7,5;
+    faces = [1,3,4,2;                                             %Faces of cuboid as defined by vertices
+             5,6,8,7;
              2,4,8,6;
-             3,4,8,7;
-             6,5,7,8];
+             1,5,7,3;
+             1,2,6,5;
+             3,7,8,4];
 %     connodes = [rnnew(linksnew(linksnew(:,1)==i,2),[1:3,end]);rnnew(linksnew(linksnew(:,2)==i,1),[1:3,end])];
 %     connodes = connodes(connodes(:,4)==67,1:3);
 %     reps=ones(size(connodes,1),3);
