@@ -1,7 +1,9 @@
+% TODO: add Udot as an input. Optional to turn displacements on or off. Add option for non-zero initial load.
+
 function [uhat,fend,Ubar,fout] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
     gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,mx,my,mz,utilda_0,t,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
-    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, para_tol, Ubar, dt) % Haiyang's additions
+    f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, para_tol) % Haiyang's additions
 
 
 %Coupling of FEM and DDD
