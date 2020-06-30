@@ -43,7 +43,7 @@ for p=1:size(vn,1)
             reps=rn(p,1:3).*reps;
             vec=virtconnodes-reps;
             vec = sum(vec,1);
-            vec=normalize(vec, 2);
+            vec= vec/norm(vec);
             dotprods=normals*vec';
             surfplanes=normals(abs(dotprods)>tol,:);
             if isempty(surfplanes)
@@ -52,7 +52,7 @@ for p=1:size(vn,1)
             end
             slipplane=slipplane.*ones(size(surfplanes));
             lines=cross(surfplanes,slipplane,2);
-            lines = normalize(lines, 2);
+            lines(:,1:3) = lines(:,1:3)/norm(lines(:,1:3));
             if size(lines,1)>3
                 vn(p,:)=[0 0 0];
                 continue
