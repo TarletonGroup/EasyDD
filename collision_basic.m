@@ -120,8 +120,6 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                 end
             end
 else
-    % TODO: Loop 2 requires prevention of many armed nodes. See loop 1 for guidelines. Where it
-    % checks which nodes to merge do a connectivity check.
     [dist2,ddist2dt,L1,~]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n1s2,1:lrn3));
     collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-tol);
     if collision_condition_is_met
@@ -131,11 +129,16 @@ else
                     vec=rn(n1s1,1:3)-rn(n2s1,1:3);
                     close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
                     close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
+                    small_link=((vec*vec')<(4*mindist2));
+                    tiny_link=((vec*vec')<(mindist2));
                     % if collision point is close to one of the existing nodes use that node
-                    if close_to_n1s1
+                    if close_to_n1s1 && connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
                         mergenode2=n1s1;
-                    elseif close_to_n2s1
+                    elseif close_to_n2s1 && connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
                         mergenode2=n2s1;
+                    elseif tiny_link
+                        fprintf('Error detected in collision_basic. See Line 142\n')
+                        pause
                     else
                         spnode=n1s1;
                         splitconnection=linksinconnect(s1,1);
