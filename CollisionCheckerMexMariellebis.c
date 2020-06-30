@@ -34,13 +34,14 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double mindist2;
     double *n1s1,*n2s1,*n1s2,*n2s2,*s1, *s2;
     int n1s1_int,n2s1_int,n1s2_int,n2s2_int;
+    double norm2t0, norm2t1, tmp1d, tmp2d, tmp3d;
     double *colliding_segments;
     double x0[3], x1[3], y0[3], y1[3];
     double vx0[3], vx1[3], vy0[3], vy1[3];
     double dist2[1]={0}, ddist2dt[1]={0}, L1[1]={0}, L2[1]={0};
     int logic,flag1,flag2;
     int i,j,k;
-    int link_col,link_row,nodenoti,linkid;
+    int link_col,link_row,nodenoti,linkid,tmp;
     const double eps=1E-12;
     int connectivity_M, connectivity_N;
     double *floop;
@@ -202,12 +203,48 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 nodenoti=0; /*dummy value*/
             }
             /*printf("n1s1=%i, n2s1=%i, nodenoti=%i \n",n1s1_int,n2s1_int,nodenoti);*/
+
+            // Find the squared length of link 0.
+            tmp1d = rn_x[i] - rn_x[nodenoti];
+            tmp2d = rn_y[i] - rn_y[nodenoti];
+            tmp3d = rn_z[i] - rn_z[nodenoti];
+            norm2t0 = tmp1d*tmp1d + tmp2d*tmp2d + tmp3d*tmp3d;
+
             k=0;
             while (k<=(int)round(connectivity[0][i])-1 /*correct for matlab indexing*/){
                 linkid = (int)round(connectivity[2*k+1][i])-1;/*correct for matlab indexing*/
                 if (j!=k){
                     n1s1_int = (int)round(links_c1[linkid])-1;/*correct for matlab indexing*/
                     n2s1_int = (int)round(links_c2[linkid])-1;/*correct for matlab indexing*/
+
+                    // Find squared length of link 1.
+                    tmp1d = rn_x[n1s1_int] - rn_x[n2s1_int];
+                    tmp2d = rn_y[n1s1_int] - rn_y[n2s1_int];
+                    tmp3d = rn_z[n1s1_int] - rn_z[n2s1_int];
+                    norm2t1 = tmp1d*tmp1d + tmp2d*tmp2d + tmp3d*tmp3d;
+
+                    /* MinDistCalc calculates the minimum distance between two lines. In this case,
+                       one of the lines is collapsed into a point. This makes it so there are two
+                       possible distance calculations. By swapping the node labels, we collapse the
+                       shortest segment into a point and measure the distance from this point to the
+                       other segment. This is a shorter distance than if we were to collapse the
+                       longer segment.
+                    */
+                    if (norm2t0 > norm2t1){
+                        if (n1s1_int == i){
+                            tmp = n2s1_int;
+                            n2s1_int = nodenoti;
+                            nodenoti = tmp;
+                        }
+                        else {
+                            tmp = n1s1_int;
+                            n1s1_int = nodenoti;
+                            nodenoti = tmp;
+                        }
+                        tmp = linkid;
+                        linkid = link_row;
+                        link_row = tmp;
+                    }
 
                     /*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/
                     /*printf("n1s1=%i, n2s1=%i, nodenoti=%i \n",n1s1_int,n2s1_int,nodenoti);*/
