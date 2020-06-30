@@ -29,7 +29,7 @@ end
 segments = segments(index,:);
 
 if any(any(isnan(segments)))
-    disp('YDFUS, see line 36 segforcevec.m')
+    disp('YDFUS, see line 32 segforcevec.m')
 end
 
 if linkid==0 %calculate forces on all segments
@@ -45,7 +45,6 @@ if linkid==0 %calculate forces on all segments
     %remote force due to remote stress, real segments
     [fr0,fr1]=remoteforcevec(MU,NU,a,segments,0);
 
-
     %PK force due to image stress
     %fimg = imageforce(segments,a,MU,NU,vertices);
 
@@ -54,7 +53,6 @@ if linkid==0 %calculate forces on all segments
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
     end
-
     %fseg is calculated for real segments. The total fseg list used
     %throughout DDLab also contains virtual segments (flagged as 67).
     %Therefore, one must assign a nil force to the virtual segments (as
@@ -67,7 +65,7 @@ if linkid==0 %calculate forces on all segments
 else  %calculate force on segment specified by linkid
 
     %update linkid based on "real" index, rather than global indexing.
-    if sum(index(1:linkid))==0
+    if index(linkid)==0
         fseg_tot=[0, 0, 0, 0, 0, 0]; %remesh.m wants to access virtual seg
         return;
     else
@@ -93,7 +91,6 @@ else  %calculate force on segment specified by linkid
     if any(any(isnan(fseg)))
         fseg(isnan(fseg))=0; %for when the collision code creates weird surface nodes
     end
-
     fseg_tot = fseg; %output variable
 end
 
