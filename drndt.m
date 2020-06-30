@@ -43,7 +43,7 @@ for p=1:size(vn,1)
             reps=rn(p,1:3).*reps;
             vec=virtconnodes-reps;
             vec = sum(vec,1);
-            vec=vec/norm(vec);
+            vec= vec/norm(vec);
             dotprods=normals*vec';
             surfplanes=normals(abs(dotprods)>tol,:);
             if isempty(surfplanes)
