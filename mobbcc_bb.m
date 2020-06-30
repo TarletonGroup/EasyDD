@@ -3,7 +3,7 @@ function [vn,fn] = mobbcc_bb(fseg,rn,links,connectivity,nodelist,conlist,pn_stre
 % pn_stress is the Peierls Nabarro stress for a given bcc material.
 global Bscrew Bedge Beclimb Bline
 
-if ~exists(var(pn_stress))
+if ~exists('pn_stress', 'var')
     pn_stress = 0;
 end
 %numerical tolerance
