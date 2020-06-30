@@ -207,6 +207,7 @@ function collisionpoint=findcollisionpoint(mergenode1,mergenode2,rn,connectivity
                 conditionismet = 1;
             elseif Nsize==1
                 conditionismet = ((Nmat(1,:)*plane')^2 < newplanecondition*newplanecondition);
+            else
                 detN=det([Nmat(1:2,:);plane]);
                 conditionismet = detN*detN > (1-newplanecondition)^4;
             end
