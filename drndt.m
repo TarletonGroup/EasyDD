@@ -53,7 +53,7 @@ for p=1:size(vn,1)
             slipplane=slipplane.*ones(size(surfplanes));
             lines=cross(surfplanes,slipplane,2);
             lines(:,1:3) = lines(:,1:3)/norm(lines(:,1:3));
-            if size(lines,1)>3
+            if size(lines,1)>2
                 vn(p,:)=[0 0 0];
                 continue
             elseif size(lines,1)==2
