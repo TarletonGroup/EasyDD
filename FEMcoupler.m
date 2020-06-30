@@ -53,8 +53,6 @@ uhat = U\(L\f); %using LU decomposition
 
 rhat=kg*uhat; % reaction force
 
-fout = ftilda;
-
 fend = rhat(3*gammaMixed(:,1))+ftilda(3*gammaMixed(:,1));
 fend = sum(fend);
 
