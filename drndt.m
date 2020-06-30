@@ -5,7 +5,7 @@ function [vnvec,fn,fseg] = drndt(rnvec,flag,MU,NU,a,Ec,links,connectivity,...
 normals=[1 0 0;
           0 1 0;
           0 0 1];
-tol=1e-6;
+tol=1e-1;
 
 %unscramble rn
 rn=[reshape(rnvec,length(rnvec)/3,3),flag];
