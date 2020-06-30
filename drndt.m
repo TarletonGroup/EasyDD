@@ -5,7 +5,7 @@ function [vnvec,fn,fseg] = drndt(rnvec,flag,MU,NU,a,Ec,links,connectivity,...
 normals=[1 0 0;
           0 1 0;
           0 0 1];
-tol=1e-6;
+tol=1e-1;
 
 %unscramble rn
 rn=[reshape(rnvec,length(rnvec)/3,3),flag];
@@ -43,7 +43,7 @@ for p=1:size(vn,1)
             reps=rn(p,1:3).*reps;
             vec=virtconnodes-reps;
             vec = sum(vec,1);
-            vec=normalize(vec, 2);
+            vec=vec/norm(vec);
             dotprods=normals*vec';
             surfplanes=normals(abs(dotprods)>tol,:);
             if isempty(surfplanes)
@@ -52,8 +52,8 @@ for p=1:size(vn,1)
             end
             slipplane=slipplane.*ones(size(surfplanes));
             lines=cross(surfplanes,slipplane,2);
-            lines = normalize(lines, 2);
-            if size(lines,1)>3
+            lines(:,1:3) = lines(:,1:3)/norm(lines(:,1:3));
+            if size(lines,1)>2
                 vn(p,:)=[0 0 0];
                 continue
             elseif size(lines,1)==2

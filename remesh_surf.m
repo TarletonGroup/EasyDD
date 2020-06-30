@@ -155,10 +155,10 @@ for i=1:L1 %length(rnnew)  ET updated- check!
             [~,index] = min( (P(:,1) - rnnew(i,1)).^2 + (P(:,2) - rnnew(i,2)).^2 + (P(:,3) - rnnew(i,3)).^2 );
             Index(i)=index;
         end
-        if rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==0 || rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),end)==7 %if the surface node is not connected to a virtual node : break M
+        if rnnew(linksnew(connectivitynew(i,2*j),(3-connectivitynew(i,2*j+1))),end)==0 || rnnew(linksnew(connectivitynew(i,2*j),(3-connectivitynew(i,2*j+1))),end)==7 %if the surface node is not connected to a virtual node : break M
             break;
-%         elseif dot(fn(Index(i),:),rnnew(linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),1:3)-rnnew(i,1:3))<0
-%             [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,i,linksnew(connectivitynew(i,2*j),logicswap(connectivitynew(i,2*j+1))),j,j,vertices);
+%         elseif dot(fn(Index(i),:),rnnew(linksnew(connectivitynew(i,2*j),(3-connectivitynew(i,2*j+1))),1:3)-rnnew(i,1:3))<0
+%             [rnnew,linksnew,connectivitynew,linksinconnectnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,i,linksnew(connectivitynew(i,2*j),(3-connectivitynew(i,2*j+1))),j,j,vertices);
 %             break
         else
             test=test+1;
@@ -169,7 +169,6 @@ for i=1:L1 %length(rnnew)  ET updated- check!
         rnnew = extend(rnnew,linksnew,i,index,fn);
     end
 end
-function [rnnew,linksnew,connectivitynew,linksinconnectnew] = fixsurfnode(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,n0,n1,i,ii,vertices)
 
 i=1; %ensure surface nodes only connect to one virtual node
 while i<size(rnnew,1)
@@ -205,7 +204,7 @@ for i=1:size(rnnew,1) %create surface nodes where necessary
        for j=1:connectivitynew(i,1)
           con_id=linksnew(connectivitynew(i,2*j),3-connectivitynew(i,2*j+1));
           if rnnew(con_id,end)==0 || rnnew(con_id,end)==7
-              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = fixsurfnode(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,con_id,i,connectivitynew(i,1),j,vertices);
+              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,con_id,i,connectivitynew(i,1),j,vertices);
           end
        end
     end

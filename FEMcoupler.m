@@ -15,10 +15,14 @@ Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
 
 Ubar = Udot*t;
 u=zeros(3*(mno),1);
+gamma=[gammau;gammaMixed];
 
 u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes
 
 uhat=zeros(3*mno,1);
+utilda=zeros(3*mno,1);
+
+gn = gamma(:,1); % global node number
 
 [Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
 

@@ -48,6 +48,9 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 % to FEM. Generate the list of planes to be extracted. The FEM coupler is
 % hardcoded so that the min(x) yz-plane does not have traction boundary
 % conditions.
+if(~exist('a_trac','var'))
+    a_trac=0;
+end
 if a_trac ~= 0
     f_hat = zeros(3*mno, 1);
 

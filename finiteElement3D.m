@@ -594,9 +594,9 @@ hold off
 
 
 %% Haiyang's addition
-allDofs = [1:3*mno];
-unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
-K = K(unfixedDofs,unfixedDofs);
+% allDofs = [1:3*mno];
+% unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
+% K = K(unfixedDofs,unfixedDofs);
 
 %%
 disp('Cholesky Factorization of K...'); %should be symmetric!
