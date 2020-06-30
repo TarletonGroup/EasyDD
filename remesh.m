@@ -74,11 +74,7 @@ while i<=length(rnnew(:,1))
                                 nodelist=linksnew(linkm,k);
                                 clist=[connectivitynew(nodelist,1) linspace(1,connectivitynew(nodelist,1),connectivitynew(nodelist,1))];
                                 [rnnew(nodelist,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,nodelist,clist);
-<<<<<<< HEAD
                             end
-=======
-                            end    
->>>>>>> 04476fcc917ee3522c824403eedef929227cdd59
                         end
                     end
                 end
@@ -127,17 +123,12 @@ for i=1:lrn
         r3=sqrt(vec3*vec3');
         s=0.5*(r1+r2+r3);
         area2=(s*(s-r1)*(s-r2)*(s-r3));
-<<<<<<< HEAD
-        if (((area2>areamax2)&&(r2>=lmin2)&&(link2_nodenoti<=lrn))||(r2>lmax))
-            %conditions necessary to bisect the second link are met
-=======
         R1=norm(r1);
         R2=norm(r2);
         costheta=(r1/R1)*(r2/R2)';
         acheck2=0.5*R1*R2*(1+F*costheta);
         if (((area2>areamax2)&&(r2>=lmin2)&&(link2_nodenoti<=lrn)&&(costheta<=0))||((costheta>0)&&(r2>=lmin2)&&(link2_nodenoti<=lrn)&&(acheck2>areamax)&&(area2>areamin2))||(r2>lmax))
-            %conditions necessary to bisect the second link are met 
->>>>>>> 04476fcc917ee3522c824403eedef929227cdd59
+            %conditions necessary to bisect the second link are met
             posvel=(rnnew(i,1:lrn3)+rnnew(link2_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,secondconnection,posvel);
             newnode=length(rnnew(:,1));
@@ -158,11 +149,7 @@ for i=1:lrn
             clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
             [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
         end
-<<<<<<< HEAD
-        if (((area2>areamax2)&&(r1>=lmin2)&&(link1_nodenoti<=lrn))||(r1>lmax))
-=======
         if (((area2>areamax2)&&(r1>=lmin2)&&(link1_nodenoti<=lrn)&&(costheta<=0))||((costheta>0)&&(r1>=lmin2)&&(link1_nodenoti<=lrn)&&(acheck2>areamax)&&(area2>areamin2))||(r1>lmax))
->>>>>>> 04476fcc917ee3522c824403eedef929227cdd59
             %conditions necessary to bisect the first link are met
             posvel=(rnnew(i,1:lrn3)+rnnew(link1_nodenoti,1:lrn3))./2;
             [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,i,firstconnection,posvel);
@@ -182,11 +169,7 @@ for i=1:lrn
             clist=[connectivitynew(newnode,1) linspace(1,connectivitynew(newnode,1),connectivitynew(newnode,1))];
             [rnnew(newnode,4:6),~]=feval(mobility,fsegnew,rnnew,linksnew,connectivitynew,newnode,clist);
         end
-<<<<<<< HEAD
     elseif (connectivitynew(i,1)>2) && (rnnew(i,lrn2)==0)
-=======
-    elseif (connectivitynew(i,1)>2) && (rnnew(i,lrn2)==0) 
->>>>>>> 04476fcc917ee3522c824403eedef929227cdd59
         % check to make sure that no link is larger than lmax
         for j=1:connectivitynew(i,1)
             linkid=connectivitynew(i,2*j);
