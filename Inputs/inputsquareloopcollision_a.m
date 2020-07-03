@@ -111,14 +111,14 @@ links=[ 1  2   b1 n1;
 
 %%
 %Edge and screw glide and climb mobility parameters
-mobility='mobbcc1'; 
+mobility='mobbcc_bb1b'; 
 global Bscrew Bedge Beclimb Bline
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
 %Beclimb=1e5; %Pa s - really big
 %Bline=1e-4*min(Bscrew,Bedge);
 Bedge=1;
-Bscrew=10; 
+Bscrew=100; 
 Beclimb=1e10;
 Bline=1e-4*min(Bscrew,Bedge);
 
@@ -134,39 +134,30 @@ doseparation=1; %flat set to 0 or 1 that turns splitting algorithm for highly co
 dovirtmesh=1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
 
 %Simulation time
-dt0=1E5;
+dt0=1E6;
 
 intSimTime = 0;
 sinTime = 0;
 %dtplot=2E-9; %2ns
 dtplot=3E4;
 doplot=1; % frame recording: 1 == on, 0 == off
-totalSimTime = 6E6;
+totalSimTime = 1E9;%6E6;
 curstep = 0;
 simTime = 0;
 
 %Integrator
-integrator='int_trapezoid'; 
+integrator='int_trapezoid_bb_old'; 
 %integrator='int_trapezoid_stoc'; %in development
-a=lmin/sqrt(3)*0.5; 
+a=11.3473;%lmin/sqrt(3)*0.5; 
 Ec = MU/(4*pi)*log(a/0.1); 
 rann = 0.5*a; 
 rntol = 0.5*rann; % need to do convergence studies on all these parameters
-rmax = lmax;
+rmax = 0.5*lmin;
 
 %Plotting
-plotfreq=20; 
+plotfreq=1; 
 plim=12/amag; %12microns
 viewangle=[-35,15]; 
-printfreq=1; 
+printfreq=1000000; 
 printnode=2; 
-
-a=11.3473;
-totalSimTime=1e9;
-dt0=1e6;
-printfreq=100000;
-plotfreq=1;
-Bedge=1;
-Bscrew=100;
-mobility='mobbcc_bb1b';
 
