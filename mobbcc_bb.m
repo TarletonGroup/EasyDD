@@ -1,11 +1,11 @@
-function [vn,fn] = mobbcc_bb(fseg,rn,links,connectivity,nodelist,conlist,pn_stress)
+function [vn,fn] = mobbcc_bb(fseg,rn,links,connectivity,nodelist,conlist)%,pn_stress)
 %mobility law function (model: BCC0)
 % pn_stress is the Peierls Nabarro stress for a given bcc material.
 global Bscrew Bedge Beclimb Bline
 
-if ~exists('pn_stress', 'var')
+% if ~exist('pn_stress', 'var')
     pn_stress = 0;
-end
+% end
 %numerical tolerance
 tol=1e-7;
 planelist=(1/sqrt(2))*[1 1 0;
@@ -133,7 +133,7 @@ for n=1:L1
         vn(n,:)=(Btotal\fn(n,:)')';                 % Btotal was wellconditioned so just take the inverse
     end
 
-    if any(isnan(vn))
+    if any(any(isnan(vn))) || ~any(isreal(vn))
         disp('YDFUS, see line 137 of mobbcc_bb');
     end
 end

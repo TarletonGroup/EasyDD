@@ -56,7 +56,7 @@ if (~exist('use_gpu', 'var'))
 end
 if a_trac ~= 0
     f_hat = zeros(3*mno, 1);
-    para_tol = 1e-7;
+    para_tol = dx/1e7;
 
     planes = (1:1:6)';
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...

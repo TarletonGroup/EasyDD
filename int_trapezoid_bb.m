@@ -9,6 +9,7 @@ function [rn,vn,dt,fn,fseg]=int_trapezoid_bb(rn,dt,dt0,MU,NU,a,Ec,links,connecti
 
 %Convert rn into a single column of coordinates and store the node flags
 rnvec0=[rn(:,1);rn(:,2);rn(:,3)]; flag=rn(:,4);
+
 %Calculate the current nodal velocities
 [vnvec0,fn,fseg]=drndt(rnvec0,flag,MU,NU,a,Ec,links,connectivity,...
         mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);

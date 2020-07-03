@@ -61,27 +61,40 @@ for n=1:L1
         end
     end
     
-%     for z=1:3
-%         fprintf('%f %f %f \n',Btotal(z,1),Btotal(z,2),Btotal(z,3));
-%     end
-%     fprintf('\n');
-    if rcond(Btotal)<eps
-        
-        [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
-        evalmax=eval(1,1);
-        eval=eval./evalmax;
-        fvec=fn(n,:)'./evalmax;
-        for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
-            if eval(i,i)>eps
-                eval(i,i)=1/eval(i,i);
-            else
-                eval(i,i)=0.0d0;
-            end
-        end
-        vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity 
+% % %     for z=1:3
+% % %         fprintf('%f %f %f \n',Btotal(z,1),Btotal(z,2),Btotal(z,3));
+% % %     end
+% % %     fprintf('\n');
+% % %     if rcond(Btotal)<eps
+% % %         
+% % %         [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
+% % %         evalmax=eval(1,1);
+% % %         eval=eval./evalmax;
+% % %         fvec=fn(n,:)'./evalmax;
+% % %         for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
+% % %             if eval(i,i)>eps
+% % %                 eval(i,i)=1/eval(i,i);
+% % %             else
+% % %                 eval(i,i)=0.0d0;
+% % %             end
+% % %         end
+% % %         vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity 
+% % %     else
+% % %         vn(n,:)=(Btotal\fn(n,:)')';                 % Btotal was wellconditioned so just take the inverse
+% % %     end
+    
+    if norm(Btotal)<eps
+        vn(n,:)=[0 0 0];
+    elseif rcond(Btotal)<1e-15
+        Btotal_temp=Btotal+1e-6*max(max(abs(Btotal)))*eye(3);
+        Btotal_temp2=Btotal-1e-6*max(max(abs(Btotal)))*eye(3);
+        vn_temp=(Btotal_temp\fn(n,:)')';
+        vn_temp2=(Btotal_temp2\fn(n,:)')';
+        vn(n,:)=0.5*(vn_temp+vn_temp2);
     else
         vn(n,:)=(Btotal\fn(n,:)')';                 % Btotal was wellconditioned so just take the inverse
     end
+    
     
 %    if numNbrs==2
 %        ii=conlist(n,2);                                                                      
