@@ -37,6 +37,10 @@ for n=1:L1
         n1=links(linkid,3-posinlink);
         rt=rn(n1,1:3)-rn(n0,1:3);                                                          % calculate the length of the link and its tangent line direction
         L=norm(rt);
+        
+        if rn(n1,end)==67
+            continue
+        end
         %fprintf('ii=%i, linkid=%i, n0=%i, n1=%i, L=%f \n',ii,linkid,n0,n1,L);
         if L>0.0
             fsegn0=fseg(linkid,3*(posinlink-1)+[1:3]);

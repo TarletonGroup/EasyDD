@@ -11,14 +11,12 @@ function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L
 % f = f_hat + ftilda
 segments = constructsegmentlist(rn,links);
 Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
-% Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
-% Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
-
+Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
+Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
 Ubar = Udot*t;
 
-% Ubar0 = 5e2;
-% Udot = (1/2048)*1E3*dx*(1E-4/160E9)*100; %for tungsten...
-% 
+% Ubar0 = 4.25e2;
+% Udot = (1/2048)*100*1E3*dx*(1E-4/160E9); %for tungsten...
 % Ubar = Udot*t + Ubar0;
 
 %Ubar = 0.1*1E4; for debucontourfggin
