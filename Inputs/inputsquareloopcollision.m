@@ -161,6 +161,8 @@ viewangle=[-35,15];
 printfreq=1; 
 printnode=2; 
 
+rmax=0.5*lmin;
+integrator='int_trapezoid_bb_old';
 a=11.3473;
 totalSimTime=1e9;
 dt0=1e6;
