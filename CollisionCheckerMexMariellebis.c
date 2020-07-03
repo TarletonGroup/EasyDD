@@ -231,19 +231,25 @@ void mexFunction(int nlhs, mxArray *plhs[],
                        longer segment.
                     */
                     if (norm2t0 > norm2t1){
-                        if (n1s1_int == i){
-                            tmp = n2s1_int;
-                            n2s1_int = nodenoti;
-                            nodenoti = tmp;
-                        }
-                        else {
-                            tmp = n1s1_int;
-                            n1s1_int = nodenoti;
-                            nodenoti = tmp;
-                        }
                         tmp = linkid;
                         linkid = link_row;
                         link_row = tmp;
+
+                        if (n1s1_int == i){
+                            // tmp = n2s1_int;
+                            // n2s1_int = nodenoti;
+                            // nodenoti = tmp;
+                            nodenoti = n2s1_int;
+                        }
+                        else {
+                            // tmp = n1s1_int;
+                            // n1s1_int = nodenoti;
+                            // nodenoti = tmp;
+                            nodenoti = n1s1_int;
+                        }
+
+                        n1s1_int = (int)round(links_c1[linkid])-1;/*correct for matlab indexing*/
+                        n2s1_int = (int)round(links_c2[linkid])-1;/*correct for matlab indexing*/
                     }
 
                     /*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/

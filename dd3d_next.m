@@ -51,8 +51,12 @@ disp('Constructing stiffness matrix K and precomputing L,U decompositions. Pleas
 if(~exist('a_trac','var'))
     a_trac=0;
 end
+if (~exist('use_gpu', 'var'))
+    use_gpu = 0;
+end
 if a_trac ~= 0
     f_hat = zeros(3*mno, 1);
+    para_tol = 1e-7;
 
     planes = (1:1:6)';
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
@@ -151,8 +155,8 @@ while simTime < totalSimTime
                         gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,utilda_0);
     else
         [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-            gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,mx,my,mz,utilda_0,t,...
-            gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
+            gamma_disp, gammat, gammaMixed, fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,utilda_0,...
+            gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, ...
             f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, para_tol);
     end
     Fend(curstep+1) = fend;
