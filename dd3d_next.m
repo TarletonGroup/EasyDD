@@ -272,11 +272,13 @@ while simTime < totalSimTime
         end
     end
 
-    if (doseparation) && max(connectivitynew(:,1))>3
-        %spliting of nodes with 4 or more connections
-        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-            separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-            fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+    if (doseparation)
+        if max(connectivitynew(:,1))>3
+            %spliting of nodes with 4 or more connections
+            [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+                separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+                fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+        end
     end
 
     [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
