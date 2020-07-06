@@ -107,7 +107,15 @@ for n=1:L1
                             Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         else
                             mdir=cross(ndir,linedir);
-                            Btotal=Btotal+mag.*((0.5*L).*(( Bscrew ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
+                            cosdev2=cosdev*cosdev;
+                            cosratio=4*cosdev2-3;
+                            if cosratio<0 || cosratio>1
+                                disp('YDFUS,see line 113 of mobbcc_bb1b')
+                                pause
+                            end
+                            sinratio=1-cosratio;
+                            Bglide=1 / sqrt( (1/Beclimb^2)*sinratio + ( 1 / Bscrew^2 )*cosratio);
+                            Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         end
                     end
                         
@@ -151,7 +159,7 @@ for n=1:L1
     end
     
     if any(isnan(vn))
-        disp('YDFUS, see line 140 of mobbcc_bb');
+        disp('YDFUS, see line 162 of mobbcc_bb1b');
     end
     
 %    if numNbrs==2
