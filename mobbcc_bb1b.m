@@ -108,7 +108,7 @@ for n=1:L1
                         else
                             mdir=cross(ndir,linedir);
                             cosdev2=cosdev*cosdev;
-                            cosratio=1-0.5*codev2;
+                            cosratio=1-0.5*cosdev2;
                             sinratio=1-cosdev2;
                             Bglide=1 / sqrt( (1/Beclimb^2)*sinratio + ( 1 / Bscrew^2 )*cosratio);
                             Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
