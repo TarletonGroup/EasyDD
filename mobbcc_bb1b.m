@@ -108,7 +108,7 @@ for n=1:L1
                         else
                             mdir=cross(ndir,linedir);
                             cosdev2=cosdev*cosdev;
-                            cosratio=4*cosdev2-3;
+                            cosratio=1-2*cosdev2;
                             if cosratio<0 || cosratio>1
                                 disp('YDFUS,see line 113 of mobbcc_bb1b')
                                 pause
