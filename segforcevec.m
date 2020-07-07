@@ -16,17 +16,18 @@ if(m~=4)
 end
 
 %construct segment list
-segments=constructsegmentlist(rn,links,0);
+[segments,index]=constructsegmentlist(rn,links,1);
 
-S=size(segments,1);
-%get only "real" segments, not virtual ones.
-index=true(S,1);
-for i=1:S
-    if rn(segments(i,1),4) == 67 || rn(segments(i,2),4) == 67
-        index(i) = false;
-    end
-end
-segments = segments(index,:);
+S=size(links,1);
+% S=size(segments,1);
+% %get only "real" segments, not virtual ones.
+% index=true(S,1);
+% for i=1:S
+%     if rn(segments(i,1),4) == 67 || rn(segments(i,2),4) == 67
+%         index(i) = false;
+%     end
+% end
+% segments = segments(index,:);
 
 if any(any(isnan(segments)))
     disp('YDFUS, see line 32 segforcevec.m')

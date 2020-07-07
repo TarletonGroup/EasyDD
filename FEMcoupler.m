@@ -1,12 +1,12 @@
 % TODO: add Udot as an input. Optional to turn displacements on or off. Add option for non-zero initial load.
-function [uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+function [uhat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
     gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,utilda_0)
 
 %Coupling of FEM and DDD
 % u = uhat + utilda
 % f = fhat + ftilda
 
-segments = constructsegmentlist(rn,links,1);
+[segments,~] = constructsegmentlist(rn,links,1);
 
 % Udot = 1E3*dx*(1E-4/160E9); %test by BB
 Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
