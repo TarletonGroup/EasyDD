@@ -9,7 +9,7 @@ function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L
 % Coupling of FEM and DDD
 % u = uhat + utilda
 % f = f_hat + ftilda
-segments = constructsegmentlist(rn,links);
+% segments = constructsegmentlist(rn,links);
 Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
 Udot = 100*1E3*dx*(1E-4/160E9); %for tungsten...
 Udot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle

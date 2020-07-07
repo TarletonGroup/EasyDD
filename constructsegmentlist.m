@@ -1,4 +1,4 @@
-function segments=constructsegmentlist(rn,links)
+function segments=constructsegmentlist(rn,links,novirtsegs)
 
 [LINKMAX,~]=size(links);
 
@@ -8,9 +8,11 @@ for i=1:LINKMAX
     n0=links(i,1);
     n1=links(i,2);
     if((n0~=0)&&(n1~=0))
-%         if (rn(n0, end) == 67 || rn(n1, end) == 67 )
-%               continue
-%         end
+        if novirtsegs==1
+            if (rn(n0, end) == 67 || rn(n1, end) == 67 )
+                continue
+            end
+        end
         nseg=nseg+1;
         segments(nseg,:)=[links(i,1:5),rn(n0,1:3),rn(n1,1:3),links(i,6:8)];
     end

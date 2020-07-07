@@ -16,7 +16,7 @@ if(m~=4)
 end
 
 %construct segment list
-segments=constructsegmentlist(rn,links);
+segments=constructsegmentlist(rn,links,0);
 
 S=size(segments,1);
 %get only "real" segments, not virtual ones.
