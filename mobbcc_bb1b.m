@@ -93,26 +93,47 @@ for n=1:L1
                 else % pure screw segment
                     if norm(fsegn0)>eps
                         fnorm=fsegn0/norm(fsegn0);
-                        dotprods=planelist*burgv'/mag;
-                        slipplanes=planelist(abs(dotprods)==min(abs(dotprods)),:);
-                        dotprods2=slipplanes*fnorm';
-                        cosdev=dotprods2(abs(dotprods2)==min(abs(dotprods2)));
-                        if size(cosdev,1)>1
-                            cosdev=cosdev(1);
-                        end
-                        ndir=slipplanes(dotprods2==cosdev,:);
-                        if size(ndir,1)>1
-                            ndir=ndir(1,:);
-                            mdir=cross(ndir,linedir);
-                            Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
+                    else
+                        fnorm=[0 0 0];
+                    end
+                    dotprods=planelist*burgv'/mag;
+                    slipplanes=planelist(abs(dotprods)==min(abs(dotprods)),:);
+                    dotprods2=slipplanes*fnorm';
+                    cosdev=dotprods2(abs(dotprods2)==min(abs(dotprods2)));
+                    if size(cosdev,1)>1
+                        cosdev=cosdev(1);
+                    end
+                    ndir=slipplanes(dotprods2==cosdev,:);
+                    fsegn1=fseg(linkid,3*(2-posinlink)+(1:3));
+                    if norm(fsegn1)>eps
+                        fnorm_alt=fsegn1/norm(fsegn1);
+                    else
+                        fnorm_alt=[0 0 0];
+                    end
+                    dotprods2_alt=slipplanes*fnorm_alt';
+                    cosdev_alt=dotprods2_alt(abs(dotprods2_alt)==min(abs(dotprods2_alt)));
+                    if size(cosdev_alt,1)>1
+                        cosdev_alt=cosdev_alt(1);
+                    end
+                    ndir_alt=slipplanes(dotprods2_alt==cosdev_alt,:);
+                    if size(ndir,1)==1 && size(ndir_alt,1)==1
+                    planecheck=1-(ndir*ndir_alt');
+                    end
+                    if size(ndir,1)>1 || size(ndir_alt,1)>1 || planecheck>eps
+                        ndir=ndir(1,:);
+                        mdir=cross(ndir,linedir);
+                        if abs(cosdev)<eps
+                            Btotal=Btotal+mag.*((0.5*L).*(( Bscrew ).* ( mdir' * mdir ) + ( Bscrew ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         else
-                            mdir=cross(ndir,linedir);
-                            cosdev2=cosdev*cosdev;
-                            cosratio=1-0.5*cosdev2;
-                            sinratio=1-cosdev2;
-                            Bglide=1 / sqrt( (1/Beclimb^2)*sinratio + ( 1 / Bscrew^2 )*cosratio);
-                            Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
+                            Btotal=Btotal+mag.*((0.5*L).*(( Beclimb ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                         end
+                    else
+                        mdir=cross(ndir,linedir);
+                        cosdev2=cosdev*cosdev;
+                        cosratio=1-4*cosdev2;
+                        sinratio=1-cosratio;
+                        Bglide=1 / sqrt( (1/Beclimb^2)*sinratio + ( 1 / Bscrew^2 )*cosratio);
+                        Btotal=Btotal+mag.*((0.5*L).*(( Bglide ).* ( mdir' * mdir ) + ( Beclimb  ) .* ( ndir' * ndir )+( Bedge ).*(linedir'*linedir) ));
                     end
                         
                 end
