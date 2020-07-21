@@ -115,6 +115,12 @@ for n=1:L1
                     if size(cosdev_alt,1)>1
                         cosdev_alt=cosdev_alt(1);
                     end
+                    if size(cosdev_alt,1)>1
+                        cosdev_alt=cosdev_alt(1);
+                    end
+                    if ~isequal(size(cosdev_alt),[1 1]) || ~isequal(size(slipplanes,1),size(dotprods2_alt,1)) || ~isequal(size(dotprods2_alt,2),1)
+                        disp('YDFUS')
+                    end
                     ndir_alt=slipplanes(dotprods2_alt==cosdev_alt,:);
                     if size(ndir,1)==1 && size(ndir_alt,1)==1
                     planecheck=1-(ndir*ndir_alt');

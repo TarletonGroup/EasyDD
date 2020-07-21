@@ -55,6 +55,8 @@ for p=1:size(vn,1)
             continue
         end
         slipplane=slipplane/norm(slipplane);
+        slipplane=round(slipplane,4);
+        slipplane=slipplane/norm(slipplane);
         reps=ones(size(virtconnodes,1),3);
         reps=rn(p,1:3).*reps;
         vec=virtconnodes-reps;
