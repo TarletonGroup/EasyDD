@@ -106,7 +106,7 @@ for i=1:lrn
             % evaluate the power dissipated by this splitting configuration
             [vntmp,fntmp]=feval(mobility,fseg,rn,links,connectivity,nodelist,clist);
             vdiff=vntmp(2,:)-vntmp(1,:);
-            if vdiff*dir'>0
+            if vdiff*dir'>eps
                 Powertest=fntmp(1,:)*vntmp(1,:)'+fntmp(2,:)*vntmp(2,:)';
                 if Powermax<Powertest
                     Powermax=Powertest;

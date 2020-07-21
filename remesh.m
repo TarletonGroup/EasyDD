@@ -59,7 +59,8 @@ while i<=length(rnnew(:,1))
             v2=norm(vec2);
             vmag=max(v1,v2);
             distcheck=norm(vmag*(vec1/v1-vec2/v2));
-            if ((area2<areamin2)&&(darea2dt<0.0d0))||((r1<lmin)||(r2<lmin))||(distcheck<2*a)%remove single node critierion
+            junction_check = ~(connectivitynew(link1_nodenoti, 1) > 2 || connectivitynew(link2_nodenoti, 1) > 2);
+            if ((area2<areamin2)&&(darea2dt<0.0d0)&&junction_check)||((r1<lmin)||(r2<lmin))||(distcheck<2*a)%remove single node critierion
                 %the area is less than minimum and shrinking or one of the arms is less than lmin and shrinking
                 [rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,mergednodeid]=mergenodes(rnnew,connectivitynew,linksnew,linksinconnectnew,fsegnew,link2_nodenoti,i,MU,NU,a,Ec);
                 if mergednodeid>0 %&& (rnnew(mergednodeid,end)==0)

@@ -87,7 +87,7 @@ end
 disp('Done! Initializing simulation.');
 
 global USE_GPU;
-USE_GPU=1; %0 if CPU only.
+USE_GPU=0; %0 if CPU only.
 
 if (USE_GPU==1)
     disp('Going to use GPU as well...'); % setenv('PATH', [getenv('PATH') ';C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\amd64']);
@@ -249,9 +249,9 @@ while simTime < totalSimTime
             %              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
             if colliding_segments == 1 %scan and update dislocation structure.
                 if floop == 1
-                    fprintf("Unconnected links found. Links %d and %d are colliding.\n", s1, s2)
+                    fprintf("Step %d. Unconnected links found. Links %d and %d are colliding.\n", curstep, s1, s2)
                 elseif floop == 2
-                    fprintf("Links %d and %d colliding by hinge condition.\n", s1, s2)
+                    fprintf("Step %d. Links %d and %d colliding by hinge condition.\n", curstep, s1, s2)
                 end
 
                 %                 [rnnew,linksnew,~,~,fsegnew]=...
@@ -265,6 +265,9 @@ while simTime < totalSimTime
 
                     %removing links with effective zero Burgers vectors
                     [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = cleanupsegments(rnnew,linksnew,fsegnew);
+                    
+                    [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
+        uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
                     if (doseparation)
                         if max(connectivitynew(:,1))>3
                             %spliting of nodes with 4 or more connections
@@ -274,6 +277,8 @@ while simTime < totalSimTime
                         end
                     end
                 end
+%                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
+%         uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
             end
         end
     end
