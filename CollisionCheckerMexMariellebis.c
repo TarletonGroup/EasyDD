@@ -33,13 +33,13 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double mindist;
     double mindist2;
     double *n1s1,*n2s1,*n1s2,*n2s2,*s1, *s2;
-    int n1s1_int,n2s1_int,n1s2_int,n2s2_int;
-    double norm2t0, norm2t1, tmp1d, tmp2d, tmp3d;
+    int n1s1_int,n2s1_int,n1s2_int,n2s2_int, n1s1_cnct, n2s1_cnct, hinge_node;
+    double norm2t0, norm2t1, tmp1d, tmp2d, tmp3d, tmpnorm2, newseglen;
     double *colliding_segments;
     double x0[3], x1[3], y0[3], y1[3];
     double vx0[3], vx1[3], vy0[3], vy1[3];
     double dist2[1]={0}, ddist2dt[1]={0}, L1[1]={0}, L2[1]={0};
-    int logic,flag1,flag2;
+    int logic,flag1,flag2,remesh_flag;
     int i,j,k;
     int link_col,link_row,nodenoti,linkid,tmp;
     const double eps=1E-12;
@@ -148,10 +148,58 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 vy1[0] = v_x[n2s2_int];
                 vy1[1] = v_y[n2s2_int];
                 vy1[2] = v_z[n2s2_int];
+                
+                /* Bruce Bromage, Daniel Celis. Stop interfereing with remesh. 20/07/2020. */
+                n1s1_cnct = (int)round(connectivity[0][n1s1_int])-1; 
+                n2s1_cnct = (int)round(connectivity[0][n2s1_int])-1;
+                remesh_flag = 1;
+                for (k = 0; k < n1s1_cnct + 1; k++){
+                    link_row = (int)round(connectivity[2*k+1][n1s1_int])-1;
+                    link_col = 3-(int)round(connectivity[2*k+2][n1s1_int]);
+                    if (link_col == 1){
+                        nodenoti = (int)round(links_c1[link_row])-1;
+                    }
+                    else if (link_col == 2){
+                        nodenoti = (int)round(links_c2[link_row])-1;
+                    }
+                    else {
+                        printf("Error in accessing connectivity. See collision_checker or links array");
+                        nodenoti=0; 
+                    }
+                    
+                    if (nodenoti == n1s2_int || nodenoti == n2s2_int){
+                        remesh_flag = 0;
+                        break;
+                    }
+                }
+                
+                if (remesh_flag == 1){
+                    for (k = 0; k < n2s1_cnct + 1; k++){
+                        link_row = (int)round(connectivity[2*k+1][n2s1_int])-1;
+                        link_col = 3-(int)round(connectivity[2*k+2][n2s1_int]);
+                     if (link_col == 1){
+                            nodenoti = (int)round(links_c1[link_row])-1;
+                        }
+                        else if (link_col == 2){
+                            nodenoti = (int)round(links_c2[link_row])-1;
+                        }
+                        else {
+                            printf("Error in accessing connectivity. See collision_checker or links array");
+                            nodenoti=0; 
+                        }
+
+                        if (nodenoti == n1s2_int || nodenoti == n2s2_int){
+                            remesh_flag = 0;
+                            break;
+                        }
+                 
+                    }
+                }
+                /* Stop interfereing with remesh. 20/07/2020. */
 
                 MinDistCalc(x0,x1,y0,y1,vx0,vx1,vy0,vy1,dist2,ddist2dt,L1,L2);
 
-                logic = ((dist2[0]<mindist2)&&(ddist2dt[0]<-eps))||(dist2[0]<eps);
+                logic = (((dist2[0]<mindist2)&&(ddist2dt[0]<-eps))||(dist2[0]<eps)) && remesh_flag == 1;
                 if (logic == 1){
                     colliding_segments[0]=1;
                     n1s1[0] = (double)(n1s1_int+1); /*correct for matlab indexing*/
@@ -161,7 +209,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     s1[0] = (double) (i+1);
                     s2[0] = (double) (j+1);
                     floop[0] = 1;
-                    printf("Unconnected links found... Running collision correction.");
+//                     printf("Unconnected links found... Running collision correction.");
                     /*remember to de-allocate 2D connectivity array*/
                     mxFree(connectivity);
                     return;
@@ -223,33 +271,39 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     tmp3d = rn_z[n1s1_int] - rn_z[n2s1_int];
                     norm2t1 = tmp1d*tmp1d + tmp2d*tmp2d + tmp3d*tmp3d;
 
-                    /* MinDistCalc calculates the minimum distance between two lines. In this case,
-                       one of the lines is collapsed into a point. This makes it so there are two
-                       possible distance calculations. By swapping the node labels, we collapse the
-                       shortest segment into a point and measure the distance from this point to the
-                       other segment. This is a shorter distance than if we were to collapse the
-                       longer segment.
+                    /* Bruce Bromage & Daniel Celis Garza. MinDistCalc calculates the minimum distance 
+                       between two lines. In this case, one of the lines is collapsed into a point. 
+                       This makes it so there are two possible distance calculations. By swapping 
+                       the node labels, we collapse the shortest segment into a point and measure the 
+                       distance from this point to the other segment. This is a shorter distance than 
+                       if we were to collapse the longer segment.
                     */
-                    if (norm2t0 > norm2t1){
+                    
+                    if (norm2t0 < norm2t1){
                         tmp = linkid;
                         linkid = link_row;
                         link_row = tmp;
+                        tmpnorm2 = norm2t0;
+                        norm2t0 = norm2t1;
+                        norm2t1 = tmpnorm2;
 
                         if (n1s1_int == i){
-                            // tmp = n2s1_int;
-                            // n2s1_int = nodenoti;
-                            // nodenoti = tmp;
                             nodenoti = n2s1_int;
                         }
                         else {
-                            // tmp = n1s1_int;
-                            // n1s1_int = nodenoti;
-                            // nodenoti = tmp;
                             nodenoti = n1s1_int;
                         }
 
                         n1s1_int = (int)round(links_c1[linkid])-1;/*correct for matlab indexing*/
                         n2s1_int = (int)round(links_c2[linkid])-1;/*correct for matlab indexing*/
+                        
+                        /* Bruce Bromage & Daniel Celis Garza. Remeshing conflict, skip collision if it'll get remeshed out. 20/07/2020 */
+                        if (n1s1_int == i){
+                            hinge_node = n1s1_int;
+                        }
+                        else {
+                            hinge_node = n2s1_int;
+                        }
                     }
 
                     /*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/
@@ -284,7 +338,16 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     vy1[2] = v_z[nodenoti];
 
                     MinDistCalc(x0,x1,y0,y1,vx0,vx1,vy0,vy1,dist2,ddist2dt,L1,L2);
-                    logic=(dist2[0]<mindist2)&(ddist2dt[0]<-eps);
+                    
+                    /* Bruce Bromage & Daniel Celis Garza. Remeshing conflict, skip collision if it'll get remeshed out. 20/07/2020 */
+                    if (hinge_node == n1s1_int){
+                        newseglen = L1[0]*L1[0]*norm2t0;
+                    }
+                    else {
+                        newseglen = (1-L1[0])*(1-L1[0])*norm2t0;
+                    }
+                    
+                    logic = (dist2[0]<mindist2) && (ddist2dt[0]<-eps) && newseglen > mindist2;
 
                     if (logic == 1){
                         colliding_segments[0]=1;
@@ -296,7 +359,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
                         s2[0] = (double) link_row + 1;
 
                         floop[0] = 2;
-                        printf("Hinge condition found... Running collision correction");
+//                         printf("Hinge condition found... Running collision correction");
                         /*remember to de-allocate 2D connectivity array*/
                         mxFree(connectivity);
                         return;

@@ -41,17 +41,17 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                 vec=rn(n1s1,1:3)-rn(n2s1,1:3);
                 close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
                 close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
-                small_link=((vec*vec')<(4*mindist2));
-                tiny_link=((vec*vec')<(mindist2));
+%                 small_link=((vec*vec')<(4*mindist2));
+%                 tiny_link=((vec*vec')<(mindist2));
                 % if collision point is close to one of the existing nodes use that node
-                if close_to_n1s1 && connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
+                if close_to_n1s1 %&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
                     mergenode1=n1s1;
-                elseif close_to_n2s1 && connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
+                elseif close_to_n2s1 %&& connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
                     mergenode1=n2s1;
-                elseif tiny_link
-                    fprintf('Error detected in collision_basic. See Line 52\n')
-                    pause
-%                     colliding_segments=0;
+%                 elseif tiny_link
+%                     fprintf('Error detected in collision_basic. See Line 52\n')
+%                     pause
+% %                     colliding_segments=0;
                 else
                     spnode=n1s1;
                     splitconnection=linksinconnect(s1,1); % linki=s1 M
@@ -72,17 +72,17 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
                 vec=rn(n1s2,1:3)-rn(n2s2,1:3);
                 close_to_n1s2=((L2*L2*(vec*vec'))<mindist2);
                 close_to_n2s2=(((1-L2)*(1-L2)*(vec*vec'))<mindist2);
-                small_link=((vec*vec')<(4*mindist2));
-                tiny_link=((vec*vec')<(mindist2));
+%                 small_link=((vec*vec')<(4*mindist2));
+%                 tiny_link=((vec*vec')<(mindist2));
                 % if collision point is close to one of the existing nodes use that node
-                if close_to_n1s2 && connectivity(n1s2,1)<5 || connectivity(n2s2,1)<5 && small_link && ~tiny_link
+                if close_to_n1s2 %&& connectivity(n1s2,1)<5 || connectivity(n2s2,1)<5 && small_link && ~tiny_link
                     mergenode2=n1s2;
-                elseif close_to_n2s2 && connectivity(n2s2,1)<5 || connectivity(n1s2,1)<5 && small_link && ~tiny_link
+                elseif close_to_n2s2 %&& connectivity(n2s2,1)<5 || connectivity(n1s2,1)<5 && small_link && ~tiny_link
                     mergenode2=n2s2;
-                elseif tiny_link
-                    fprintf('Error detected in collision_basic. See Line 83\n')
-                    pause
-%                     colliding_segments=0;
+%                 elseif tiny_link
+%                     fprintf('Error detected in collision_basic. See Line 83\n')
+%                     pause
+% %                     colliding_segments=0;
                 else
                     spnode=n1s2;
                     splitconnection=linksinconnect(s2,1); %linkj=s2 M
@@ -129,16 +129,16 @@ else
                     vec=rn(n1s1,1:3)-rn(n2s1,1:3);
                     close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
                     close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
-                    small_link=((vec*vec')<(4*mindist2));
-                    tiny_link=((vec*vec')<(mindist2));
+%                     small_link=((vec*vec')<(4*mindist2));
+%                     tiny_link=((vec*vec')<(mindist2));
                     % if collision point is close to one of the existing nodes use that node
-                    if close_to_n1s1 && connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
+                    if close_to_n1s1 %&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
                         mergenode2=n1s1;
-                    elseif close_to_n2s1 && connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
+                    elseif close_to_n2s1 %&& connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
                         mergenode2=n2s1;
-                    elseif tiny_link
-                        fprintf('Error detected in collision_basic. See Line 142\n')
-                        pause
+%                     elseif tiny_link
+%                         fprintf('Error detected in collision_basic. See Line 142\n')
+%                         pause
                     else
                         spnode=n1s1;
                         splitconnection=linksinconnect(s1,1);
