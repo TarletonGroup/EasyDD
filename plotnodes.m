@@ -78,9 +78,9 @@ xlabel('x-direction (\mu m)','FontSize',10);
 ylabel('y-direction (\mu m)','FontSize',10);
 zlabel('z-direction (\mu m)','FontSize',10);
 
- xlim([0 vertices(2,1)]*amag);
- ylim([0 vertices(3,2)]*amag);
- zlim([0 vertices(5,3)]*amag);
+ xlim([vertices(1,1) vertices(2,1)]*amag);
+ ylim([vertices(1,2) vertices(3,2)]*amag);
+ zlim([vertices(1,3) vertices(5,3)]*amag);
 
 %axis equal;
 output=plotHandle;
