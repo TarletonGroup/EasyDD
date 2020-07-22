@@ -259,24 +259,25 @@ while simTime < totalSimTime
                 %                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
 
 %                 fprintf(' Segment %d and segment %d are colliding\n',s1,s2);
-                if colliding_segments==1
-                    [rnnew,linksnew,~,~,fsegnew,colliding_segments]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
-                        uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
+            if colliding_segments==1
+                [rnnew,linksnew,~,~,fsegnew,colliding_segments]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
+                    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
 
-                    %removing links with effective zero Burgers vectors
-                    [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = cleanupsegments(rnnew,linksnew,fsegnew);
-                    
-                    [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-        uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
-                    if (doseparation)
-                        if max(connectivitynew(:,1))>3
-                            %spliting of nodes with 4 or more connections
-                            [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                                separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                                fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-                        end
+                %removing links with effective zero Burgers vectors
+                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = cleanupsegments(rnnew,linksnew,fsegnew);
+
+%                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
+%     uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
+
+                if (doseparation)
+                    if max(connectivitynew(:,1))>3
+                        %spliting of nodes with 4 or more connections
+                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+                            separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+                            fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
                     end
                 end
+            end
 %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
 %         uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
             end
