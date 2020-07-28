@@ -3,8 +3,8 @@ function [vnvec,fn,fseg] = drndt(rnvec,flag,MU,NU,a,Ec,links,connectivity,...
 
 % This needs to be an input/obtained from the surface nodes. This is a temporary fix for cuboid.
 normals=[1 0 0;
-          0 1 0;
-          0 0 1];
+         0 1 0;
+         0 0 1];
 tol=1e-1;
 
 %unscramble rn
