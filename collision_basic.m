@@ -44,7 +44,7 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
         %                 small_link=((vec*vec')<(4*mindist2));
         %                 tiny_link=((vec*vec')<(mindist2));
         % if collision point is close to one of the existing nodes use that node
-        if close_to_n1s1 %&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
+        if close_to_n1s1 && L1<=0.5 %&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
             mergenode1=n1s1;
         elseif close_to_n2s1 %&& connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
             mergenode1=n2s1;
@@ -75,7 +75,7 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
         %                 small_link=((vec*vec')<(4*mindist2));
         %                 tiny_link=((vec*vec')<(mindist2));
         % if collision point is close to one of the existing nodes use that node
-        if close_to_n1s2 %&& connectivity(n1s2,1)<5 || connectivity(n2s2,1)<5 && small_link && ~tiny_link
+        if close_to_n1s2 && L2<=0.5 %&& connectivity(n1s2,1)<5 || connectivity(n2s2,1)<5 && small_link && ~tiny_link
             mergenode2=n1s2;
         elseif close_to_n2s2 %&& connectivity(n2s2,1)<5 || connectivity(n1s2,1)<5 && small_link && ~tiny_link
             mergenode2=n2s2;
