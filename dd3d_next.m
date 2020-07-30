@@ -56,7 +56,8 @@ if (~exist('use_gpu', 'var'))
 end
 if a_trac ~= 0
     f_hat = zeros(3*mno, 1);
-    para_tol = dx/1e7;
+    dimension=sqrt(dx*dx+dy*dy+dz*dz);
+    para_tol = dimension/1e7;
 
     planes = (1:1:6)';
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
@@ -64,7 +65,6 @@ if a_trac ~= 0
     gamma_dln = [gammat(:,1); gammaMixed(:,1)];
     [f_dln_node, f_dln_se,...
         f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-    tolerance = dx/10^7;
     % Parallel CUDA C flags.
     if use_gpu == 1
         % Provide a default number of threads in case none is given.
