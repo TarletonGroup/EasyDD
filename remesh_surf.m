@@ -29,6 +29,13 @@ in = inhull(rnnew(:,1:3), vertices, tess, tol); %node with flag 1 is inside doma
 rn_size = size(rnnew,1);
 Index=zeros(rn_size,1);
 
+normals=[1 0 0;
+         0 1 0;
+         0 0 1;
+         -1 0 0;
+         0 -1 0;
+         0 0 -1];
+
 % Create the list of nodes and connections
 L1=size(rnnew,1);
 nodelist=linspace(1,L1,L1)';
@@ -36,8 +43,32 @@ nodelist=linspace(1,L1,L1)';
 conlist=zeros(L2,(L3-1)/2+1); %(L3-1)/2+1 = max/3 M
 conlist(:,1)=connectivitynew(:,1);
 for i=1:L2
-connumb=conlist(i,1);
-conlist(i,2:connumb+1)=linspace(1,connumb,connumb);
+    connumb=conlist(i,1);
+    conlist(i,2:connumb+1)=linspace(1,connumb,connumb);
+end
+
+%Track path of surface nodes
+for n=1:L1
+    if rnnew(n,end)==6
+       numNbrs=conlist(n,1);
+       for i=1:numNbrs
+           ii=conlist(n,i+1); % connectionid for this connection
+           linkid=connectivitynew(n,2*ii); % the link id
+           posinlink=connectivitynew(n,2*ii+1);
+           n1=linksnew(linkid,3-posinlink);
+           if rnnew(n1,end)==67
+              linvec=rnnew(n1,1:3)-rnnew(n,1:3);
+              linvec=linvec/norm(linvec);
+              dotprods=normals*linvec';
+              planenorm=normals(dotprods>1e-2,:);
+              if size(planenorm,1)~=1
+                 disp('YDFUS')
+                 pause
+              end
+              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = genvirtnode(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n,n1,ii,planenorm);
+           end
+       end
+    end
 end
 
 %Find newly exited nodes and flag them as such
@@ -78,7 +109,7 @@ for n=1:L1
             posinlink=connectivitynew(n0,2*ii+1);
             n1=linksnew(linkid,3-posinlink); % the neighbor node id
             if rnnew(n1,end)==65
-                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,i,ii,vertices);
+                [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,i,ii,vertices);
             end
         end
     end
@@ -204,7 +235,7 @@ for i=1:size(rnnew,1) %create surface nodes where necessary
        for j=1:connectivitynew(i,1)
           con_id=linksnew(connectivitynew(i,2*j),3-connectivitynew(i,2*j+1));
           if rnnew(con_id,end)==0 || rnnew(con_id,end)==7
-              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(Index,fn,P,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,con_id,i,connectivitynew(i,1),j,vertices);
+              [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,con_id,i,connectivitynew(i,1),j,vertices);
           end
        end
     end
@@ -222,7 +253,7 @@ function rnnew = extend(rnnew,~,rn_id,plane_id,fn)
     rnnew(rn_id,end) = 67;   %flag node as virtual
 end
 
-function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(~,~,~,rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,~,ii,vertices)
+function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = gensurfnode2(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n0,n1,~,ii,vertices)
     faces = [1,3,4,2;                                             %Faces of cuboid as defined by vertices
              5,6,8,7;
              2,4,8,6;
@@ -299,5 +330,33 @@ function [rnnew] = movetosurf(rnnew,~,i,vertices)
         rnnew(i,1:3) = newsurfNode;
     end
 %     rnnew(i,1:3) = rnnew(i,1:3)+vec;
+
+end
+
+function [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = genvirtnode(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,n,n1,ii,planenorm)
+p_inf=1e7;
+newvirtNode=rnnew(n,1:3)+p_inf.*planenorm;
+[rn_size1,rn_size2] = size(rnnew);
+if rn_size2 == 4 %Pre-force evaluation, rn nx3, [rn flag]
+    %splitnode accepts only nx6, so add dummy velocities and then
+    %delete them. Avoids re-writing splitnode.
+    dummy_vel = zeros(rn_size1,3);
+    dummy_rn = [rnnew(:,1:3) , dummy_vel , rnnew(:,end)];
+    vntemp = dummy_rn(n1,4:6);
+    posvel = [newvirtNode, vntemp];
+    [dummy_rn,linksnew,connectivitynew,linksinconnectnew]=splitnode(dummy_rn,linksnew,connectivitynew,linksinconnectnew,n,ii,posvel);
+    dummy_rn(end,end) = 67; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
+    rnnew = dummy_rn(:,[1:3 end]);
+    linksnew(end,6:8)=linksnew(connectivitynew(n,2*ii),6:8);
+    fsegnew(end+1,:)=[0 0 0 0 0 0];
+else %Post-force evaluation, rnnew nx6, [rn vel flag]
+    vntemp = rnnew(n1,4:6);
+    posvel = [newvirtNode, vntemp];
+    [rnnew,linksnew,connectivitynew,linksinconnectnew]=splitnode(rnnew,linksnew,connectivitynew,linksinconnectnew,n,ii,posvel);
+    rnnew(end,end) = 67; %splitnode always gives flag 0, so we have to change it as 6 for surface node!
+    %testing beta
+    linksnew(end,6:8)=linksnew(connectivitynew(n,2*ii),6:8);
+    fsegnew(end+1,:)=[0 0 0 0 0 0];
+end
 
 end

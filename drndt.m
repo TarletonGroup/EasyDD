@@ -82,12 +82,14 @@ for p=1:size(vn,1)
             vn(p,:)=[0 0 0];
             continue
         elseif size(lines,1)==2
-           if 1 - abs(lines(1,:) * lines(2,:)') < eps
-               lines=lines(1,:);
-           else
-               vn(p,:)=[0 0 0];
-               continue
-           end
+%            if 1 - abs(lines(1,:) * lines(2,:)') < eps
+%                lines=lines(1,:);
+%            else
+%                vn(p,:)=[0 0 0];
+%                continue
+%            end
+            rn(p,4)=0;
+            continue
         end
         surfplanes = sum(surfplanes,1);
         surfplanes = surfplanes/norm(surfplanes);

@@ -1,6 +1,6 @@
 function [rn,links,connectivity,linksinconnect,fseg,colliding_segments]=collision_basic(...
     rn,links,connectivity,linksinconnect,fseg,mindist,MU,NU,a,Ec,mobility,vertices,...
-    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,~)
+    uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,~,lmin)
 %floop to know wich loop has to be run
 
 colliding_segments=1;
@@ -10,6 +10,7 @@ lrn3=lrn2-1; %lnr2-1 to count every column execpt the one with the flag
 % tol is the error factor of the calculation
 tol=1e-12;
 remcon=0;
+lmin2=lmin*lmin;
 
 % if connectivity(n1s1,1)==2 && connectivity(n2s1,1)==2 && connectivity(n1s2,1)==2 && connectivity(n2s2,1)==2
 %     alt1=connectivity(n1s1,[2 4]);
@@ -38,9 +39,9 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
     if collision_condition_is_met
         % links are unconnected and colliding
         % identify the first node to be merged
-        vec=rn(n1s1,1:3)-rn(n2s1,1:3);
-        close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
-        close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
+        vec=rn(n2s1,1:3)-rn(n1s1,1:3);
+        close_to_n1s1=((L1*L1*(vec*vec'))<lmin2);
+        close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<lmin2);
         %                 small_link=((vec*vec')<(4*mindist2));
         %                 tiny_link=((vec*vec')<(mindist2));
         % if collision point is close to one of the existing nodes use that node
@@ -69,9 +70,9 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
         end
         
         % identify the second node to be merged
-        vec=rn(n1s2,1:3)-rn(n2s2,1:3);
-        close_to_n1s2=((L2*L2*(vec*vec'))<mindist2);
-        close_to_n2s2=(((1-L2)*(1-L2)*(vec*vec'))<mindist2);
+        vec=rn(n2s2,1:3)-rn(n1s2,1:3);
+        close_to_n1s2=((L2*L2*(vec*vec'))<lmin2);
+        close_to_n2s2=(((1-L2)*(1-L2)*(vec*vec'))<lmin2);
         %                 small_link=((vec*vec')<(4*mindist2));
         %                 tiny_link=((vec*vec')<(mindist2));
         % if collision point is close to one of the existing nodes use that node
@@ -126,16 +127,61 @@ else
         % identify the first node to be merged
         mergenode1=n1s2;
         % identify the second node to be merged
-        vec=rn(n1s1,1:3)-rn(n2s1,1:3);
-        close_to_n1s1=((L1*L1*(vec*vec'))<mindist2);
-        close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<mindist2);
+        vec=rn(n2s1,1:3)-rn(n1s1,1:3);
+        close_to_n1s1=((L1*L1*(vec*vec'))<lmin2);
+        close_to_n2s1=(((1-L1)*(1-L1)*(vec*vec'))<lmin2);
+        if links(s2,1)==n1s1 || links(s2,2)==n1s1
+            hingenode=n1s1;
+        else
+            hingenode=n2s1;
+        end
         %                     small_link=((vec*vec')<(4*mindist2));
         %                     tiny_link=((vec*vec')<(mindist2));
         % if collision point is close to one of the existing nodes use that node
-        if close_to_n1s1 %&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
-            mergenode2=n1s1;
+        if close_to_n1s1 && L1<=0.5%&& connectivity(n1s1,1)<5 || connectivity(n2s1,1)<5 && small_link && ~tiny_link
+            if ~isequal(n1s1,hingenode)
+                mergenode2=n1s1;
+            else
+                vec2=vec/norm(vec);
+                vec2=lmin.*vec2;
+                newpoint=rn(n1s1,1:3)+vec2;
+                newdist=norm(rn(n2s1,1:3)-newpoint);
+                if newdist<lmin
+                    mergenode2=n2s1;
+                else
+                    L1=1-(newdist/norm(vec));
+                    spnode=n1s1;
+                    splitconnection=linksinconnect(s1,1);
+                    posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
+                    [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
+                    mergenode2=length(rn(:,1));
+                    newlink=length(links(:,1));
+                    links(newlink,6:8)=links(s1,6:8);
+                    fseg=[fseg;zeros(1,6)];
+                end
+            end
         elseif close_to_n2s1 %&& connectivity(n2s1,1)<5 || connectivity(n1s1,1)<5 && small_link && ~tiny_link
-            mergenode2=n2s1;
+            if ~isequal(n2s1,hingenode)
+                mergenode2=n2s1;
+            else
+                vec2=vec/norm(vec);
+                vec2=lmin.*vec2;
+                newpoint=rn(n2s1,1:3)-vec2;
+                newdist=norm(rn(n1s1,1:3)-newpoint);
+                if newdist<lmin
+                   mergenode2=n1s1;
+                else
+                    L1=newdist/norm(vec);
+                    spnode=n1s1;
+                    splitconnection=linksinconnect(s1,1);
+                    posvel=rn(n1s1,1:lrn3).*(1-L1)+rn(n2s1,1:lrn3).*L1;
+                    [rn,links,connectivity,linksinconnect]=splitnode(rn,links,connectivity,linksinconnect,spnode,splitconnection,posvel);
+                    mergenode2=length(rn(:,1));
+                    newlink=length(links(:,1));
+                    links(newlink,6:8)=links(s1,6:8);
+                    fseg=[fseg;zeros(1,6)]; 
+                end
+            end
             %                     elseif tiny_link
             %                         fprintf('Error detected in collision_basic. See Line 142\n')
             %                         pause
