@@ -161,15 +161,16 @@ viewangle=[-35,15];
 printfreq=1; 
 printnode=2; 
 
-rmax=0.5*lmin;
+rann=0.9*lmin;
+rmax=0.5*rann;
 integrator='int_trapezoid_bb_old';
 a=11.3473;
-totalSimTime=1e9*2048*100;
-dt0=1e6*2048*100;
+totalSimTime=1e9;
+dt0=1e60;
 printfreq=100000;
 plotfreq=1;
 Bedge=1;
-Bscrew=100;
+Bscrew=10;
 mobility='mobbcc_bb1b';
 a_trac = 1;
 

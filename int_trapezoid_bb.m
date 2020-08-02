@@ -45,7 +45,7 @@ convergent=0;     %Logical for the operation of the while loop
         if(errmag<rntol) && (distmag<rmax)  %If error and max distance move are in acceptable limits
             dt_old = dt;                    %Store current timestep as maximum acceptable timestep
             factor=maxchange*(1/(1+(maxchange^exponent-1)*(errmag/rntol)))^(1/exponent);
-            dt=dt*factor;%min(dt*factor,dt0);          %Increase timestep depending on the magnitude of the error
+            dt=min(dt*factor,dt0);          %Increase timestep depending on the magnitude of the error
             dt_old_good = 1;                %Flag acceptable timestep calculated
             counter=counter+1;              %Proceed to next iteration
         else
