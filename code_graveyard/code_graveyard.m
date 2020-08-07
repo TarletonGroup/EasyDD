@@ -26,9 +26,9 @@ function EasyDD()
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
 %  mex SegSegForcesMex.c
-%  mex StressDueToSegs.c
+%  mex StressDueToSegsMex.c
 %  mex UtildaMex.c
-%  mex mindistcalcmex.c
+%  mex MinDistCalcMex.c
 %  mex  CollisionCheckerMex.c
 %  mex mobbcc1mex.c
 %  mex displacementmex_et.c
@@ -377,4 +377,427 @@ while simTime < totalSimTime
 end
 
 disp('completed')
+end
+
+%%
+function compile(CUDA_flag)
+    file = dir(sprintf("UtildaMex.%s", ext));
+    if ~isfile("UtildaMex.c") || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+        mex -v COPTIMFLAGS="-o3 -oy -DNDEBUG" UtildaMex.c   
+    end
+end
+
+%%
+function visualise
+%%
+
+
+
+% % code below is just to visulise the defomed mesh
+
+clear all
+close all
+disp('Loading restart file');
+load restart.mat %restart.50sources.75744.mat
+
+plotmesh=1;
+plotstress=0;
+
+%refine mesh
+mx=mx*2;
+
+%update results
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
+[B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
+     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+     w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+disp('Done!');
+
+[TriangleCentroids,TriangleNormals,tri,Xb] = ...
+     MeshSurfaceTriangulation(xnodes,Stop,Sbot,Sfront,Sback,Sleft,Sright);
+
+[uhat,fend,Ubar] = FEMcoupler(rn,links,maxconnections,a,MU,NU,xnodes,mno,kg,L,U,...
+                    gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,simTime);
+
+segments = constructsegmentlist(rn,links);
+utilda = zeros(3*mno,1);
+gn = 1:mno; % global node number
+x0 = xnodes(gn,1:3); % field point
+point_array_length = size(x0,1);
+segments_array_length = size(segments,1);
+%Full C version (including combinatorials, checks, corrections etc.)
+
+disp('Calculating displacements');
+[Ux,Uy,Uz] = UtildaMex(x0(:,1),x0(:,2),x0(:,3),... %coordinates
+                       segments(:,3), segments(:,4), segments(:,5),... %burgers vector
+                       segments(:,6), segments(:,7), segments(:,8),... %start node segs
+                       segments(:,9), segments(:,10), segments(:,11),... %end node segs
+                       segments(:,12), segments(:,13), segments(:,14),... %slip plane
+                       NU,point_array_length,segments_array_length);                       
+%[Uxf, Uyf, Uzf] =displacement_fivel(x0,segments,NU); %gives same answer
+
+utilda(3*gn -2) = Ux;
+utilda(3*gn -1) = Uy;
+utilda(3*gn   ) = Uz;
+
+if plotmesh
+    disp('Plotting mesh');
+    xp = zeros(mno,3);
+    for j =1:mno;
+         xp(j,1:3) = xnodes(j,1:3)...
+             + 1e3*utilda(3*j-2:3*j)'; %+ 0e4*uhat(3*j-2:3*j)';
+    end
+%     amag=1;
+%     xp = amag*xp;
+    figure;clf;hold on;view(0,0)
+    xlabel('x');ylabel('y');zlabel('z')
+    style='-k';
+    for p =1:mel
+    %      plot3(xp(:,1),xp(:,2),xp(:,3),'.') % plot nodes
+        % plot elements
+        plot3(xp(nc(p,[1:4,1]),1),xp(nc(p,[1:4,1]),2),xp(nc(p,[1:4,1]),3),style) 
+        plot3(xp(nc(p,[5:8,5]),1),xp(nc(p,[5:8,5]),2),xp(nc(p,[5:8,5]),3),style) 
+        plot3(xp(nc(p,[1,5]),1),xp(nc(p,[1,5]),2),xp(nc(p,[1,5]),3),style) % 
+        plot3(xp(nc(p,[2,6]),1),xp(nc(p,[2,6]),2),xp(nc(p,[2,6]),3),style) % 
+        plot3(xp(nc(p,[3,7]),1),xp(nc(p,[3,7]),2),xp(nc(p,[3,7]),3),style) % 
+        plot3(xp(nc(p,[4,8]),1),xp(nc(p,[4,8]),2),xp(nc(p,[4,8]),3),style) % 
+    end
+    axis equal
+    zlabel('z-direction (\mum)');
+    xlabel('x-direction (\mum)');
+%     zlim([-6 6])
+%     xlim([0 9e4])
+    title('$\tilde{u}$ scaled','FontSize',14,'Interpreter','Latex');
+end
+
+%-------------------generate stress--------------------------
+if plotstress
+    X = linspace(0,dx,2*mx)';
+    Z = linspace(0,dy,2*my)';
+    Y = 0.5*dy; %middle slide
+
+    X_size = length(X);
+    Y_size = length(Y);
+    Z_size = length(Z);
+
+    Sxxu = zeros(X_size,Y_size);
+    Syyu = zeros(X_size,Y_size);
+    Szzu = zeros(X_size,Y_size);
+    Sxyu = zeros(X_size,Y_size);
+    Sxzu = zeros(X_size,Y_size);
+    Syzu = zeros(X_size,Y_size);
+    Sxx = zeros(X_size,Y_size);
+    Syy = zeros(X_size,Y_size);
+    Szz = zeros(X_size,Y_size);
+    Sxy = zeros(X_size,Y_size);
+    Sxz = zeros(X_size,Y_size);
+    Syz = zeros(X_size,Y_size);
+    p1x = segments(:,6);
+    p1y = segments(:,7);
+    p1z = segments(:,8);
+    p2x = segments(:,9);
+    p2y = segments(:,10);
+    p2z = segments(:,11);
+    bx = segments(:,3);
+    by = segments(:,4);
+    bz = segments(:,5);
+    x1 =  [ p1x,p1y,p1z];
+    x2 = [p2x,p2y,p2z];
+    b=[bx, by, bz];
+    
+    disp('Calculating stresses');
+    for i= 1:X_size;
+        for j = 1:Z_size
+            x0 = [X(i) Y Z(j)]; % field point
+            sigmahat = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,x0);
+            Sxxu(i,j) = sigmahat(1,1);
+            Syyu(i,j) = sigmahat(2,2);
+            Szzu(i,j) = sigmahat(3,3);
+
+            Sxyu(i,j) = sigmahat(1,2); %isotropic
+            Sxzu(i,j) = sigmahat(1,3); %isotropic
+            Syzu(i,j) = sigmahat(2,3); %isotropic
+
+            sigmatilde=FieldPointStress(x0,x1,x2,b,a,MU,NU);
+            Sxx(i,j) = sigmatilde(1);
+            Syy(i,j) = sigmatilde(2);
+            Szz(i,j) = sigmatilde(3);
+            Sxy(i,j) = sigmatilde(4);
+            Syz(i,j) = sigmatilde(5);
+            Sxz(i,j) = sigmatilde(6);
+
+        end
+    end
+    
+    figure; clf
+    subplot(3,1,1)
+    surf(X*amag,Z*amag,mumag*(Sxxu+Sxx)','EdgeColor','none'); 
+    view(2)
+    axis equal;
+    axis([0 dx*amag 0 dz*amag])
+    xlabel('x-direction (\mum)')
+    ylabel('z-direction (\mum)')
+    title('$$\hat{\sigma}_{xx}$$+$$\tilde{\sigma}_{xx}$$','Interpreter','Latex');
+    grid off
+    h=colorbar;
+    xlabel(h,'MPa');
+    
+    subplot(3,1,2)
+    surf(X*amag,Z*amag,mumag*Sxx','EdgeColor','none'); 
+    view(2)
+    axis equal;
+    axis([0 dx*amag 0 dz*amag])
+    xlabel('x-direction (\mum)')
+    ylabel('z-direction (\mum)')
+    title('$$\tilde{\sigma}_{xx}$$','Interpreter','Latex');
+    grid off
+    h=colorbar;
+    xlabel(h,'MPa');
+
+    subplot(3,1,3)
+    surf(X*amag,Z*amag,mumag*Sxxu','EdgeColor','none'); 
+    view(2)
+    axis equal;
+    axis([0 dx*amag 0 dz*amag])
+    xlabel('x-direction (\mum)')
+    ylabel('z-direction (\mum)')
+    title('$$\hat{\sigma}_{xx}$$','Interpreter','Latex');
+    grid off
+    %saveas(gcf,'sxx','epsc')
+end
+
+end
+
+%%
+function tractionCheck
+%load a test condition
+run inputCheck.m
+
+segments = constructsegmentlist(rn,links);
+
+%construct finite element arrays
+%construct stiffeness matrix K and pre-compute L,U decompositions.
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.'); 
+[B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
+    Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,MU,NU,loading);    
+
+X = linspace(0,dx,2*mx)';
+Z = linspace(0,dy,2*my)';
+Y = 0.5*dy; 
+
+X_size = length(X);
+Y_size = length(Y);
+Z_size = length(Z);
+
+Sxxuhat = zeros(X_size,Z_size);
+Syyuhat = zeros(X_size,Z_size);
+Szzuhat = zeros(X_size,Z_size);
+Sxyuhat = zeros(X_size,Z_size);
+Sxzuhat = zeros(X_size,Z_size);
+Syzuhat = zeros(X_size,Z_size);
+
+Sxxutilde = zeros(X_size,Z_size);
+Syyutilde = zeros(X_size,Z_size);
+Szzutilde = zeros(X_size,Z_size);
+Sxyutilde = zeros(X_size,Z_size);
+Sxzutilde = zeros(X_size,Z_size);
+Syzutilde = zeros(X_size,Z_size);
+
+Sxx = zeros(X_size,Z_size);
+Syy = zeros(X_size,Z_size);
+Szz = zeros(X_size,Z_size);
+Sxy = zeros(X_size,Z_size);
+Sxz = zeros(X_size,Z_size);
+Syz = zeros(X_size,Z_size);
+
+%%
+%---------------------------------------------------------------
+% evaluate tractions on gammat and solve for uhat  to recover
+% dislocation stress field 
+
+gn = 1:mno; %gammau(:,1);  % global node number
+x0 = xnodes(gn,1:3); % field point
+point_array_length = size(x0,1);
+segments_array_length = size(segments,1);
+
+[Ux,Uy,Uz] = UtildaMex(x0(:,1),x0(:,2),x0(:,3),... %coordinates
+                       segments(:,3), segments(:,4), segments(:,5),... %burgers vector
+                       segments(:,6), segments(:,7), segments(:,8),... %start node segs
+                       segments(:,9), segments(:,10), segments(:,11),... %end node segs
+                       segments(:,12), segments(:,13), segments(:,14),... %slip plane
+                       NU,point_array_length,segments_array_length);
+
+utilda(3*gn - 2) = Ux;
+utilda(3*gn - 1) = Uy;
+utilda(3*gn   ) = Uz;
+
+%% ---------------------------------------------------------------
+for i= 1:X_size;
+    
+    for j = 1:Z_size
+        
+        x0 = [X(i) Y Z(j)]; % field point
+        
+        %sigmahatFEM = hatStress(uhat,nc,xnodes,D,mx,mz,w,h,d,x0);
+        %Sxxuhat(i,j) = sigmahatFEM(1,1);
+        %Syyuhat(i,j) = sigmahatFEM(2,2);
+        %Szzuhat(i,j) = sigmahatFEM(3,3);
+        %Sxyuhat(i,j) = sigmahatFEM(1,2); %isotropic
+        %Sxzuhat(i,j) = sigmahatFEM(1,3); %isotropic
+        %Syzuhat(i,j) = sigmahatFEM(2,3); %isotropic
+        
+        sigmatildeFEM = hatStress(utilda,nc,xnodes,D,mx,mz,w,h,d,x0);
+        Sxxutilde(i,j) = sigmatildeFEM(1,1);
+        Syyutilde(i,j) = sigmatildeFEM(2,2);
+        Szzutilde(i,j) = sigmatildeFEM(3,3);
+        Sxyutilde(i,j) = sigmatildeFEM(1,2); %isotropic
+        Sxzutilde(i,j) = sigmatildeFEM(1,3); %isotropic
+        Syzutilde(i,j) = sigmatildeFEM(2,3); %isotropic
+        
+        x1=segments(:,6:8);
+        x2=segments(:,9:11);
+        b=segments(:,3:5);
+        sigmatilde=FieldPointStress(x0,x1,x2,b,a,MU,NU);
+        Sxx(i,j) = sigmatilde(1);
+        Syy(i,j) = sigmatilde(2);
+        Szz(i,j) = sigmatilde(3);
+        Sxy(i,j) = sigmatilde(4);
+        Syz(i,j) = sigmatilde(5);
+        Sxz(i,j) = sigmatilde(6);           
+    end
+end
+
+%%
+subplot(5,2,1)
+contourf(X,Z,Sxx'); 
+axis([0 dx/2 0 dz])
+axis equal
+xlabel('x-direction','FontSize',14)
+%ylabel('z-direction','FontSize',14)
+title(['\sigma_{xx}^{Analytical}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+subplot(5,2,2)
+contourf(X,Z,Sxxutilde'); 
+axis([0 dx/2 0 dz])
+axis equal;
+xlabel('x-direction','FontSize',14)
+ylabel('z-direction','FontSize',14)
+title(['\sigma_{xx}^{FEM}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,3)
+contourf(X,Z,Syy'); 
+axis([0 dx/2 0 dy])
+axis equal
+xlabel('x-direction','FontSize',14)
+%ylabel('z-direction','FontSize',14)
+title(['\sigma_{yy}^{Analytical}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,4)
+%c=1E-4*linspace(-1,1,100);
+% contourf(X,Z,Sxx',c,'EdgeColor','none'); 
+contourf(X,Z,Syyutilde'); 
+axis([0 dx/2 0 dy])
+axis equal;
+xlabel('x-direction','FontSize',14)
+ylabel('z-direction','FontSize',14)
+title(['\sigma_{yy}^{FEM}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,5)
+contourf(X,Z,Szz'); 
+axis([0 dx/2 0 dy])
+axis equal
+xlabel('x-direction','FontSize',14)
+%ylabel('z-direction','FontSize',14)
+title(['\sigma_{zz}^{Analytical}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,6)
+%c=1E-4*linspace(-1,1,100);
+contourf(X,Z,Szzutilde'); 
+%surf(X,Z,Szzutilde','EdgeColor','none'); 
+axis([0 dx/2 0 dy])
+axis equal;
+xlabel('x-direction','FontSize',14)
+ylabel('z-direction','FontSize',14)
+title(['\sigma_{zz}^{FEM}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,7)
+contourf(X,Z,Sxy'); 
+axis([0 dx/2 0 dy])
+axis equal
+xlabel('x-direction','FontSize',14)
+%ylabel('z-direction','FontSize',14)
+title(['\sigma_{xy}^{Analytical}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,8)
+%c=1E-4*linspace(-1,1,100);
+% contourf(X,Z,Sxx',c,'EdgeColor','none'); 
+contourf(X,Z,Sxyutilde'); 
+axis([0 dx/2 0 dy])
+axis equal;
+xlabel('x-direction','FontSize',14)
+ylabel('z-direction','FontSize',14)
+title(['\sigma_{xy}^{FEM}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,9)
+contourf(X,Z,Sxz'); 
+axis([0 dx/2 0 dy])
+axis equal
+xlabel('x-direction','FontSize',14)
+%ylabel('z-direction','FontSize',14)
+title(['\sigma_{xz}^{Analytical}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+
+subplot(5,2,10)
+%c=1E-4*linspace(-1,1,100);
+% contourf(X,Z,Sxx',c,'EdgeColor','none'); 
+contourf(X,Z,Sxzutilde'); 
+axis([0 dx/2 0 dy])
+axis equal;
+xlabel('x-direction','FontSize',14)
+ylabel('z-direction','FontSize',14)
+title(['\sigma_{xz}^{FEM}'],'FontSize',14)
+caxis([-5e-4 5e-4]);
+end
+
+%%
+function displacement_test
+
+
+segments = constructsegmentlist(rn,links);
+
+x0 = [linspace(0,dx)', 2.5e4*ones(100,1), 4.5e4*ones(100,1)];
+
+tic;
+[Ux_f,Uy_f,Uz_f]  = displacement_fivel(x0,segments,NU);
+toc;
+
+point_array_length = size(x0,1);
+segments_array_length = size(segments,1);
+tic;
+[Ux,Uy,Uz] = UtildaMex(x0(:,1),x0(:,2),x0(:,3),... %coordinates
+                       segments(:,3), segments(:,4), segments(:,5),... %burgers vector
+                       segments(:,6), segments(:,7), segments(:,8),... %start node segs
+                       segments(:,9), segments(:,10), segments(:,11),... %end node segs
+                       segments(:,12), segments(:,13), segments(:,14),... %slip plane
+                       NU,point_array_length,segments_array_length);
+utilda2 = horzcat(Ux,Uy,Uz);
+toc;
+
+norm([Ux-Ux_f,Uy-Uy_f,Uz-Uz_f]);
+
+clear utilda3
+for i =1:size(x0,1)
+    
+uspf = displacement_spf(x0(i,:),rn(:,1:3),segments(1,3:5),NU);
+utilda3(i,1:3) = uspf;
+end
+
 end

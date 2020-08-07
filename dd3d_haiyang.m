@@ -15,9 +15,9 @@
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" SegSegForcesMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegs.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegsMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" UtildaMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mindistcalcmex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" MinDistCalcMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG"  CollisionCheckerMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c

@@ -15,9 +15,9 @@
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
 %  mex SegSegForcesMex.c
-%  mex StressDueToSegs.c
+%  mex StressDueToSegsMex.c
 %  mex UtildaMex.c
-%  mex mindistcalcmex.c
+%  mex MinDistCalcMex.c
 %  mex  CollisionCheckerMex.c
 %  mex mobbcc1mex.c
 %  mex displacementmex_et.c

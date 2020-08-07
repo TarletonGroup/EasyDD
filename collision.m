@@ -26,7 +26,7 @@ while i<size(links,1) %for every link M
         if (n1s1~=n1s2)&&(n1s1~=n2s2)&&(n2s1~=n1s2)&&(n2s1~=n2s2)
 
            %[dist2,ddist2dt,L1,L2]=mindistcalc(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
-           [dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
+           [dist2,ddist2dt,L1,L2]=MinDistCalcMex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
             collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-eps))|(dist2<eps);
             % there are two conditions here the first condition handles non planar collisions
             % the second conditions looks for coplanar collisions
@@ -114,7 +114,7 @@ while i<=length(rn(:,1))
                 n1s1=links(linkid,1);
                 n2s1=links(linkid,2);
                 %[dist2,ddist2dt,L1,L2]=mindistcalc(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
-                [dist2,ddist2dt,L1,~]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
+                [dist2,ddist2dt,L1,~]=MinDistCalcMex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(nodenoti,1:lrn3),rn(nodenoti,1:lrn3));
                 %dist2
                 %ddist2dt
                 collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-eps);

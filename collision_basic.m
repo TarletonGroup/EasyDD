@@ -32,7 +32,7 @@ if remcon==1
 elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop2 needs to be run.
     % First collision in computed with collisioncheckermexmarielle information : n1s1,n2s1,n1s2,n2s2,s1,s2
     
-    [dist2,ddist2dt,L1,L2]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
+    [dist2,ddist2dt,L1,L2]=MinDistCalcMex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n2s2,1:lrn3));
     collision_condition_is_met=((dist2<mindist2)&(ddist2dt<-tol))|(dist2<tol);
     % there are two conditions here the first condition handles non planar collisions
     % the second conditions looks for coplanar collisions
@@ -121,7 +121,7 @@ elseif floop==1   %run loop1 only if floop=1, if floop=2 it means that only loop
         end
     end
 else
-    [dist2,ddist2dt,L1,~]=mindistcalcmex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n1s2,1:lrn3));
+    [dist2,ddist2dt,L1,~]=MinDistCalcMex(rn(n1s1,1:lrn3),rn(n2s1,1:lrn3),rn(n1s2,1:lrn3),rn(n1s2,1:lrn3));
     collision_condition_is_met=(dist2<mindist2)&(ddist2dt<-tol);
     if collision_condition_is_met
         % identify the first node to be merged
