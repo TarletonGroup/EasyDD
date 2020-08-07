@@ -27,7 +27,7 @@ dz = 1000;
 figCounter = 0;
 cntr = 0;
     
-for j = 20
+for j = 15
     mx=j;
 
     gridSize = mx;
@@ -127,7 +127,7 @@ end
         szzN = squeeze(sigmaN(3,3,:,:));
         sxzN = squeeze(sigmaN(1,3,:,:));
         
-        segments = constructsegmentlist(rn,links);
+        segments = constructsegmentlist(rn,links,1);
         p1 = [segments(:,6) segments(:,7) segments(:,8)];
         p2 = [segments(:,9) segments(:,10) segments(:,11)];
 

@@ -213,7 +213,7 @@ while simTime < totalSimTime
         if (dovirtmesh)
             %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen_mex(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
             %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
-            [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen3(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,MU,NU,a,Ec,dx,dy,dz,lmin);
+            [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen3(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,MU,NU,a,Ec,dx,dy,dz);
             %[rnnew,linksnew,connectivitynew,linksinconnectnew] = virtualmeshcoarsen2(rnnew,linksnew,maxconnections,10*lmin);
         end
         %remeshing internal dislocation structures
@@ -269,14 +269,14 @@ while simTime < totalSimTime
 %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
 %     uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
 
-                if (doseparation)
-                    if max(connectivitynew(:,1))>3
-                        %spliting of nodes with 4 or more connections
-                        [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                            separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                            fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
-                    end
-                end
+%                 if (doseparation)
+%                     if max(connectivitynew(:,1))>3
+%                         %spliting of nodes with 4 or more connections
+%                         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
+%                             separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
+%                             fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+%                     end
+%                 end
             end
 %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
 %         uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
