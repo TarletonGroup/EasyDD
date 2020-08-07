@@ -1,23 +1,54 @@
-% %Dislocation Dynamics simulation in 3-dimension
-% % Features:
-% % mixed boundary conditions cantilever.
-% % linear mobility law (mobfcc0,mobfcc1)
-% % N^2 interaction (no neighbor list, no fast multipole)
+%%=======================================================================%%
+% EasyDD.m v2.0
 %
-% %Data structure:
-% %NMAX:    maximum number of nodes (including disabled ones)
-% %LINKMAX: maximum number of links (including disabled ones)
-% %rn: (NMAX,4) array of nodal positions (last column is flag: -1 means disabled)
-% %vn: (NMAX,3) array of nodal velocities
-% %fn: (NMAX,3) array of nodal forces
-% %links: (LINKMAX,8) array of links (id1,id2,bx,by,bz,nx,ny,nz)
+% 3D Discrete Dislocation Plasticity. Is currently capable of simulating
+% nanoindentation, micropillar compression and cantilever bending.
+% Mixed-language model C, CUDA and Matlab so requires at least a C/C++
+% compatible compiler, CUDA computation is optional. Explicitly calculates
+% dislocation-dislocation interactions O(N^2).
+%
+%-------------------------------------------------------------------------%
+% Data structure:
+% rn: (:,4) array of nodal positions (x, y, z, label)
+% vn: (:,3) array of nodal velocities (vx, vy, vz)
+% fn: (:,3) array of nodal forces (fx, fy, fz)
+% links: (:,8) array of links (idx1, idx2, bx, by, bz, nx, ny, nz)
+%-------------------------------------------------------------------------%
+% Compatibility
+% As long as Matlab and a compatible C/C++ and/or CUDA compiler are
+% supported, the code will be compatible.
+%-------------------------------------------------------------------------%
+% Known issues and Improvement wish list:
+% * Memory model is highly inefficient. There is a lot of naive dynamic 
+%   resizing of arrays.
+% * Some matrices variables change in their number of columns are are hard
+%   to track/debug (rn, connectivity).
+% * Some variables hang around unused.
+% * Collision, Separation and Remeshing can be antagonistic at higher
+%   dislocation densities and may end up repeating processes until the
+%   simulation progresses enough.
+% * FEM boundary conditions need reworking so they can be passed in as
+%   inputs rather than soft-coded into the FEM mesh builder.
+% * There is no sanity check on input parameters.
+% * Some performance-critical functions have no Matlab equivalent so a
+%   C/C++ compiler is strictly required.
+% * There are potential opportunities for further parallelisation in 
+%   collision, separation and integration processes.
+% * Better modularisation would help increase the usability of the code.
+% * Slip system in links(:, 6:8) may be inaccurate for some dislocations.
+%%=======================================================================%%
+
+%%
+% Compile mex files.
+compile(CUDA_flag)
+%%
 %
 % compile the c source code for seg-seg force evaluation and makes a dynamic linked library
 %  disp('Compiling MEX files');
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" SegSegForcesMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegs.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegsMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" UtildaMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mindistcalcmex.c
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" MinDistCalcMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG"  CollisionCheckerMex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c
