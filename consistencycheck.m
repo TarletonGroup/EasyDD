@@ -4,7 +4,7 @@ function c=consistencycheck(rn,links,connectivity,linksinconnect)
 %items to check:
 % 1. the length of the connectivity matrix should be the same as that of links
 %    (specific to DDLab implementation)
-% 2. connectivity matrix: each row correspond to a node, 
+% 2. connectivity matrix: each row correspond to a node,
 %    only the first 2*numNbrs+1 entries in each row can be non-zero
 %    where numNbrs is the number of neighbors for this node
 %    (specific to DDLab implementation)
@@ -49,9 +49,9 @@ for i=1:nnodes
         totalb=zeros(1,3);
         numNbrs=connectivity(i,1);
         for j=1:numNbrs
-        linkid=connectivity(i,2*j);
-        posi=connectivity(i,2*j+1);
-        totalb=totalb+(3-2*posi).*links(linkid,3:5);  
+            linkid=connectivity(i,2*j);
+            posi=connectivity(i,2*j+1);
+            totalb=totalb+(3-2*posi).*links(linkid,3:5);
         end
         if totalb*totalb'~=0
             disp(sprintf('the Burgers vector is not conserved at node %d',i));
@@ -85,15 +85,15 @@ for i=1:nnodes,
             end
         end
     end
-end 
-    
+end
+
 %item 5
 % a link cannot have zero Burgers vector
 for j=1:length(links(:,1))
     b = links(j,3:5);
     if (norm(b)==0)
-         disp(sprintf('link %d has zero Burgers vector',j));
-         pause(0.01)
+        disp(sprintf('link %d has zero Burgers vector',j));
+        pause(0.01)
     end
 end
 
@@ -118,7 +118,7 @@ end
 for i=1:nnodes,
     numNbrs=connectivity(i,1);
     for j=1:numNbrs,
-        n0=links(connectivity(i,2*j),connectivity(i,2*j+1));    
+        n0=links(connectivity(i,2*j),connectivity(i,2*j+1));
         if(i~=n0)
             disp(sprintf('connectivity(%d,:)',i));
             connectivity(i,:)
@@ -129,7 +129,7 @@ end
 
 %item 8
 % check the consistency between the "connectivity" matrix and the "linkinconnect" matrix
-for i=1:length(links(:,1))    
+for i=1:length(links(:,1))
     j=connectivity(links(i,1),2*linksinconnect(i,1));
     k=connectivity(links(i,2),2*linksinconnect(i,2));
     if(i~=j)|(i~=k)
@@ -144,7 +144,9 @@ for i=1:length(links(:,1))
             connectivity(links(i,2),1),connectivity(links(i,2),2),connectivity(links(i,2),3),...
             connectivity(links(i,2),4),connectivity(links(i,2),5),connectivity(links(i,2),6),...
             connectivity(links(i,2),7),connectivity(links(i,2),8),connectivity(links(i,2),9) ));
-            
+        
         pause(0.01)
     end
+    
+    disp('Consistencycheck : Done!');
 end

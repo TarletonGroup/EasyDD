@@ -1,32 +1,35 @@
-% clear all
-% mx=1,dx=6,dy=1,dz=1,mu=1,nu=.3,loading=1;
-
 function [vertices,B,xnodes,mno,nc,n,D,kg,K,L,U,Sleft,Sright,Stop,Sbot,...
     Sfront,Sback,gammat,gammau,gammaMixed,fixedDofs,freeDofs,...
-    w,h,d,my,mz,mel,unfixedDofs] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)
-
+    w,h,d,my,mz,mel] = finiteElement3D(dx,dy,dz,mx,mu,nu,loading)
+%=========================================================================%
 % E Tarleton edmund.tarleton@materials.ox.ac.uk
-% 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) per element
+% 3D FEM code using linear 8 node element with 8 integration pts (2x2x2) 
+% per element
+%
 % 4. ----- .3
-%  �\       �\
-%  � \      � \
+%  |\       |\
+%  | \      | \
 % 1. -\---- .2 \
 %   \  \     \  \
 %    \ 8. ----\- .7
-%     \ �      \ �
-%      \�       \�
+%     \ |      \ |
+%      \|       \|
 %      5. ----- .6
 %
 %
 % rectangulare domain.
-% (y going in to the page) note this is rotated about x axis w.r.t. local (s1,s2,s3)
-% system
+% (y going in to the page) note this is rotated about x axis w.r.t. local 
+% (s1,s2,s3) system.
 % -------------------------------------------------
 %
 % ^z                   (mx,my)
 % |
 % |
 % |------>x-----------------------------------------
+%=========================================================================%
+
+disp('Constructing stiffness matrix K and precomputing L,U decompositions. Please wait.');
+
 % Simulation domain vertices. Required for surface remeshing.
 vertices = [0,0,0;...
             dx,0,0;...
@@ -592,13 +595,6 @@ hold off
 % [L,U] = lu(K);
 % toc;
 
-
-%% Haiyang's addition
-% allDofs = [1:3*mno];
-% unfixedDofs = setdiff(allDofs,fixedDofs); %HY20171206: setdiff not only obtain the different elements but also sort them.
-% K = K(unfixedDofs,unfixedDofs);
-
-%%
 disp('Cholesky Factorization of K...'); %should be symmetric!
 tic;
 U = chol(K);
