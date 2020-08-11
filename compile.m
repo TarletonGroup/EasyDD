@@ -1,4 +1,4 @@
-function compile(CUDA_flag)
+function CUDA_flag = compile(CUDA_flag)
 %%=======================================================================%%
 %-------------------------------------------------------------------------%
 % Compile MEX and MEXCUDA files.
@@ -24,30 +24,59 @@ end
 ext = mexext;
 
 % Seg seg forces.
-file = dir(sprintf("SegSegForcesMex.%s", ext));
-if ~isfile("SegSegForcesMex.c") || ~isfile(file.name) && days(file.date - datetime('now')) > 30
-    mex -v COPTIMFLAGS="-o3 -oy -DNDEBUG" SegSegForcesMex.c   
+name = sprintf("SegSegForcesMex.%s", ext);
+file = dir(name);
+if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+    mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" SegSegForcesMex.c
 end
 
 % Stress tue to segments (field point stress).
-file = dir(sprintf("StressDueToSegsMex.%s", ext));
-if ~isfile("StressDueToSegsMex.c") || ~isfile(file.name) && days(file.date - datetime('now')) > 30
-    mex -v COPTIMFLAGS="-o3 -oy -DNDEBUG" StressDueToSegsMex.c   
+name = sprintf("StressDueToSegsMex.%s", ext);
+file = dir(name);
+if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+    mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" StressDueToSegsMex.c
 end
 
 % Stress tue to segments (field point stress).
 file = dir(sprintf("MinDistCalcMex.%s", ext));
 if ~isfile("MinDistCalcMex.c") || ~isfile(file.name) && days(file.date - datetime('now')) > 30
-    mex -v COPTIMFLAGS="-o3 -oy -DNDEBUG" MinDistCalcMex.c   
+    mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" MinDistCalcMex.c
+end
+
+% Collision checker.
+name = sprintf("CollisionCheckerMex.%s", ext);
+file = dir(name);
+if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+    mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" CollisionCheckerMex.c
+end
+
+% Analytic surface tractions.
+name = sprintf("NodalSurfaceForceLinearRectangleMex.%s", ext);
+file = dir(name);
+if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+    mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" NodalSurfaceForceLinearRectangleMex.c
 end
 
 
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" MinDistCalcMex.c
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMex.c
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CreateInputMex.c %CollisionMarielle
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMexMariellebis.c %CollisionMarielle
-% mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" ./nodalForce/nodal_surface_force_linear_rectangle_mex.c
-% mexcuda -v COMPFLAGS="-Xptxas -v -arch=compute_60 -code=sm_60 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex_cuda.cu
+if CUDA_flag
+    try
+        % Analytic surface tractions CUDA.
+        name = sprintf("NodalSurfaceForceLinearRectangleMexCUDA.%s", ext);
+        file = dir(name);
+        if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+            mexcuda -v COMPFLAGS="-Xptxas" COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" NodalSurfaceForceLinearRectangleMexCUDA.cu
+        end
+        
+        % SegSeg forces CUDA.
+        name = sprintf("SegForceNBodyCUDADoublePrecision.%s", ext);
+        file = dir(name);
+        if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
+            system('nvcc -ptx -o3 -oy -use_fast_math -DNDEBUG SegForceNBodyCUDADoublePrecision.cu');
+        end     
+    catch err
+        CUDA_flag = false;
+        disp("No CUDA compiler found. Using serial implementation. CUDA_flag set to false.")
+    end
+end
+
 end
