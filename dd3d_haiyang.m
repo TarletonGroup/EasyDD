@@ -22,7 +22,7 @@
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c
 %  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CreateInputMex.c %CollisionMarielle
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMexMariellebis.c %CollisionMarielle
+%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMex.c %CollisionMarielle
 %   disp('Done!');
 %  default value if run by itself (e.g. not through "rundd3d")
 %  cleanup the empty node and link entries at the end of the initial data structures
@@ -209,7 +209,7 @@ while simTime < totalSimTime
               %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
               colliding_segments=1;
               while colliding_segments==1
-              [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+              [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
                rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
                 if floop==2
                     colliding_segments=0;

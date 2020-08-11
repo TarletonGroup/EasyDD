@@ -38,27 +38,9 @@
 % * Slip system in links(:, 6:8) may be inaccurate for some dislocations.
 %%=======================================================================%%
 
-%%
-% Compile mex files.
-compile(CUDA_flag)
-%%
-%
-% compile the c source code for seg-seg force evaluation and makes a dynamic linked library
-%  disp('Compiling MEX files');
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" SegSegForcesMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" StressDueToSegsMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" UtildaMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" MinDistCalcMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG"  CollisionCheckerMex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" mobbcc1mex.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" displacementmex_et.c
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CreateInputMex.c %CollisionMarielle
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" CollisionCheckerMexMariellebis.c %CollisionMarielle
-%  mex -v COPTIMFLAGS="-O3 -Oy -DNDEBUG" ./nodalForce/nodal_surface_force_linear_rectangle_mex.c
-%  mexcuda -v COMPFLAGS="-Xptxas -v -arch=compute_60 -code=sm_60 -use_fast_math" ./nodalForce/nodal_surface_force_linear_rectangle_mex_cuda.cu
-%   disp('Done!');
-%  default value if run by itself (e.g. not through "rundd3d")
-%  cleanup the empty node and link entries at the end of the initial data structures
+%% Compile mex files.
+CUDA_flag = compile(CUDA_flag);
+
 [rn,links]=cleanupnodes(rn,links);
 
 % genererate the connectivity list from the list of links
@@ -263,7 +245,7 @@ while simTime < totalSimTime
         %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
         colliding_segments=1;
         while colliding_segments==1
-            [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMexMariellebis(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
+            [colliding_segments,n1s1,n2s1,n1s2,n2s2,floop,s1,s2,segpair]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
                 rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
 
 
