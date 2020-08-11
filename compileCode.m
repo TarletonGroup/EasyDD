@@ -1,27 +1,33 @@
-function CUDA_flag = compile(CUDA_flag)
-%%=======================================================================%%
-%-------------------------------------------------------------------------%
+function CUDA_flag = compileCode(CUDA_flag)
+%=========================================================================%
 % Compile MEX and MEXCUDA files.
+%
 % Compiles files if they have not been compiled of if they were compiled
 % over 30 days ago.
+%
+% Daniel Celis Garza, Aug 2020
+% daniel.celisgarza@materials.ox.ac.uk
 %-------------------------------------------------------------------------%
-%=========================================================================%
 % Inputs
-%=========================================================================%
-% CUDA_flag := flag in case CUDA codes required. If 1 compile, else do not
-% compile.
-%=========================================================================%
-% Dummy variables.
-%=========================================================================%
+% CUDA_flag := flag in case CUDA codes required. If true compile, else do 
+% not compile.
+%-------------------------------------------------------------------------%
+% Local variables
 % ext := compiled file extension, is dependent on OS.
 %-------------------------------------------------------------------------%
+% Outputs
+% CUDA_flag := updates flag in case there's no CUDA compiler.
+%-------------------------------------------------------------------------%
 % If any new C or CUDA files are added to EasyDD, place them here.
-%%=======================================================================%%
+%=========================================================================%
+
+%% Preamble
 if ~exist('CUDA_flag','var')
     CUDA_flag = false;
 end
-
 ext = mexext;
+
+%% C codes
 
 % Seg seg forces.
 name = sprintf("SegSegForcesMex.%s", ext);
@@ -57,6 +63,7 @@ if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
     mex -v COPTIMFLAGS="-o3 -oy -use_fast_math -DNDEBUG" NodalSurfaceForceLinearRectangleMex.c
 end
 
+%% Cuda codes.
 
 if CUDA_flag
     try
@@ -72,7 +79,7 @@ if CUDA_flag
         file = dir(name);
         if ~isfile(name) || ~isfile(file.name) && days(file.date - datetime('now')) > 30
             system('nvcc -ptx -o3 -oy -use_fast_math -DNDEBUG SegForceNBodyCUDADoublePrecision.cu');
-        end     
+        end
     catch err
         CUDA_flag = false;
         disp("No CUDA compiler found. Using serial implementation. CUDA_flag set to false.")
