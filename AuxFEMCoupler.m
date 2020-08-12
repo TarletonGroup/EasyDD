@@ -1,6 +1,7 @@
 function [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se,...
-    f_dln, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp] = ...
-    analyticTractionAux(mno, dx, dy, dz, mx, my, mz, xnodes, nc, gammat,...
+    f_dln, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp,...
+    utilda_0, utilda] = ...
+    AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes, nc, gammat,...
     gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme)
 %=========================================================================%
 % Sets up auxiliary data structures for analytic traction calculations.
@@ -42,6 +43,9 @@ function [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se,...
 %=========================================================================%
 
 f_hat = zeros(3*mno, 1);
+gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
+utilda_0 = zeros(3*mno,1);
+utilda = zeros(3*mno,1);
 
 if(~exist('a_trac','var'))
     a_trac = false;
@@ -54,8 +58,7 @@ if (~exist('CUDA_flag', 'var'))
     CUDA_flag = false;
 end
 
-
-dimension=sqrt(dx*dx+dy*dy+dz*dz);
+dimension = sqrt(dx*dx + dy*dy + dz*dz);
 para_tol = dimension/1e7;
 
 planes = (1:1:6)';
@@ -81,5 +84,5 @@ else
     para_scheme = 0;
 end %if
 
-gamma_disp = [gammau; gammaMixed];
+
 end
