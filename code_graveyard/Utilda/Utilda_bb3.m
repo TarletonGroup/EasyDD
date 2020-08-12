@@ -1,4 +1,14 @@
 function [Ux,Uy,Uz]=Utilda_bb3(rn,links,gnl,NU,xnodes,dx,dy,dz,mx,my,mz)
+%=========================================================================%
+% Calculates displacements from dislocations.
+% Bruce Bromage, bruce.bromage@materials.ox.ac.uk
+%
+% Calculating dislocation displacements on the surface of a volume
+% B Bromage and E Tarleton
+% Published 29 October 2018 • © 2018 IOP Publishing Ltd
+% Modelling and Simulation in Materials Science and Engineering, Volume 26,
+% Number 8
+%=========================================================================%
 
 C=[dx/mx,dy/my,dz/mz];
 nodenum=size(gnl,1);                                        %Number of FE nodes
