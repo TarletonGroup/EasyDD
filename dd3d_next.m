@@ -45,15 +45,22 @@
 %=========================================================================%
 
 %% Initialisation
+% Fengxian's input reader.
+
+% Check for missing variables.
+% TODO: make vertices and faces an argument, if they are not defined by the
+% input provide a default.
+% TODO: in remesh_surf, make it so dislocations do not leave the domain via
+% the fixed end depending on the simulation type.
 
 % Compile mex files.
 CUDA_flag = compileCode(CUDA_flag);
 
 % Cleanup input structures.
-[rn, links]=cleanupnodes(rn, links);
+[rn, links] = cleanupnodes(rn, links);
 
 % Generate connectivity of inputs.
-[connectivity, linksinconnect]=genconnectivity(rn, links, maxconnections);
+[connectivity, linksinconnect] = genconnectivity(rn, links, maxconnections);
 
 % Check input consistency.
 consistencycheck(rn, links, connectivity, linksinconnect);
@@ -66,9 +73,9 @@ consistencycheck(rn, links, connectivity, linksinconnect);
 
 % Construct data structures needed for analytic tractions.
 [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se, f_dln,...
-    idxi, n_nodes_t, n_threads, para_scheme, gamma_disp] = ...
-    analyticTractionAux(mno, dx, dy, dz, mx, my, mz, xnodes, nc, gammat,...
-    gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme);
+    idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, utilda_0,...
+    utilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes, nc,...
+    gammat, gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme);
 
 % Use Delaunay triangulation to create surface mesh, used for visualisation
 % dislocation remeshing algorithm.
@@ -81,21 +88,8 @@ consistencycheck(rn, links, connectivity, linksinconnect);
     connectivity, linksinconnect, vertices, TriangleCentroids,...
     TriangleNormals);
 
-% Initialise simulation arrays.
-if(~exist('dt','var'))
-    dt=dt0;
-end
-maxSteps = round(1e6/3);
-[Fend, U_bar, t, simTime, dt, curstep] = initArraysCantileverBend(...
-    min(dt, dt0), maxSteps);
-
-utilda_0=zeros(3*mno,1);
-gn = gamma_disp(:,1);
-[Ux, Uy, Uz] = Utilda_bb3(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
-
-utilda_0(3*gn -2) = Ux;
-utilda_0(3*gn -1) = Uy;
-utilda_0(3*gn   ) = Uz;
+utilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx,...
+    dy, dz, mx, my, mz, utilda_0);
 
 disp('Done! Initializing simulation.');
 %%
