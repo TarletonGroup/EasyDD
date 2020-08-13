@@ -72,10 +72,11 @@ consistencycheck(rn, links, connectivity, linksinconnect);
     MU, NU, loading);
 
 % Construct data structures needed for analytic tractions.
-[f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se, f_dln,...
-    idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, utilda_0,...
-    utilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes, nc,...
-    gammat, gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme);
+[f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se, f_tilda,...
+    idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0,...
+    u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz,...
+    xnodes, nc, gammat, gammau, gammaMixed, a_trac, CUDA_flag,...
+    n_threads, para_scheme);
 
 % Use Delaunay triangulation to create surface mesh, used for visualisation
 % dislocation remeshing algorithm.
@@ -88,39 +89,30 @@ consistencycheck(rn, links, connectivity, linksinconnect);
     connectivity, linksinconnect, vertices, TriangleCentroids,...
     TriangleNormals);
 
-utilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx,...
-    dy, dz, mx, my, mz, utilda_0);
+u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx,...
+    dy, dz, mx, my, mz, u_tilda_0);
 
-disp('Done! Initializing simulation.');
+disp('Initialisation complete.');
 %%
 while simTime < totalSimTime
     
-    % frame recording
-    %     intSimTime=intSimTime+dt;
-    %     if intSimTime > dtplot && doplot == 1
-    %         plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-    %         %plotHandle=schematicplot2(rn,links,vertices,U_bar,Fend,amag,dx,totalSimTime);
-    %         plotCounter=plotCounter+1;
-    %         plotCounterString=num2str(plotCounter,'%03d');
-    %         %saveas(plotHandle,[pwd '/Images/' plotCounterString], 'png')
-    %         %save([pwd '/Data/' plotCounterString],'rn','links','fend','Ubar','simTime');
-    %         %plotHandle=plotnodes(rn,links,plim,vertices);view(viewangle);
-    %         plotnodes(rn,links,plim,vertices);view(viewangle);
-    %         zlim([-100 100])
-    %         xlim([-100 100])
-    %         ylim([-100 100])
-    %         intSimTime=intSimTime-dtplot;
-    %     end
+    % DDD+FEM coupling
+  
     
-    %DDD+FEM coupling
+    
+%     FEM_DDD_Superposition()
+    
+    
+    
+    
     if a_trac == 0
-        [uhat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-            gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,utilda_0);
+        [u_hat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+            gammau,gammat,gammaMixed,fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,u_tilda_0);
     else
-        [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-            gamma_disp, gammat, gammaMixed, fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,utilda_0,...
-            gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, ...
-            f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, para_tol);
+        [u_hat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+            gamma_disp, gammat, gammaMixed, fixedDofs,freeDofs,dx,dy,dz,simTime,mx,my,mz,u_tilda_0,...
+            gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f,...
+            f_tilda_node, f_tilda_se, f_tilda, f_hat, use_gpu, n_threads, para_scheme, para_tol);
     end
     Fend(curstep+1) = fend;
     U_bar(curstep+1) = Ubar;
@@ -136,7 +128,7 @@ while simTime < totalSimTime
     
     %integrating equation of motion
     [rnnew,vn,dt,fn,fseg]=feval(integrator,rn,dt,dt0,MU,NU,a,Ec,links,connectivity,...
-        rmax,rntol,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+        rmax,rntol,mobility,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
     % plastic strain and plastic spin calculations
     [ep_inc,wp_inc]=calcplasticstrainincrement(rnnew,rn,links,(2*plim)^3);
     
@@ -181,7 +173,7 @@ while simTime < totalSimTime
         end
         %remeshing internal dislocation structures
         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,dovirtmesh,vertices,...
-            uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
+            u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
     end
     
     %save restart.mat
@@ -203,7 +195,7 @@ while simTime < totalSimTime
             %                         reset(gpuDevice)
             %                         [rnnew,linksnew,~,~,fsegnew]=...
             %                         collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-            %                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
+            %                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
             %                   end
             
             
@@ -219,30 +211,30 @@ while simTime < totalSimTime
                 
                 %                 [rnnew,linksnew,~,~,fsegnew]=...
                 %                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                %                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+                %                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
                 
                 %                 fprintf(' Segment %d and segment %d are colliding\n',s1,s2);
                 if colliding_segments==1
                     [rnnew,linksnew,~,~,fsegnew,colliding_segments]=collision_basic(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,rann,MU,NU,a,Ec,mobility,vertices,...
-                        uhat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair,lmin);
+                        u_hat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair,lmin);
                     
                     %removing links with effective zero Burgers vectors
                     [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew] = cleanupsegments(rnnew,linksnew,fsegnew);
                     
                     %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-                    %     uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
+                    %     u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
                     
                     %                 if (doseparation)
                     %                     if max(connectivitynew(:,1))>3
                     %                         %spliting of nodes with 4 or more connections
                     %                         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
                     %                             separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                    %                             fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+                    %                             fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
                     %                     end
                     %                 end
                 end
                 %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-                %         uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
+                %         u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
             end
         end
     end
@@ -262,12 +254,12 @@ while simTime < totalSimTime
             %spliting of nodes with 4 or more connections
             [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
                 separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,uhat,nc,xnodes,D,mx,mz,w,h,d);
+                fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
         end
     end
     
     [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-        uhat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
+        u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
     
     rn=[rnnew(:,1:3) rnnew(:,7)];
     vn=rnnew(:,4:6);
@@ -286,8 +278,8 @@ while simTime < totalSimTime
     %     if all(rn(:,4)==67) %no more real segments, stop simulation
     %         disp('Dislocation-free real domain. Only virtual segments remain!');
     %         disp('Computing distorted mesh. Please wait...');
-    %         [utilda]=visualise(rn,links,NU,D,mx,my,mz,mel,mno,xnodes,nc,...
-    %             dx,dy,dz,w,h,d,vertices,uhat);
+    %         [u_tilda]=visualise(rn,links,NU,D,mx,my,mz,mel,mno,xnodes,nc,...
+    %             dx,dy,dz,w,h,d,vertices,u_hat);
     %         return;
     %     end
     
