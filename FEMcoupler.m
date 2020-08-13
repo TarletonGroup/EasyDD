@@ -1,9 +1,9 @@
 % TODO: add Udot as an input. Optional to turn displacements on or off. Add option for non-zero initial load.
-function [uhat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,utilda_0)
+function [u_hat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+    gammau,gammat, gammaMixed,fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,u_tilda_0)
 
 %Coupling of FEM and DDD
-% u = uhat + utilda
+% u = u_hat + u_tilda
 % f = fhat + ftilda
 
 [segments,~] = constructsegmentlist(rn,links,1);
@@ -19,25 +19,25 @@ gamma=[gammau;gammaMixed];
 
 u(3*gammaMixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes
 
-uhat=zeros(3*mno,1);
-utilda=zeros(3*mno,1);
+u_hat=zeros(3*mno,1);
+u_tilda=zeros(3*mno,1);
 
 gn = gamma(:,1); % global node number
 
 [Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz);
 
-utilda(3*gn -2) = Ux;
-utilda(3*gn -1) = Uy;
-utilda(3*gn   ) = Uz;
+u_tilda(3*gn -2) = Ux;
+u_tilda(3*gn -1) = Uy;
+u_tilda(3*gn   ) = Uz;
 
-utilda = utilda - utilda_0;
+u_tilda = u_tilda - u_tilda_0;
 
-if any(isnan(utilda))
-    disp('some entries of utilda are NaN')
-    pause; %some entries of utilda are NaN -> leads to issues in hatStress routine
+if any(isnan(u_tilda))
+    disp('some entries of u_tilda are NaN')
+    pause; %some entries of u_tilda are NaN -> leads to issues in hatStress routine
 end
 
-uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
+u_hat(fixedDofs) = u(fixedDofs) - u_tilda(fixedDofs);
 
 fhat=zeros(3*(mno),1);
 
@@ -47,15 +47,15 @@ ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU);
 
 fhat(freeDofs) = -ftilda(freeDofs);% no applied forces
 
-f=fhat-kg(:,fixedDofs)*uhat(fixedDofs);
+f=fhat-kg(:,fixedDofs)*u_hat(fixedDofs);
 
 bcwt = mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+f(fixedDofs) = bcwt*u_hat(fixedDofs);
+u_hat = U\(L\f); %using LU decomposition
 
-rhat=kg*uhat; % reaction force
+rhat=kg*u_hat; % reaction force
 
 fend = rhat(3*gammaMixed(:,1))+ftilda(3*gammaMixed(:,1));
 fend = sum(fend);

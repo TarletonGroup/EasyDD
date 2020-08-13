@@ -1,13 +1,13 @@
 % TODO: add Udot as an input. Optional to turn displacements on or off. Add option for non-zero initial load.
 
-function [uhat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
-    gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,utilda_0,...
+function [u_hat,fend,Ubar] = analytic_FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
+    gamma_disp, gammat, gamma_mixed, fixedDofs,freeDofs,dx,dy,dz,t,mx,my,mz,u_tilda_0,...
     gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
     f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, para_tol)
 
 % % % 
 % Coupling of FEM and DDD
-% u = uhat + utilda
+% u = u_hat + u_tilda
 % f = f_hat + ftilda
 % segments = constructsegmentlist(rn,links);
 Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...
@@ -24,25 +24,25 @@ u=zeros(3*(mno),1);
 
 u(3*gamma_mixed(:,1)) = -Ubar;  %applied displacements in z at right edge nodes
 
-uhat=zeros(3*mno,1);
-utilda=zeros(3*mno,1);
+u_hat=zeros(3*mno,1);
+u_tilda=zeros(3*mno,1);
 
 gn = gamma_disp(:,1); % global node number
 
 [Ux, Uy, Uz] = Utilda_bb3_vec(rn,links,gn,NU,xnodes,dx,dy,dz,mx,my,mz); %must be used with virtual segments projected normal to the surface
 
-utilda(3*gn-2) = Ux;
-utilda(3*gn-1) = Uy;
-utilda(3*gn  ) = Uz;
+u_tilda(3*gn-2) = Ux;
+u_tilda(3*gn-1) = Uy;
+u_tilda(3*gn  ) = Uz;
 
-utilda = utilda - utilda_0;
+u_tilda = u_tilda - u_tilda_0;
 
-if any(isnan(utilda))
-    disp('some entries of utilda are NaN')
-    pause; %some entries of utilda are NaN -> leads to issues in hatStress routine
+if any(isnan(u_tilda))
+    disp('some entries of u_tilda are NaN')
+    pause; %some entries of u_tilda are NaN -> leads to issues in hatStress routine
 end
 
-uhat(fixedDofs) = u(fixedDofs) - utilda(fixedDofs);
+u_hat(fixedDofs) = u(fixedDofs) - u_tilda(fixedDofs);
 
 [x1x2, b, n_dln] = extract_dislocation_nodes(rn, links);
 f_dln(:,1) = 0;
@@ -54,15 +54,15 @@ f_hat(:,1) = 0;
 
 f_hat(freeDofs) = -f_dln(freeDofs)';% no applied forces
 
-f    = f_hat-kg(:,fixedDofs)*uhat(fixedDofs);
+f    = f_hat-kg(:,fixedDofs)*u_hat(fixedDofs);
 
 bcwt = mean(diag(kg));%=trace(K)/length(K)
 bcwt = full(bcwt);
 
-f(fixedDofs) = bcwt*uhat(fixedDofs);
-uhat = U\(L\f); %using LU decomposition
+f(fixedDofs) = bcwt*u_hat(fixedDofs);
+u_hat = U\(L\f); %using LU decomposition
 
-rhat=kg*uhat;
+rhat=kg*u_hat;
 
 fend = rhat(3*gamma_mixed(:,1))+f_dln(3*gamma_mixed(:,1));
 fend = sum(fend);
