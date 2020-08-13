@@ -2,7 +2,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
                      se_node_coord, dln_node_coord, burgers    , n_nodes,...
                      n_nodes_t    , n_se          , n_dln      , idxf   ,...
                      idxi         , f_dln_node    , f_dln_se   , f_dln  ,...
-                     mu, nu, a    , use_gpu       , n_threads  , para_scheme, ...
+                     mu, nu, a    , CUDA_flag       , n_threads  , para_scheme, ...
                      para_tol)
     %%===================================================================%%
     %---------------------------------------------------------------------%
@@ -86,24 +86,24 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     %
     % Flags:
     %
-    % use_gpu := Flag to use the Graphics Processing Unit (GPU) in the
-    %   calculation. If use_gpu == 1, the code is run by a CUDA-enabled
+    % CUDA_flag := Flag to use the Graphics Processing Unit (GPU) in the
+    %   calculation. If CUDA_flag == 1, the code is run by a CUDA-enabled
     %   NVidia GPU. The code will crash if there is none, or if there is no
-    %   compiled MEX CUDA file. If use_gpu == 0, a serial C code will be
+    %   compiled MEX CUDA file. If CUDA_flag == 0, a serial C code will be
     %   executed. The code will crash if there is no compiled MEX C file.
-    %   If use_gpu is any other number, a MATLAB version will be used. This
+    %   If CUDA_flag is any other number, a MATLAB version will be used. This
     %   is much slower than either of the others.
     %
     %---------------------------------------------------------------------%
     %
     % Optional parameters:
     %
-    % n_threads := when use_gpu ==1, it is the number of threads per block
+    % n_threads := when CUDA_flag ==1, it is the number of threads per block
     %   to be used in the parallelisation. This may require some
     %   experimentation to optimise. Defaults to 512. Does nothing if a
     %   GPU isn't used.
     %
-    % para_scheme := when use_gpu is enabled, it dicates the
+    % para_scheme := when CUDA_flag is enabled, it dicates the
     %   parallelisation scheme used. If para_scheme == 1 parallelise over
     %   dislocation line segments. If para_scheme == 0 parallelise over
     %   surface elements. Other parallelisation schemes can be added in the
@@ -147,7 +147,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
     %% Analytical force calculation.
     % Parallel CUDA C calculation.
     % serial last dislocation and surface element
-    if use_gpu == 1
+    if CUDA_flag == true
         % Provide a default number of threads in case none is given.
         if ~exist('n_threads', 'var')
             n_threads = ceil(mod(n_dln,256)/32)*32;
@@ -166,7 +166,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(                     
                                 burgers(:), mu, nu, a, n_se, n_dln, n_threads,...
                                 para_scheme, para_tol);
     % Serial force calculation in C.
-    elseif use_gpu == 0
+    elseif CUDA_flag == false
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
          f_dln_se] = nodal_surface_force_linear_rectangle_mex(          ...
                                 dln_node_coord(:, 1), dln_node_coord(:, 2),...
