@@ -1,8 +1,8 @@
-function [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se,...
-    f_dln, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp,...
-    utilda_0, utilda] = ...
-    AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes, nc, gammat,...
-    gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme)
+function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,...
+    f_tilda, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp,...
+    u_tilda_0, u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx,...
+    my, mz, xnodes, nc, gammat, gammau, gammaMixed, a_trac, CUDA_flag,...
+    n_threads, para_scheme)
 %=========================================================================%
 % Sets up auxiliary data structures for analytic traction calculations.
 %
@@ -30,9 +30,9 @@ function [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se,...
 % x3x6 := coordinates of surface element nodes
 % n_se := number of surface elements
 % gamma_dln := nodes where analytic tractions need to be calcualted
-% f_dln_node := dislocation forces on nodes of surface elements
-% f_dln_se := dislocation forces on single surface elements
-% f_dln := dislocation forces on FE nodes
+% f_tilda_node := dislocation forces on nodes of surface elements
+% f_tilda_se := dislocation forces on single surface elements
+% f_tilda := dislocation forces on FE nodes
 % idxi := index for adding forces from nodes shared by different surface 
 %   elements 
 % n_nodes_t := number of nodes with traction boundary conditions
@@ -42,10 +42,13 @@ function [f_hat, para_tol, x3x6, n_se, gamma_dln, f_dln_node, f_dln_se,...
 % gamma_disp := nodes with displacement boundary conditions
 %=========================================================================%
 
+f = zeros(3*mno, 1);
 f_hat = zeros(3*mno, 1);
 gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
-utilda_0 = zeros(3*mno,1);
-utilda = zeros(3*mno,1);
+u = zeros(3*mno,1);
+u_hat = zeros(3*mno,1);
+u_tilda_0 = zeros(3*mno,1);
+u_tilda = zeros(3*mno,1);
 
 if(~exist('a_trac','var'))
     a_trac = false;
@@ -64,9 +67,9 @@ para_tol = dimension/1e7;
 planes = (1:1:6)';
 [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx;my;mz],...
     planes, 4);
-gamma_dln = [gammat(:,1); gammaMixed(:,1)];
-[f_dln_node, f_dln_se,...
-    f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
+gamma_dln = [gammat; gammaMixed];
+[f_tilda_node, f_tilda_se,...
+    f_tilda, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
 
 % Parallel CUDA C flags.
 if CUDA_flag == true
