@@ -1,5 +1,8 @@
-function utilda = calculateUtilda(rn, links, gn, NU, xnodes, dx,...
-    dy, dz, mx, my, mz, utilda)
+function utilda = calculateUtilda(rn, links, gn, NU, xnodes, dx, dy,...
+    dz, mx, my, mz, utilda)
+%=========================================================================%
+% Wrapper for Utilda calculation by Bruce Bromage.
+%=========================================================================%
 
 [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gn, NU, xnodes, dx, dy, dz, mx,...
     my, mz);
