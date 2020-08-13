@@ -66,6 +66,10 @@ CUDA_flag = compileCode(CUDA_flag);
 consistencycheck(rn, links, connectivity, linksinconnect);
 
 % Construct stiffeness matrix K and pre-compute L,U decompositions.
+% gammat -> nodes where tractions = 0
+% gammau -> nodes where displacements = 0
+% gammaLoad -> nodes where tractions != 0
+% gammaDisp -> nodes where displacements != 0
 [vertices, B, xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop,...
     Sbot, Sfront, Sback, gammat, gammau, gammaMixed, fixedDofs,...
     freeDofs, w, h, d, my, mz, mel] = finiteElement3D(dx, dy, dz, mx,...
@@ -94,13 +98,33 @@ u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx,...
 
 disp('Initialisation complete.');
 %%
+if(~exist('dt'))
+    dt=dt0;
+end
+dt=min(dt,dt0);
+plotCounter=1;
+close all
+
+Fend=zeros(1e6,1); fend=[];
+U_bar=zeros(1e6,1); Ubar=[];
+t=zeros(1e6,1); simTime=0;
+sign_u_dot = -1;
+sign_f_dot = -1;
+u_dot =100*1E3*dx*(1E-4/160E9)*100 ; % Marielle
+f_dot = 0;
+simType = 1;
 while simTime < totalSimTime
     
     % DDD+FEM coupling
   
     
     
-%     FEM_DDD_Superposition()
+[f_hat, u_hat, r_hat] = FEM_DDD_Superposition(rn, links, a, MU, NU,...
+    xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs,...
+    freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u,...
+    u_hat, u_tilda, simType, a_trac, gamma_dln, x3x6, 4,...
+    n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag,...
+    n_threads, para_scheme, para_tol);
     
     
     
@@ -120,11 +144,6 @@ while simTime < totalSimTime
     
     fprintf('fend = %d, Ubar = %d, simTime = %d \n',fend,Ubar,simTime);
     
-    %     if (dovirtmesh)
-    %         %remeshing virtual dislocation structures
-    %         %[rn,links,connectivity,linksinconnect]=remesh_surf(rn,links,connectivity,linksinconnect,vertices,TriangleCentroids,TriangleNormals);
-    %         %[rn,links,connectivity,linksinconnect] = virtualmeshcoarsen2(rn,links,maxconnections,10*lmin);
-    %     end
     
     %integrating equation of motion
     [rnnew,vn,dt,fn,fseg]=feval(integrator,rn,dt,dt0,MU,NU,a,Ec,links,connectivity,...
