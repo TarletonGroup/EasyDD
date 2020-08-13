@@ -1,6 +1,6 @@
 % gamma = [gammat;gammaMixed]; ndis = 1; xdis=dx/2,ydis=dy/2,zdis=dz/2;
 
-function ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU)                                 
+function f_tilda = traction(gamma,segments,xnodes, a, MU, NU, f_tilda)                                 
             
 % find traction on boundary due to dislocations
 % 
@@ -17,8 +17,6 @@ function ftilda = traction(gamma,segments,xnodes, mno, a, MU, NU)
 %-----------------------------------------------
 
 % modify  boundary conditions for concave domain
-
-ftilda = zeros(mno*3,1);
 
 nodes = gamma(:,1);
 area = gamma(:,2);
@@ -58,15 +56,15 @@ ATx = area.*Tx;
 ATy = area.*Ty;
 ATz = area.*Tz;
 
-%populate ftilda
-ftilda(3*nodes-2)=ATx;
-ftilda(3*nodes-1)=ATy;
-ftilda(3*nodes)=ATz;
+%populate f_tilda
+f_tilda(3*nodes-2)=ATx;
+f_tilda(3*nodes-1)=ATy;
+f_tilda(3*nodes)=ATz;
 % for j=1:lgrid
 %     gn=nodes(j);
-%     ftilda(3*gn-2) = ATx(j);
-%     ftilda(3*gn-1) = ATy(j);
-%     ftilda(3*gn) = ATz(j);
+%     f_tilda(3*gn-2) = ATx(j);
+%     f_tilda(3*gn-1) = ATy(j);
+%     f_tilda(3*gn) = ATz(j);
 % end
     
 end
