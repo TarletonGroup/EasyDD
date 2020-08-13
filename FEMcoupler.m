@@ -6,7 +6,7 @@ function [u_hat,fend,Ubar] = FEMcoupler(rn,links,a,MU,NU,xnodes,mno,kg,L,U,...
 % u = u_hat + u_tilda
 % f = fhat + ftilda
 
-[segments,~] = constructsegmentlist(rn,links,1);
+[segments,~] = constructsegmentlist(rn,links,true);
 
 % Udot = 1E3*dx*(1E-4/160E9); %test by BB
 Udot = (1/2048)*100*1E3*dx*(1E-4/160E9)*2048*100; %for tungsten...

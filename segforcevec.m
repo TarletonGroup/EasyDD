@@ -16,7 +16,7 @@ if(m~=4)
 end
 
 %construct segment list
-[segments,index]=constructsegmentlist(rn,links,1);
+[segments,index]=constructsegmentlist(rn,links,true);
 
 S=size(links,1);
 % S=size(segments,1);
