@@ -48,9 +48,9 @@
 % Fengxian's input reader.
 
 % Check for missing variables.
-% TODO: make vertices and faces an argument, if they are not defined by the
+% TODO: #10 make vertices and faces an argument, if they are not defined by the
 % input provide a default.
-% TODO: in remesh_surf, make it so dislocations do not leave the domain via
+% TODO: #11 in remesh_surf, make it so dislocations do not leave the domain via
 % the fixed end depending on the simulation type.
 
 % Compile mex files.
@@ -119,6 +119,7 @@ while simTime < totalSimTime
 
     % DDD+FEM coupling
 
+    % TODO: Add requirements to make Haiyang's and Fengxian's simulations easy to do.
     [f_hat, u_hat, r_hat] = FEM_DDD_Superposition(rn, links, a, MU, NU, ...
         xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
         freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, ...
@@ -238,21 +239,7 @@ while simTime < totalSimTime
                     %removing links with effective zero Burgers vectors
                     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = cleanupsegments(rnnew, linksnew, fsegnew);
 
-                    %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-                    %     u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
-
-                    %                 if (doseparation)
-                    %                     if max(connectivitynew(:,1))>3
-                    %                         %spliting of nodes with 4 or more connections
-                    %                         [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=...
-                    %                             separation(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                    %                             fsegnew,mobility,MU,NU,a,Ec,2*rann,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
-                    %                     end
-                    %                 end
                 end
-
-                %                 [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_all(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,doremesh,0,vertices,...
-                %         u_hat,nc,xnodes,D,mx,mz,w,h,d,TriangleCentroids,TriangleNormals);
             end
 
         end
