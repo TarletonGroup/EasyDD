@@ -1,89 +1,71 @@
 function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
         rmax, rntol, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d)
-    %implicit numerical integrator using the Trapezoid method
-    %dt: suggested timestep (usually from previous iteration)
-    %dt0: maximum allowed timestep
 
-    %dummy variable
-    t = 0;
-    rnold = rn;
+    %Implicit numerical integrator using the Euler-trapezoid method adapted
+    %from [Cai & Bulatov, Algorithm 10.2, pg. 216]. The tiemstep size is
+    %controlled so that it can increase suitably quickly and not decrease
+    %excessively whilst remaining within acceptable tolerence limits
+    %Written by B.Bromage and D.Celis-Garza 05/11/2018
 
-    %scramble rn into a single column vector
-    rnvec = [rn(:, 1); rn(:, 2); rn(:, 3)]; flag = rn(:, 4);
+    %Convert rn into a single column of coordinates and store the node flags
+    rnvec0 = [rn(:, 1); rn(:, 2); rn(:, 3)]; flag = rn(:, 4);
 
-    %Backward Euler
-    rnvec0 = rnvec;
-
+    %Calculate the current nodal velocities
     [vnvec0, fn, fseg] = drndt(rnvec0, flag, MU, NU, a, Ec, links, connectivity, ...
         mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
-    %dt=1/max(1/dt0,max(vnvec0)/rmax);
-    %dt=dt0;
 
-    dt1 = dt;
-    maxiter = 1;
-    convergent = 0;
-
-    % This algorithm [Cai & Bulatov, Algorithm 10.2, pg. 216] is a simple
-    % routine to dynamically change the time-step. Whenever the difference
-    % between the predicted and corrected positions for any node exceeds
-    % threshold err, the timestep is decreased by half and new positions for
-    % all nodes are recomputed with the reduced time step.
-    %   1. Initialize time step dt = dt_max
-    %   2. dt_0 = dt
-    %   3. Compute predictor rn_P(t+dt) and corrector rn(t+dt) from forward
-    %   Euler and trapezoid method respectively.
-    %   4. If max(||rn_P(t+dt) -  rn(t+dt)||) > e, reduce timestep by half
-    %   5. t = t + dt
-    %   6. If dt = dt_0, increase the step to dt=min(1.2dt, dt_max)
-    %   7. Return to 2, unless total number of cycles is reached
+    maxiter = 10; %Maximum number of times the timestep can be increased
+    counter = 1; %Counter variable for the while loop
+    dt_old = 0; %Variable for the maximumum acceptable timestep
+    maxchange = 1.2; %Maximum factor the timestep can be increased by
+    exponent = 20; %Variable that controls the degree that the calculated error affects the cange in timestep
+    dt_old_good = 0; %Logical which flags whether an acceptable timestep has been calculated
+    convergent = 0; %Logical for the operation of the while loop
 
     while (~convergent)
-
         rnvec1 = rnvec0 + vnvec0 * dt; %Euler forward method [Cai & Bulatov, eq. 10.43]
 
-        if isempty(rnvec1)
+        if isempty(rnvec1)%If there are no dislocations then use the maximum possible timestep
             convergent = 1;
         end
 
-        % ET - rnvec1 can contain a node outside the domain!
-        for iter = 1:maxiter,
-            [vnvec, fn, fseg] = drndt(rnvec1, flag, MU, NU, a, Ec, links, connectivity, ...
-                mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
-            %err=rnvec1-rnvec0-vnvec.*dt;          %backward Euler
-            err = rnvec1 - rnvec0 - (vnvec + vnvec0) / 2 * dt; %trapzoid
-            errmag = max(abs(err));
-            %disp(sprintf('iter=%d err=%e',iter,errmag));
-            if (errmag < rntol)
-                convergent = 1;
-                break;
+        %Calculate the nodal velocities for the next timestep accordin to
+        %Euler forward method
+        [vnvec1, fn, fseg] = drndt(rnvec1, flag, MU, NU, a, Ec, links, connectivity, ...
+            mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
+        distvec = rnvec1 - rnvec0;
+        distmag = max(abs(distvec)); %Largest distance any node moves
+        err = distvec - (vnvec1 + vnvec0) / 2 * dt; %Euler-trapezoid method
+        errmag = max(abs(err)); %Largest difference (error) calculated by the Euler-trapezoid method
+
+        if isempty(errmag)%If the Euler-trapzoid method yields no results use maximum time step and end loop
+            dt = dt0;
+            break
+        end
+
+        if (errmag < rntol) && (distmag < rmax)%If error and max distance move are in acceptable limits
+            dt_old = dt; %Store current timestep as maximum acceptable timestep
+            factor = maxchange * (1 / (1 + (maxchange^exponent - 1) * (errmag / rntol)))^(1 / exponent);
+            dt = min(dt * factor, dt0); %Increase timestep depending on the magnitude of the error
+            dt_old_good = 1; %Flag acceptable timestep calculated
+            counter = counter + 1; %Proceed to next iteration
+        else
+
+            if dt_old_good == 1%If current timestep is too large, use largest acceptable timestep
+                dt = dt_old;
+                counter = maxiter;
             else
-                rnvec1 = rnvec1 - err;
+                dt = dt / 2; %If no acceptable timestep has been calculated, halve timestep and try again
             end
 
         end
 
-        if (convergent)
-            break;
-        else
-            dt = dt / 2;
+        if counter > maxiter || dt == dt0%End loop if maximum number of iterations is reached or curren timestep is maximum timestep
+            convergent = 1;
         end
 
     end
 
-    %unscramble rn and vn vectors
+    %Rearrange rnvec and vnvec into rn and vn matrices
     rn = [reshape(rnvec1, length(rnvec1) / 3, 3), flag];
-    vn = reshape(vnvec, length(vnvec) / 3, 3); % trapezoidal rule modification
-
-    %When no time step reduction is necessary, the algorithm attempts to
-    %increase dt by 20% for the next cycle, but not to exceed a preset value of
-    %dtmax.
-
-    %automatically adjust time step
-    if isempty(errmag)
-        dt = dt0;
-    elseif ((dt == dt1) && (iter == 1))
-        maxchange = 1.2;
-        exponent = 20;
-        factor = maxchange * (1 / (1 + (maxchange^exponent - 1) * (errmag / rntol)))^(1 / exponent);
-        dt = min(dt1 * factor, dt0);
-    end
+    vn = reshape(vnvec1, length(vnvec1) / 3, 3);

@@ -1,82 +1,55 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Check whether virtual nodes can be eliminated
-% Francesco Ferroni
-% Defects Group / Materials for Fusion and Fission Power Group
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Check whether virtual nodes can be eliminated based on:
+% 1) If they are not connected to any surface nodes
+% 2) If they are not due to an angle change in the simulated volume surface
+%
+% Bruce Bromage
+% Michromechanical Testing Group
 % Department of Materials, University of Oxford
-% francesco.ferroni@materials.ox.ac.uk
-% February 2014
-%
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% bruce.bromage@materials.ox.ac.uk
+% May 2017
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, MU, NU, a, Ec)
-    rnnew = rn;
-    %[lrn, lrn2]=size(rn);
-    areamin = lmin * lmin * sin(60/180 * pi) * 0.5;
-    linksnew = links;
-    fsegnew = fseg;
-    connectivitynew = connectivity;
-    linksinconnectnew = linksinconnect;
-    areamin2 = areamin * areamin;
-    delta = 1e-16;
-    i = 1;
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec)
 
-    while i <= length(rnnew(:, 1))%the loop looks each nodes M
-        %fprintf('%i \n',i);
-        if (connectivitynew(i, 1) == 2) && rnnew(i, end) == 67%virtual nodes
-            % the discretization node is normal so set up the conditions to check for whether is should be coarsened away
-            % looking for the environnment of 'node i': 2 links and 2 other nodes M.
-            link1 = connectivitynew(i, 2);
-            link2 = connectivitynew(i, 4);
-            posi_link1 = connectivitynew(i, 3);
-            posi_link2 = connectivitynew(i, 5);
-            posnoti_link1 = 3 - posi_link1;
-            posnoti_link2 = 3 - posi_link2;
-            link1_nodenoti = linksnew(link1, posnoti_link1);
-            link2_nodenoti = linksnew(link2, posnoti_link2);
+    %This function can coarsen away cross slip at the surface and may need to be
+    %improved
 
-            if rnnew(link1_nodenoti, end) ~= 67 || rnnew(link2_nodenoti, end) ~= 67
-                % if neighbour nodes are not virtual nodes then continue M
-                % if at least one neighbour node is a virtual node : see after the loop
-                i = i + 1;
-                continue;
-            end
+    lcrit = 1e1; %this is an arbitrary distance and should be corrected to be related to rmax
+    acrit = 0.5 * (lcrit^2) * sin(2 * pi / 360); %this is an area related to a desired resolution of angle change and can be altered as required using the sine term
+    node_id = 1;
 
-            vec1 = rnnew(link1_nodenoti, 1:3) - rnnew(i, 1:3);
-            vec2 = rnnew(link2_nodenoti, 1:3) - rnnew(i, 1:3);
-            vec3 = vec2 - vec1;
-            r1 = sqrt(vec1 * vec1');
-            r2 = sqrt(vec2 * vec2');
-            r3 = sqrt(vec3 * vec3');
+    while node_id <= size(rnnew, 1)%start from the top of rn and go through all nodes
 
-            if r3 < lmax%if the coarsening would result in a link length larger than lmax don't coarsen
-                s = 0.5 * (r1 + r2 + r3);
-                area2 = (s * (s - r1) * (s - r2) * (s - r3));
-                dvec1dt = rnnew(link1_nodenoti, 4:6) - rnnew(i, 4:6);
-                dvec2dt = rnnew(link2_nodenoti, 4:6) - rnnew(i, 4:6);
-                dvec3dt = dvec2dt - dvec1dt;
-                dr1dt = (vec1 * dvec1dt') / (r1 + delta);
-                dr2dt = (vec2 * dvec2dt') / (r2 + delta);
-                dr3dt = (vec3 * dvec3dt') / (r3 + delta);
-                dsdt = 0.5 * (dr1dt + dr2dt + dr3dt);
-                darea2dt = dsdt * (s - r1) * (s - r2) * (s - r3);
-                darea2dt = darea2dt + s * (dsdt - dr1dt) * (s - r2) * (s - r3);
-                darea2dt = darea2dt + s * (s - r1) * (dsdt - dr2dt) * (s - r3);
-                darea2dt = darea2dt + s * (s - r1) * (s - r2) * (dsdt - dr3dt);
+        if connectivitynew(node_id, 1) == 2 && rnnew(node_id, end) == 67%target only virtual nodes with two connections
+            link_node1 = linksnew(connectivitynew(node_id, 2), 3 - connectivitynew(node_id, 3)); %first node linked to target node
+            link_node2 = linksnew(connectivitynew(node_id, 4), 3 - connectivitynew(node_id, 5)); %second node linked to target node
 
-                if ((area2 < areamin2) && (darea2dt < 0.0d0)) || ((r1 < lmin) || (r2 < lmin))%remove single node critierion
-                    %the area is less than minimum and shrinking or one of the arms is less than lmin and shrinking
-                    [rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, ~] = mergenodes(rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, link2_nodenoti, i, MU, NU, a, Ec);
-                else %((area2>=areamin2)|(dareadt>=0.0d0)) & ((r1>=lmin)|(dr1dt>=lmin)) & ((r2>=lmin)|(dr2dt>=lmin))
-                    i = i + 1;
+            if rnnew(link_node1, end) == 67 && rnnew(link_node2, end) == 67%only if both nodes linked to target node are virtual
+                link_vec1 = rnnew(link_node1, 1:3) - rnnew(node_id, 1:3); %vector of link 1
+                link_vec2 = rnnew(link_node2, 1:3) - rnnew(node_id, 1:3); %vector of link 2
+                angle = acos(norm(dot(link_vec1, link_vec2)) / (norm(link_vec1) * norm(link_vec2))); %angle between link 1 and link 2
+                area = 0.5 * norm(link_vec1) * norm(link_vec2) * sin(angle); %area of triangle formed by link 1 and link 2
+
+                if norm(link_vec1) < lcrit && area < acrit%if length of link 1 and the angle change are below critical size then merge
+                    [rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, ~] = mergenodes(rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, link_node1, node_id, MU, NU, a, Ec);
+
+                elseif norm(link_vec2) < lcrit && area < acrit%if length of link 2 and the angle change are below critical size then merge
+
+                    [rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, ~] = mergenodes(rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, link_node2, node_id, MU, NU, a, Ec);
+
+                else
+                    node_id = node_id + 1; %target next node if both links are larger than critical size
                 end
 
-            else % r3>=lmax
-                i = i + 1;
+            else
+                node_id = node_id + 1; %target next node if at least one of the links is not virtual
             end
 
-        else % connectivitynew(i,1)>2
-            i = i + 1;
+        else
+            node_id = node_id + 1; %target next node if current target node is not virtual or does not have two connections
         end
 
-    end %while loop
+    end
+
+end

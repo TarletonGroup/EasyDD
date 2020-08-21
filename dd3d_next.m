@@ -52,6 +52,11 @@
 % input provide a default.
 % TODO: #11 in remesh_surf, make it so dislocations do not leave the domain via
 % the fixed end depending on the simulation type.
+% TODO: #13 remove globals
+
+% [fList, pList] = matlab.codetools.requiredFilesAndProducts('dd3d_next.m');
+% fList(:)
+run inputCompletion.m
 
 % Compile mex files.
 CUDA_flag = compileCode(CUDA_flag);
@@ -66,10 +71,11 @@ CUDA_flag = compileCode(CUDA_flag);
 consistencycheck(rn, links, connectivity, linksinconnect);
 
 % Construct stiffeness matrix K and pre-compute L,U decompositions.
-% gammat -> nodes where tractions = 0
-% gammau -> nodes where displacements = 0
-% gammaLoad -> nodes where tractions != 0
-% gammaDisp -> nodes where displacements != 0
+% gammat -> nodes where tractions = f(x)
+% gammau -> nodes where displacements = u(x)
+% gammaLoad -> nodes where tractions = df(x)
+% gammaDisp -> nodes where displacements = du(x)
+% use feval() for loading rate.
 [vertices, B, xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, ...
         Sbot, Sfront, Sback, gammat, gammau, gammaMixed, fixedDofs, ...
         freeDofs, w, h, d, my, mz, mel] = finiteElement3D(dx, dy, dz, mx, ...
@@ -98,7 +104,7 @@ u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
 
 disp('Initialisation complete.');
 %%
-if (~exist('dt'))
+if ~exist('dt', 'var')
     dt = dt0;
 end
 
@@ -127,6 +133,8 @@ while simTime < totalSimTime
         n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
         n_threads, para_scheme, para_tol);
 
+    [f_out, u_out] = processForceDisp(f_hat, u_hat, r_hat, loading);
+
     if a_trac == 0
         [u_hat, fend, Ubar] = FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
             gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, dy, dz, simTime, mx, my, mz, u_tilda_0);
@@ -136,6 +144,8 @@ while simTime < totalSimTime
             gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f, ...
             f_tilda_node, f_tilda_se, f_tilda, f_hat, use_gpu, n_threads, para_scheme, para_tol);
     end
+
+    % TODO: Add processing function for different simulation types.
 
     Fend(curstep + 1) = fend;
     U_bar(curstep + 1) = Ubar;
@@ -180,45 +190,32 @@ while simTime < totalSimTime
     linksinconnectnew = linksinconnect;
     fsegnew = fseg;
 
-    if (doremesh)%do virtual re-meshing first
+    if (doremesh)% do virtual re-meshing first
         %remeshing virtual dislocation structures
         if (dovirtmesh)
-            %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen_mex(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
-            %[rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=virtualmeshcoarsen(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,DIST_SOURCE*0.49,dx,MU,NU,a,Ec);
-            [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen3(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec, dx, dy, dz);
-            %[rnnew,linksnew,connectivitynew,linksinconnectnew] = virtualmeshcoarsen2(rnnew,linksnew,maxconnections,10*lmin);
+            [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(rnnew, linksnew, ...
+                connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec, dx, dy, dz);
         end
 
         %remeshing internal dislocation structures
-        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, doremesh, dovirtmesh, vertices, ...
-            u_hat, nc, xnodes, D, mx, mz, w, h, d, TriangleCentroids, TriangleNormals);
+        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
+            connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
+            mobility, doremesh, dovirtmesh, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, ...
+            TriangleCentroids, TriangleNormals);
     end
 
     %save restart.mat
     if (docollision)
         s1_old = 0;
         s2_old = 0;
-        %collision detection and handling
 
-        %COLLISION GPU / GPUPLUS  Marielle  + CollisionCheckerMexMarielle
-        %it requires a GPU device
-        %it requires CollisionCheckerMexMarielle, collisionGPUplus (or collision GPU), mindistcalcGPU1, mindistcalcGPU2,CreateInputMex
+        % Collision detection and handling
         colliding_segments = 1;
 
         while colliding_segments == 1
             [colliding_segments, n1s1, n2s1, n1s2, n2s2, floop, s1, s2, segpair] = CollisionCheckerMex(rnnew(:, 1), rnnew(:, 2), rnnew(:, 3), rnnew(:, end), ...
                 rnnew(:, 4), rnnew(:, 5), rnnew(:, 6), linksnew(:, 1), linksnew(:, 2), connectivitynew, rann);
 
-            %                   if colliding_segments == 1 %scan and update dislocation structure.
-            %                         reset(gpuDevice)
-            %                         [rnnew,linksnew,~,~,fsegnew]=...
-            %                         collisionGPUplus(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-            %                         fsegnew,rann,MU,NU,a,Ec,mobility,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d,floop,n1s1,n2s1,n1s2,n2s2,s1,s2,segpair);
-            %                   end
-
-            %              INTIAL COLLISION
-            %              [colliding_segments]=CollisionCheckerMex(rnnew(:,1),rnnew(:,2),rnnew(:,3),rnnew(:,end),...
-            %              rnnew(:,4),rnnew(:,5),rnnew(:,6),linksnew(:,1),linksnew(:,2),connectivitynew,rann);
             if colliding_segments == 1%scan and update dislocation structure.
 
                 if floop == 1
@@ -227,19 +224,14 @@ while simTime < totalSimTime
                     fprintf("Step %d. Links %d and %d colliding by hinge condition.\n", curstep, s1, s2)
                 end
 
-                %                 [rnnew,linksnew,~,~,fsegnew]=...
-                %                 collision(rnnew,linksnew,connectivitynew,linksinconnectnew,...
-                %                 fsegnew,rann,MU,NU,a,Ec,mobility,vertices,u_hat,nc,xnodes,D,mx,mz,w,h,d);
-
-                %                 fprintf(' Segment %d and segment %d are colliding\n',s1,s2);
                 if colliding_segments == 1
-                    [rnnew, linksnew, ~, ~, fsegnew, colliding_segments] = collision_basic(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
+                    [rnnew, linksnew, ~, ~, fsegnew, colliding_segments] = collision(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
                         u_hat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, segpair, lmin);
 
                     %removing links with effective zero Burgers vectors
                     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = cleanupsegments(rnnew, linksnew, fsegnew);
-
                 end
+
             end
 
         end
@@ -270,8 +262,10 @@ while simTime < totalSimTime
 
     end
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, doremesh, 0, vertices, ...
-        u_hat, nc, xnodes, D, mx, mz, w, h, d, TriangleCentroids, TriangleNormals);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
+        connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
+        mobility, doremesh, 0, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, TriangleCentroids, ...
+        TriangleNormals);
 
     rn = [rnnew(:, 1:3) rnnew(:, 7)];
     vn = rnnew(:, 4:6);
