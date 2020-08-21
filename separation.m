@@ -2,11 +2,12 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
         uhat, nc, xnodes, D, mx, mz, w, h, d)
 
     [lrn, lrn2] = size(rn);
-
+    i = 1;
     % search through connectivity list
-    for i = 1:lrn
+    while i < lrn
 
         if rn(i, end) == 67 || rn(i, end) == 6%ignore virtual segments - FF
+            i = i + 1;
             continue;
         end
 
@@ -219,95 +220,104 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                     [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist);
                 end
 
+                [lrn, lrn2] = size(rn);
+                i = 1;
+            else
+                i = i + 1;
             end
 
         end
 
     end
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end
 
-    function [conlist] = buildsplitmodelist(numconnections)
-        c = numconnections;
-        maxsplitarms = floor(0.5 * c);
-        % calculate the number of possible splitting modes
-        numsplitmodes = 0;
-        conlist = [];
-        count = 1;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        for j = 2:maxsplitarms
-            subnumber = factorial(c) / factorial(c - j) / factorial(j);
-            splitmodes = createsplitmodelist(c, j);
+function [conlist] = buildsplitmodelist(numconnections)
+    c = numconnections;
+    maxsplitarms = floor(0.5 * c);
+    % calculate the number of possible splitting modes
+    numsplitmodes = 0;
+    conlist = [];
+    count = 1;
 
-            if (2 * j == c)% this is a special case that handles mirror symmetry situations
-                subnumber = 0.5 * subnumber;
-            end
+    for j = 2:maxsplitarms
+        subnumber = factorial(c) / factorial(c - j) / factorial(j);
+        splitmodes = createsplitmodelist(c, j);
 
-            for k = 1:subnumber
-                conlist(count, :) = zeros(1, c);
-
-                for i = 1:j
-                    conlist(count, splitmodes(k, i)) = 1;
-                end
-
-                count = count + 1;
-            end
-
-            numsplitmodes = numsplitmodes + subnumber;
+        if (2 * j == c)% this is a special case that handles mirror symmetry situations
+            subnumber = 0.5 * subnumber;
         end
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        for k = 1:subnumber
+            conlist(count, :) = zeros(1, c);
 
-        function [splitmodes] = createsplitmodelist(nodeconnectivity, numsplitarms)
-            %initialize the size of splitmodes and fill with zeros
-            splitmodes = zeros(factorial(nodeconnectivity) / factorial(nodeconnectivity - numsplitarms) / factorial(numsplitarms), numsplitarms);
-
-            if (numsplitarms == 1)
-                % if numsplitarms is 1 then the answer is simply a count from one to nodeconnectivity
-                splitmodes = linspace(1, nodeconnectivity, nodeconnectivity)';
-            else
-                % if numsplitarms is greater than one go into a recursive algorithm to build up the system
-                lastone = 0;
-
-                for i = 1:nodeconnectivity - numsplitarms + 1
-                    % initialize the subslitmodes matrix b
-                    addlength = factorial(nodeconnectivity - i) / factorial(nodeconnectivity - i - numsplitarms + 1) / factorial(numsplitarms - 1);
-                    b = zeros(addlength, numsplitarms - 1);
-                    % calculate the subsplitmodes with a call to splitmodes
-                    b = createsplitmodelist(nodeconnectivity - i, numsplitarms - 1);
-                    % add the subspitmode list b to the growing splitmode list
-                    splitmodes(lastone + 1:lastone + addlength, 1) = i .* ones(addlength, 1);
-                    splitmodes(lastone + 1:lastone + addlength, 2:numsplitarms) = i + b(1:addlength, 1:numsplitarms - 1);
-                    % update the current position of the last valid line of the splitmode system
-                    lastone = lastone + addlength;
-                end
-
+            for i = 1:j
+                conlist(count, splitmodes(k, i)) = 1;
             end
 
-            %total number of splitting options
-            %4 arm multinode
-            %may split into 3 two arm splitting modes      0.5 * n! / ( (n-2)! * 2! )       3 total
-            %5 arm mulitnode
-            %may split into 10 two arm splitting modes           n! / ( (n-2)! * 2! )      10 total
-            %6 arm mulitinode
-            %may split into 15 two arm splitting modes or        n! / ( (n-2)! * 2! )
-            %may split into 10 three arm spliting modes    0.5 * n! / ( (n-3)! * 3! )      25 total
-            %7 arm multinode
-            %may split into 21 two arm splitting modes or        n! / ( (n-2)! * 2! )
-            %may split into 35 thee arm splitting modes          n! / ( (n-3)! * 3! )      46 total
-            %8 arm multinode
-            %may split into 28 two arm splitting modes or        n! / ( (n-2)! * 2! )
-            %may split into 56 three arm splitting modes or      n! / ( (n-3)! * 3! )
-            %may split into 35 four arm splitting modes    0.5 * n! / ( (n-4)! * 4! )     119 total
-            %9 arm multinode
-            %may split into 36 two arm splitting modes or        n! / ( (n-2)! * 2! )
-            %may split into 84 three arm splitting modes or      n! / ( (n-3)! * 3! )
-            %may split into 126 four arm splitting modes         n! / ( (n-4)! * 4! )     246 total
-            %10 arm multinode
-            %may split into 45 two arm splitting modes or        n! / ( (n-2)! * 2! )
-            %may split into 120 three arm splitting modes or     n! / ( (n-3)! * 3! )
-            %may split into 210 four arm splitting modes or      n! / ( (n-4)! * 4! )
-            %may split into 126 five arm splitting modes   0.5 * n! / ( (n-5)! * 5! )     501 total
-            % the division by 2 for some of the cases is done outside this function call when appropriate.
+            count = count + 1;
+        end
 
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        numsplitmodes = numsplitmodes + subnumber;
+    end
+
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function [splitmodes] = createsplitmodelist(nodeconnectivity, numsplitarms)
+    %initialize the size of splitmodes and fill with zeros
+    splitmodes = zeros(factorial(nodeconnectivity) / factorial(nodeconnectivity - numsplitarms) / factorial(numsplitarms), numsplitarms);
+
+    if (numsplitarms == 1)
+        % if numsplitarms is 1 then the answer is simply a count from one to nodeconnectivity
+        splitmodes = linspace(1, nodeconnectivity, nodeconnectivity)';
+    else
+        % if numsplitarms is greater than one go into a recursive algorithm to build up the system
+        lastone = 0;
+
+        for i = 1:nodeconnectivity - numsplitarms + 1
+            % initialize the subslitmodes matrix b
+            addlength = factorial(nodeconnectivity - i) / factorial(nodeconnectivity - i - numsplitarms + 1) / factorial(numsplitarms - 1);
+            b = zeros(addlength, numsplitarms - 1);
+            % calculate the subsplitmodes with a call to splitmodes
+            b = createsplitmodelist(nodeconnectivity - i, numsplitarms - 1);
+            % add the subspitmode list b to the growing splitmode list
+            splitmodes(lastone + 1:lastone + addlength, 1) = i .* ones(addlength, 1);
+            splitmodes(lastone + 1:lastone + addlength, 2:numsplitarms) = i + b(1:addlength, 1:numsplitarms - 1);
+            % update the current position of the last valid line of the splitmode system
+            lastone = lastone + addlength;
+        end
+
+    end
+
+    %total number of splitting options
+    %4 arm multinode
+    %may split into 3 two arm splitting modes      0.5 * n! / ( (n-2)! * 2! )       3 total
+    %5 arm mulitnode
+    %may split into 10 two arm splitting modes           n! / ( (n-2)! * 2! )      10 total
+    %6 arm mulitinode
+    %may split into 15 two arm splitting modes or        n! / ( (n-2)! * 2! )
+    %may split into 10 three arm spliting modes    0.5 * n! / ( (n-3)! * 3! )      25 total
+    %7 arm multinode
+    %may split into 21 two arm splitting modes or        n! / ( (n-2)! * 2! )
+    %may split into 35 thee arm splitting modes          n! / ( (n-3)! * 3! )      46 total
+    %8 arm multinode
+    %may split into 28 two arm splitting modes or        n! / ( (n-2)! * 2! )
+    %may split into 56 three arm splitting modes or      n! / ( (n-3)! * 3! )
+    %may split into 35 four arm splitting modes    0.5 * n! / ( (n-4)! * 4! )     119 total
+    %9 arm multinode
+    %may split into 36 two arm splitting modes or        n! / ( (n-2)! * 2! )
+    %may split into 84 three arm splitting modes or      n! / ( (n-3)! * 3! )
+    %may split into 126 four arm splitting modes         n! / ( (n-4)! * 4! )     246 total
+    %10 arm multinode
+    %may split into 45 two arm splitting modes or        n! / ( (n-2)! * 2! )
+    %may split into 120 three arm splitting modes or     n! / ( (n-3)! * 3! )
+    %may split into 210 four arm splitting modes or      n! / ( (n-4)! * 4! )
+    %may split into 126 five arm splitting modes   0.5 * n! / ( (n-5)! * 5! )     501 total
+    % the division by 2 for some of the cases is done outside this function call when appropriate.
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end
