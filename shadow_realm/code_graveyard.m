@@ -1134,12 +1134,12 @@ function [rn, links, connectivity, linksinconnect, fseg] = collision(rn, links, 
                             fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
                             othernode = links(linkid, 3 - connectivity(mergednodeid, 2 * k + 1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M
                             clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                            [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist);
+                            [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                         end
 
                         numbcon = connectivity(mergednodeid, 1);
                         conlist = [numbcon linspace(1, numbcon, numbcon)];
-                        [rn(mergednodeid, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, mergednodeid, conlist);
+                        [rn(mergednodeid, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, mergednodeid, conlist, Bcoeff);
                     end
 
                 end
@@ -1217,12 +1217,12 @@ function [rn, links, connectivity, linksinconnect, fseg] = collision(rn, links, 
                                 fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
                                 othernode = links(linkid, 3 - connectivity(mergednodeid, 2 * k + 1));
                                 clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                                [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist);
+                                [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                             end
 
                             numbcon = connectivity(mergednodeid, 1);
                             conlist = [numbcon linspace(1, numbcon, numbcon)];
-                            [rn(mergednodeid, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, mergednodeid, conlist);
+                            [rn(mergednodeid, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, mergednodeid, conlist, Bcoeff);
                         end
 
                         %there has been a connectivity change in node i start the search through node i's connections from the beginning
