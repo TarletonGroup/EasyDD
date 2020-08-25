@@ -38,7 +38,7 @@ if ~exist('dy', 'var')
 end
 
 if ~exist('dz', 'var')
-    dy = 5 / amag; % 5 micron
+    dz = 5 / amag; % 5 micron
     fprintf('Providing default value for dz = %f.\n', dz)
 end
 
@@ -124,61 +124,173 @@ end
 
 if ~exist('doremesh', 'var')
     doremesh = 1; %flat set to 0 or 1 that turns the remesh functions off or on
-    fprintf('Providing default value for doremesh = %f.\n', doremesh)
+    fprintf('Providing default value for doremesh = %d.\n', doremesh)
 end
 
 if ~exist('docollision', 'var')
     docollision = 1; %flat set to 0 or 1 that turns collision detection off or on
-    fprintf('Providing default value for docollision = %f.\n', docollision)
+    fprintf('Providing default value for docollision = %d.\n', docollision)
 end
 
 if ~exist('doseparation', 'var')
     doseparation = 1; %flat set to 0 or 1 that turns splitting algorithm for highly connected node off or on
-    fprintf('Providing default value for doseparation = %f.\n', doseparation)
+    fprintf('Providing default value for doseparation = %d.\n', doseparation)
 end
 
 if ~exist('dovirtmesh', 'var')
     dovirtmesh = 1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
-    fprintf('Providing default value for dovirtmesh = %f.\n', dovirtmesh)
+    fprintf('Providing default value for dovirtmesh = %d.\n', dovirtmesh)
 end
 
 if ~exist('dt0', 'var')
-    dt0 = 1e5;
+    dt0 = 1e6;
     fprintf('Providing default value for dt0 = %f.\n', dt0)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('simTime', 'var')
+    simTime = 0;
+    fprintf('Providing default value for simTime = %f.\n', simTime)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('totalSimTime', 'var')
+    totalSimTime = 1e9;
+    fprintf('Providing default value for totalSimTime = %f.\n', totalSimTime)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('curstep', 'var')
+    curstep = 0;
+    fprintf('Providing default value for curstep = %d.\n', curstep)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('simTime', 'var')
+    simTime = 0;
+    fprintf('Providing default value for simTime = %f.\n', simTime)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('integrator', 'var')
+    integrator = 'int_trapezoid';
+    fprintf('Providing default value for integrator = %s.\n', integrator)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('a', 'var')
+    a = lmin / sqrt(3) * 0.5;
+    fprintf('Providing default value for a = %f.\n', a)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('Ec', 'var')
+    Ec = MU / (4 * pi) * log(a / 0.1);
+    fprintf('Providing default value for Ec = %f.\n', Ec)
 end
 
-if ~exist('', 'var')
-    fprintf('Providing default value for = %f.\n', )
+if ~exist('rann', 'var')
+    rann = 0.9 * lmin;
+    fprintf('Providing default value for rann = %f.\n', rann)
+end
+
+if ~exist('rntol', 'var')
+    rntol = 0.5 * rann;
+    fprintf('Providing default value for rntol = %f.\n', rntol)
+end
+
+if ~exist('rmax', 'var')
+    rmax = 0.5 * rann;
+    fprintf('Providing default value for rmax = %f.\n', rmax)
+end
+
+if ~exist('printfreq', 'var')
+    printfreq = 100;
+    fprintf('Providing default value for printfreq = %d.\n', printfreq)
+end
+
+if ~exist('plotfreq', 'var')
+    plotfreq = 100;
+    fprintf('Providing default value for plotfreq = %d.\n', plotfreq)
+end
+
+if ~exist('plim', 'var')
+    plim = max([dx, dy, dz]) / amag;
+    fprintf('Providing default value for plim = %f.\n', plim)
+end
+
+if ~exist('viewangle', 'var')
+    viewangle = [-35, 15];
+    fprintf('Providing default value for viewangle = [%f, %f].\n', viewangle(1), viewangle(2))
+end
+
+if ~exist('a_trac', 'var')
+    a_trac = true;
+    fprintf('Providing default value for a_trac = %d.\n', a_trac)
 end
 
 if ~exist('CUDA_flag', 'var')
     CUDA_flag = false;
+    fprintf('Providing default value for CUDA_flag = %d.\n', CUDA_flag)
 end
+
+if ~exist('n_threads', 'var')
+    n_threads = 256;
+    fprintf('Providing default value for n_threads = %d.\n', n_threads)
+end
+
+if ~exist('para_scheme', 'var')
+    para_scheme = 1;
+    fprintf('Providing default value for para_scheme = %d.\n', para_scheme)
+end
+
+if ~exist('sign_u_dot', 'var')
+    sign_u_dot = -1;
+    fprintf('Providing default value for sign_u_dot= %d.\n', sign_u_dot)
+end
+
+if ~exist('sign_f_dot', 'var')
+    sign_f_dot = -1;
+    fprintf('Providing default value for sign_f_dot= %d.\n', sign_f_dot)
+end
+
+if ~exist('u_dot', 'var')
+    u_dot = dx / 160E6;
+    fprintf('Providing default value for u_dot = %f.\n', u_dot)
+end
+
+if ~exist('f_dot', 'var')
+    f_dot = dx / 160E6;
+    fprintf('Providing default value for f_dot = %d.\n', f_dot)
+end
+
+if ~exist('loading', 'var')
+    loading = 1;
+    fprintf('Providing default value for loading = %d.\n', loading)
+end
+
+if ~exist('simType', 'var')
+    simType = 1;
+    fprintf('Providing default value for simType = %d.\n', simType)
+end
+
+if ~exist('Fsim', 'var')
+    Fsim = zeros(1e6, 1);
+    fprintf('Initialising Fsim as 1e6 zeros.\n')
+end
+
+if ~exist('Usim', 'var')
+    Usim = zeros(1e6, 1);
+    fprintf('Initialising Usim as 1e6 zeros.\n')
+end
+
+if ~exist('t', 'var')
+    t = zeros(1e6, 1);
+    fprintf('Initialising t as 1e6 zeros.\n')
+end
+
+if ~exist('dt', 'var')
+    dt = dt0;
+    fprintf('Providing default value for dt = %f.\n', dt)
+end
+
+% if ~exist('', 'var')
+%     fprintf('Providing default value for = %f.\n', )
+% end
+
+% if ~exist('', 'var')
+%     fprintf('Providing default value for = %f.\n', )
+% end
