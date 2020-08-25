@@ -1,6 +1,8 @@
-function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist)
+function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
     %mobility law function (model: BCC0)
-    global Bscrew Bedge Beclimb
+    Bscrew = Bcoeff.screw;
+    Bedge = Bcoeff.edge;
+    Beclimb = Bcoeff.climb;
 
     %numerical tolerance
     tol = 1e-7;

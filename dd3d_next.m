@@ -104,70 +104,58 @@ u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
 
 disp('Initialisation complete.');
 %%
-if ~exist('dt', 'var')
-    dt = dt0;
-end
+% if ~exist('dt', 'var')
+%     dt = dt0;
+% end
 
-dt = min(dt, dt0);
-plotCounter = 1;
-close all
+% dt = min(dt, dt0);
+% plotCounter = 1;
+% close all
 
-Fend = zeros(1e6, 1); fend = [];
-U_bar = zeros(1e6, 1); Ubar = [];
-t = zeros(1e6, 1); simTime = 0;
-sign_u_dot = -1;
-sign_f_dot = -1;
-u_dot = 100 * 1E3 * dx * (1E-4/160E9) * 100; % Marielle
-f_dot = 0;
-simType = 1;
+% Fend = zeros(1e6, 1); fend = [];
+% U_bar = zeros(1e6, 1); Ubar = [];
+% t = zeros(1e6, 1); simTime = 0;
+% sign_u_dot = -1;
+% sign_f_dot = -1;
+% u_dot = 100 * 1E3 * dx * (1E-4/160E9) * 100; % Marielle
+% f_dot = 0;
+% simType = 1;
 
 while simTime < totalSimTime
 
     % DDD+FEM coupling
 
     % TODO: Add requirements to make Haiyang's and Fengxian's simulations easy to do.
-    [f_hat, u_hat, r_hat] = FEM_DDD_Superposition(rn, links, a, MU, NU, ...
-        xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
-        freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, ...
-        u_hat, u_tilda, simType, a_trac, gamma_dln, x3x6, 4, ...
+    [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superposition(...
+        rn, links, a, MU, NU, xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
+        freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, ...
+        f_dot, u_tilda_0, u, u_hat, u_tilda, loading, a_trac, gamma_dln, x3x6, 4, ...
         n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
         n_threads, para_scheme, para_tol);
 
-    [f_out, u_out] = processForceDisp(f_hat, u_hat, r_hat, loading);
+    [f_out, u_out] = processForceDisp(f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, ...
+        r_hat, gamma_disp, gammaMixed, fixedDofs, freeDofs, simType);
 
-    if a_trac == 0
-        [u_hat, fend, Ubar] = FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
-            gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, dy, dz, simTime, mx, my, mz, u_tilda_0);
-    else
-        [u_hat, fend, Ubar] = analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
-            gamma_disp, gammat, gammaMixed, fixedDofs, freeDofs, dx, dy, dz, simTime, mx, my, mz, u_tilda_0, ...
-            gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f, ...
-            f_tilda_node, f_tilda_se, f_tilda, f_hat, use_gpu, n_threads, para_scheme, para_tol);
-    end
+    [Fsim, Usim, t] = updateForceDispTime(Fsim, Usim, t, f_out, u_out, simTime, curstep, simType);
 
-    % TODO: Add processing function for different simulation types.
-
-    Fend(curstep + 1) = fend;
-    U_bar(curstep + 1) = Ubar;
-    t(curstep + 1) = simTime;
-
-    fprintf('fend = %d, Ubar = %d, simTime = %d \n', fend, Ubar, simTime);
+    fprintf('fend = %d, Ubar = %d, simTime = %d \n', f_out, u_out, simTime);
 
     %integrating equation of motion
     [rnnew, vn, dt, fn, fseg] = feval(integrator, rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
-        rmax, rntol, mobility, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d);
+        rmax, rntol, mobility, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag);
+
     % plastic strain and plastic spin calculations
     [ep_inc, wp_inc] = calcplasticstrainincrement(rnnew, rn, links, (2 * plim)^3);
 
-    if (mod(curstep, printfreq) == 0) && not(isempty(vn))
-        fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
-            curstep, dt, printnode, vn(printnode, 1), vn(printnode, 2), vn(printnode, 3));
-        close all;
-        save restart_temp
-    elseif (mod(curstep, printfreq) == 0)
-        fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
-            curstep, dt, printnode);
-    end
+    % if (mod(curstep, printfreq) == 0) && not(isempty(vn))
+    %     fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
+    %         curstep, dt, printnode, vn(printnode, 1), vn(printnode, 2), vn(printnode, 3));
+    %     close all;
+    %     save restart_temp
+    % elseif (mod(curstep, printfreq) == 0)
+    %     fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
+    %         curstep, dt, printnode);
+    % end
 
     if (mod(curstep, plotfreq) == 0)
         plotnodes(rn, links, plim, vertices);
@@ -194,14 +182,14 @@ while simTime < totalSimTime
         %remeshing virtual dislocation structures
         if (dovirtmesh)
             [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(rnnew, linksnew, ...
-                connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec, dx, dy, dz);
+                connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec);
         end
 
         %remeshing internal dislocation structures
         [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
             connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
             mobility, doremesh, dovirtmesh, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, ...
-            TriangleCentroids, TriangleNormals);
+            TriangleCentroids, TriangleNormals, CUDA_flag, Bcoeff);
     end
 
     %save restart.mat
@@ -226,7 +214,7 @@ while simTime < totalSimTime
 
                 if colliding_segments == 1
                     [rnnew, linksnew, ~, ~, fsegnew, colliding_segments] = collision(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
-                        u_hat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, segpair, lmin);
+                        u_hat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, segpair, lmin, CUDA_flag, Bcoeff);
 
                     %removing links with effective zero Burgers vectors
                     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = cleanupsegments(rnnew, linksnew, fsegnew);
@@ -257,7 +245,7 @@ while simTime < totalSimTime
             %spliting of nodes with 4 or more connections
             [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
                 separation(rnnew, linksnew, connectivitynew, linksinconnectnew, ...
-                fsegnew, mobility, MU, NU, a, Ec, 2 * rann, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d);
+                fsegnew, mobility, MU, NU, a, Ec, 2 * rann, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
         end
 
     end
@@ -265,7 +253,7 @@ while simTime < totalSimTime
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
         mobility, doremesh, 0, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, TriangleCentroids, ...
-        TriangleNormals);
+        TriangleNormals, CUDA_flag, Bcoeff);
 
     rn = [rnnew(:, 1:3) rnnew(:, 7)];
     vn = rnnew(:, 4:6);

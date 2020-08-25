@@ -1,5 +1,5 @@
 function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
-        rmax, rntol, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d)
+        rmax, rntol, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
 
     %Implicit numerical integrator using the Euler-trapezoid method adapted
     %from [Cai & Bulatov, Algorithm 10.2, pg. 216]. The tiemstep size is
@@ -12,7 +12,7 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, link
 
     %Calculate the current nodal velocities
     [vnvec0, fn, fseg] = drndt(rnvec0, flag, MU, NU, a, Ec, links, connectivity, ...
-        mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
+        mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag);
 
     maxiter = 10; %Maximum number of times the timestep can be increased
     counter = 1; %Counter variable for the while loop
@@ -32,7 +32,7 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, link
         %Calculate the nodal velocities for the next timestep accordin to
         %Euler forward method
         [vnvec1, fn, fseg] = drndt(rnvec1, flag, MU, NU, a, Ec, links, connectivity, ...
-            mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d);
+            mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag);
         distvec = rnvec1 - rnvec0;
         distmag = max(abs(distvec)); %Largest distance any node moves
         err = distvec - (vnvec1 + vnvec0) / 2 * dt; %Euler-trapezoid method

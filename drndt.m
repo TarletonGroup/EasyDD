@@ -1,5 +1,5 @@
 function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivity, ...
-        mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d)
+        mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
 
     % This needs to be an input/obtained from the surface nodes. This is a temporary fix for cuboid.
     normals = [1 0 0;
@@ -14,11 +14,10 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
 
     %nodal driving force
     fseg = segforcevec(MU, NU, a, Ec, rn, links, 0, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d);
+        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
     %mobility function
-    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, [], []);
-
+    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, [], [], Bcoeff);
     % fixed nodes (flag==7) are not allowed to move.
     % flag == 6, are only allowed to move on the surface they live at.
     % flag == 67, are virtual nodes that are not allowed to move.

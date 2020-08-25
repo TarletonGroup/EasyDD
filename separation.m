@@ -1,5 +1,5 @@
 function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links, connectivity, linksinconnect, fseg, mobility, MU, NU, a, Ec, mindist, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d)
+        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
 
     [lrn, lrn2] = size(rn);
     i = 1;
@@ -74,7 +74,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                 clist(1, 2:1 + connectivity(i, 1)) = linspace(1, connectivity(i, 1), connectivity(i, 1));
                 clist(2, 2:1 + connectivity(lastnode, 1)) = linspace(1, connectivity(lastnode, 1), connectivity(lastnode, 1));
                 % do an evaluataion to find out what the splitting direction is
-                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist);
+                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
                 vd1 = vntmp(1, :) * vntmp(1, :)';
                 vd2 = vntmp(2, :) * vntmp(2, :)';
                 rn([i lastnode], 4:6) = vntmp;
@@ -113,18 +113,18 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                 for k = 1:connectivity(i, 1)
                     linkid1 = connectivity(i, 2 * k);
                     fseg(linkid1, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid1, vertices, ...
-                        uhat, nc, xnodes, D, mx, mz, w, h, d);
+                        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                 end
 
                 % calculate the segment forces connected to the new node
                 for k = 1:connectivity(lastnode, 1)
                     linkid2 = connectivity(lastnode, 2 * k);
                     fseg(linkid2, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid2, vertices, ...
-                        uhat, nc, xnodes, D, mx, mz, w, h, d);
+                        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                 end
 
                 % evaluate the power dissipated by this splitting configuration
-                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist);
+                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
                 vdiff = vntmp(2, :) - vntmp(1, :);
 
                 if vdiff * dir' > eps
@@ -210,14 +210,14 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                     linkid = connectivity(i, 2 * k);
                     othernode = links(linkid, 3 - connectivity(i, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist);
+                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                 end
 
                 for k = 1:connectivity(lastnode, 1)
                     linkid = connectivity(lastnode, 2 * k);
                     othernode = links(linkid, 3 - connectivity(lastnode, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist);
+                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                 end
 
                 [lrn, lrn2] = size(rn);
@@ -225,7 +225,8 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
             else
                 i = i + 1;
             end
-
+        else
+            i = i + 1;
         end
 
     end

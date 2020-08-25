@@ -11,7 +11,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, doremesh, dovirtmesh, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, P, fn)
+        uhat, nc, xnodes, D, mx, mz, w, h, d, P, fn, CUDA_flag, Bcoeff)
 
     % Original remesh rule %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (dovirtmesh)
@@ -40,7 +40,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh
 
     if (doremesh)
         [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, vertices, ...
-            uhat, nc, xnodes, D, mx, mz, w, h, d);
+            uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
     end
 
     % if (dovirtmesh)
