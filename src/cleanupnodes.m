@@ -43,3 +43,5 @@ function [rnnew, linksnew] = cleanupnodes(rn, links)
         end
 
     end
+
+end

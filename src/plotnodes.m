@@ -79,3 +79,4 @@ function [output] = plotnodes(rn, links, plim, vertices)
 
     %axis equal;
     output = plotHandle;
+end

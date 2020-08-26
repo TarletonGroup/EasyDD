@@ -27,6 +27,8 @@ function [vn, fn] = mobbcc1_accelerated(fseg, rn, links, connectivity, nodelist,
     [fx, fy, fz, B11, B22, B33, B12, B13, B23] = mobbcc1mex(fseg, rn, links, connectivity, nodelist, conlist, Beclimb, Bline, Bscrew, Bedge);
     fn = [fx, fy, fz];
 
+    vn = zeros(L1, 3);
+
     for n = 1:L1
         Btotal = [B11(n), B12(n), B13(n); B12(n), B22(n), B23(n); B13(n), B23(n), B33(n)];
 
@@ -63,3 +65,5 @@ function [vn, fn] = mobbcc1_accelerated(fseg, rn, links, connectivity, nodelist,
         %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
         %    end
     end
+
+end

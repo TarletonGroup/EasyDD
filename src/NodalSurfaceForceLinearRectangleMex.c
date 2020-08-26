@@ -1096,28 +1096,3 @@ void mexFunction(int nlhs, mxArray *plhs[],
     free(fx[i]);
   }
 }
-
-/*
-// Testing purposes
-int main(void){
-  double x1[3], x2[3], x3[3], x4[3], x5[3], x6[3], b[3], mu, nu, a, *nodal_force[4], total_force[3];
-  double a_sq, one_m_nu, factor;
-  for(int i = 0; i < 4; i++){
-    nodal_force[i] = malloc(3*sizeof(double));
-  }
-  x1[0] = 0.5; x1[1] = 0.; x1[2] = 0.5;
-  x2[0] = 0.5; x2[1] = 1.; x2[2] = 1.5;
-  x3[0] = 0.; x3[1] = 0.; x3[2] = 0.;
-  x4[0] = 1.; x4[1] = 0.; x4[2] = 0.;
-  x5[0] = 0.; x5[1] = 1.; x5[2] = 1.;
-  x6[0] = 1.; x6[1] = 1.; x6[2] = 1.;
-  b[0] = -3./10.; b[1] = 5./10.; b[2] = 4./10.;
-  mu = 0.6;
-  nu = 0.3;
-  a = 0.01;
-  a_sq = a*a;
-  one_m_nu = 1.-nu;
-  factor   = 0.25*mu/pi/one_m_nu;
-  main_nodal_surface_force_linear_rectangle(x1, x2, x3, x4, x5, x6, b, mu, nu, a, a_sq, one_m_nu, factor, nodal_force, total_force);
-}
-*/

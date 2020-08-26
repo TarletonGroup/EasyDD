@@ -1,4 +1,4 @@
-function [dist2, ddist2dt, L1, L2, Rori] = mindistcalc(x0vx0, x1vx1, y0vy0, y1vy1)
+function [dist2, ddist2dt, L1, L2] = mindistcalc(x0vx0, x1vx1, y0vy0, y1vy1)
     % this function finds the minimum distance bewtween two line segments
     % seg1=x0->x1 seg2=y0->y1
     % dist2 = square of the minimum distance between the two points
@@ -32,7 +32,7 @@ function [dist2, ddist2dt, L1, L2, Rori] = mindistcalc(x0vx0, x1vx1, y0vy0, y1vy
     C = 2 * seg1 * seg2';
     D = 2 * seg2 * (y0' - x0');
     E = seg2 * seg2';
-    F = x0 * x0' + y0 * y0';
+    % F = x0 * x0' + y0 * y0';
     G = C * C - 4 * A * E;
 
     eps = 1e-12;
@@ -57,7 +57,7 @@ function [dist2, ddist2dt, L1, L2, Rori] = mindistcalc(x0vx0, x1vx1, y0vy0, y1vy
 
     elseif abs(G) < eps% lines are parallel
         dist2 = [(y0 - x0) * (y0 - x0)' (y1 - x0) * (y1 - x0)' (y0 - x1) * (y0 - x1)' (y1 - x1) * (y1 - x1)'];
-        [mindist2, pos] = min(dist2);
+        [~, pos] = min(dist2);
         L1 = floor(pos / 2);
         L2 = mod(pos - 1, 2);
     else
@@ -72,3 +72,4 @@ function [dist2, ddist2dt, L1, L2, Rori] = mindistcalc(x0vx0, x1vx1, y0vy0, y1vy
     % now calculate the distance^2 and the time rate of change of the distance between the points at L1 and L2
     dist2 = (x0 + seg1 .* L1 - y0 - seg2 .* L2) * (x0 + seg1 .* L1 - y0 - seg2 .* L2)';
     ddist2dt = 2 * ((vx0 + vseg1 .* L1 - vy0 - vseg2 .* L2) * (x0 + seg1 .* L1 - y0 - seg2 .* L2)');
+end

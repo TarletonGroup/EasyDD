@@ -1,4 +1,4 @@
-function [rn, connectivity, links, linksinconnect, fseg, nodeid] = mergenodes(rn, connectivity, links, linksinconnect, fseg, nodeid, deadnode, MU, NU, a, Ec)
+function [rn, connectivity, links, linksinconnect, fseg, nodeid] = mergenodes(rn, connectivity, links, linksinconnect, fseg, nodeid, deadnode, ~, ~, ~, ~)%MU, NU, a, Ec)
 
     % the purpose of this subroutine is to merge the connectivity information in nodeid with deadnode
     % then remove deadnode and repair the connectivity list and the link list
@@ -69,17 +69,17 @@ function [rn, connectivity, links, linksinconnect, fseg, nodeid] = mergenodes(rn
             if nodenoti_linkid == nodenoti_linkid2
                 % a double link has been found
                 % create the junction by adjusting the burgers vector of linkid and removing linkid2
-                rn0 = rn(links(linkid, 1), 1:3);
-                rn1 = rn(links(linkid, 2), 1:3);
-                rn2 = rn0;
-                link1 = links(linkid, :);
-                link2 = links(linkid2, :);
+                % rn0 = rn(links(linkid, 1), 1:3);
+                % rn1 = rn(links(linkid, 2), 1:3);
+                % rn2 = rn0;
+                % link1 = links(linkid, :);
+                % link2 = links(linkid2, :);
 
                 if posi_linkid + posi_linkid2 == 3
                     links(linkid, 3:5) = links(linkid, 3:5) - links(linkid2, 3:5);
                 else %posi_linkid+posi_linkid2~=3
                     links(linkid, 3:5) = links(linkid, 3:5) + links(linkid2, 3:5);
-                    link2 = [link2(2) link2(1) -link2(3:5) link2(6:8)];
+                    % link2 = [link2(2) link2(1) -link2(3:5) link2(6:8)];
                 end
 
                 % must now change the glide plane of the resultant dislocation
@@ -141,109 +141,115 @@ function [rn, connectivity, links, linksinconnect, fseg, nodeid] = mergenodes(rn
         nodeid = 0;
     end
 
-    %disp(sprintf('node %d and node %d have successfully merged',nodeid,deadnode))
-    % nodes have been successfully merged
+end
 
-    function [links, connectivity, linksinconnect, fseg] = removelink(links, connectivity, linksinconnect, fseg, linkid);
-        % this subroutine is called by meshcoarsen
-        % this subroutine deletes the link information from the connectivity list
-        % removes the link from the link list and replaces the linkid with the last link
-        % after executing this subroutine all of the data structures should be clean
+%disp(sprintf('node %d and node %d have successfully merged',nodeid,deadnode))
+% nodes have been successfully merged
 
-        if (linkid > length(links(:, 1)))
-            fprintf('ERROR: Tried to remove link but failed. See Line 131 of mergenodes.m /n');
-            %pause
+function [links, connectivity, linksinconnect, fseg] = removelink(links, connectivity, linksinconnect, fseg, linkid)
+    % this subroutine is called by meshcoarsen
+    % this subroutine deletes the link information from the connectivity list
+    % removes the link from the link list and replaces the linkid with the last link
+    % after executing this subroutine all of the data structures should be clean
+
+    if (linkid > length(links(:, 1)))
+        fprintf('ERROR: Tried to remove link but failed. See Line 131 of mergenodes.m /n');
+        %pause
+    end
+
+    % delete the linkid where it appears in connectivity list
+    % first appearance
+    nodeid1 = links(linkid, 1);
+    deadconnection1 = linksinconnect(linkid, 1);
+    [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid1, deadconnection1);
+    % second appearance
+    nodeid2 = links(linkid, 2);
+    deadconnection2 = linksinconnect(linkid, 2);
+    [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid2, deadconnection2);
+    % remove the link that no longer appears in the connectivity list and doesn't connect any nodes anymore
+    [links, connectivity, linksinconnect, fseg] = removedeadlink(links, connectivity, linksinconnect, fseg, linkid);
+end
+
+function [linksnew, connectivitynew, linksinconnectnew, fsegnew] = removedeadlink(linksnew, connectivitynew, linksinconnectnew, fsegnew, deadlink)
+    % this subroutine is called by meshcoarsen
+    % this subroutine replaces the link in linkid with the link in llinks
+    % repairs the connectivity and then deletes the llinks from links
+    % llinks should be the last linkid in links
+
+    % change the linkid in the connectivity to reflect the replacement
+    if (linksinconnectnew(deadlink, :) * linksinconnectnew(deadlink, :)' ~= 0)
+        fprintf('ERROR: Dead link still has connections and should not be removed. See Line 154 of mergenodes.m /n');
+        %pause
+    end
+
+    llinks = length(linksnew(:, 1));
+
+    if deadlink < llinks
+        linksnew(deadlink, :) = linksnew(llinks, :);
+
+        if not(isempty(fsegnew))
+            fsegnew(deadlink, :) = fsegnew(llinks, :);
         end
 
-        % delete the linkid where it appears in connectivity list
-        % first appearance
-        nodeid1 = links(linkid, 1);
-        deadconnection1 = linksinconnect(linkid, 1);
-        [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid1, deadconnection1);
-        % second appearance
-        nodeid2 = links(linkid, 2);
-        deadconnection2 = linksinconnect(linkid, 2);
-        [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid2, deadconnection2);
-        % remove the link that no longer appears in the connectivity list and doesn't connect any nodes anymore
-        [links, connectivity, linksinconnect, fseg] = removedeadlink(links, connectivity, linksinconnect, fseg, linkid);
+        linksinconnectnew(deadlink, :) = linksinconnectnew(llinks, :);
+        connectivitynew(linksnew(deadlink, 1), 2 * linksinconnectnew(deadlink, 1)) = deadlink;
+        connectivitynew(linksnew(deadlink, 2), 2 * linksinconnectnew(deadlink, 2)) = deadlink;
+    end
 
-        function [linksnew, connectivitynew, linksinconnectnew, fsegnew] = removedeadlink(linksnew, connectivitynew, linksinconnectnew, fsegnew, deadlink);
-            % this subroutine is called by meshcoarsen
-            % this subroutine replaces the link in linkid with the link in llinks
-            % repairs the connectivity and then deletes the llinks from links
-            % llinks should be the last linkid in links
+    linksnew(llinks, :) = [];
 
-            % change the linkid in the connectivity to reflect the replacement
-            if (linksinconnectnew(deadlink, :) * linksinconnectnew(deadlink, :)' ~= 0)
-                fprintf('ERROR: Dead link still has connections and should not be removed. See Line 154 of mergenodes.m /n');
-                %pause
-            end
+    if not(isempty(fsegnew))
+        fsegnew(llinks, :) = [];
+    end
 
-            llinks = length(linksnew(:, 1));
+    linksinconnectnew(llinks, :) = [];
+end
 
-            if deadlink < llinks
-                linksnew(deadlink, :) = linksnew(llinks, :);
+function [rnnew, connectivitynew, linksnew] = removedeadnode(rnnew, connectivitynew, linksnew, deadnode)
+    % this subroutine is called by meshcoarsen and by removenode
+    % it removes nodes that are no longer part of the simulation
+    % and cleans up the data structures
+    % this subroutine replaces the node in i with the node in lrn
+    % repairs the links and then deletes the lrn from the node list
+    % lrn should be the last nodeid in rn
+    if (connectivitynew(deadnode, 1) ~= 0)
+        fprintf('ERROR: Deadnode still has connections and should not be removed. See Line 184 of mergenodes.m /n');
+        %deadnode
+        %rnnew
+        %connectivitynew
+        %pause
+    end
 
-                if not(isempty(fsegnew))
-                    fsegnew(deadlink, :) = fsegnew(llinks, :);
-                end
+    lrn = length(rnnew(:, 1));
 
-                linksinconnectnew(deadlink, :) = linksinconnectnew(llinks, :);
-                connectivitynew(linksnew(deadlink, 1), 2 * linksinconnectnew(deadlink, 1)) = deadlink;
-                connectivitynew(linksnew(deadlink, 2), 2 * linksinconnectnew(deadlink, 2)) = deadlink;
-            end
+    if deadnode < lrn
+        rnnew(deadnode, :) = rnnew(lrn, :);
+        connectivitynew(deadnode, :) = connectivitynew(lrn, :);
 
-            linksnew(llinks, :) = [];
+        for j = 1:connectivitynew(deadnode, 1)% change the nodeid in linksnew from lrn to i
+            linksnew(connectivitynew(deadnode, 2 * j), connectivitynew(deadnode, 2 * j + 1)) = deadnode;
+        end
 
-            if not(isempty(fsegnew))
-                fsegnew(llinks, :) = [];
-            end
+    end
 
-            linksinconnectnew(llinks, :) = [];
+    rnnew(lrn, :) = [];
+    connectivitynew(lrn, :) = [];
+end
 
-            function [rnnew, connectivitynew, linksnew] = removedeadnode(rnnew, connectivitynew, linksnew, deadnode);
-                % this subroutine is called by meshcoarsen and by removenode
-                % it removes nodes that are no longer part of the simulation
-                % and cleans up the data structures
-                % this subroutine replaces the node in i with the node in lrn
-                % repairs the links and then deletes the lrn from the node list
-                % lrn should be the last nodeid in rn
-                if (connectivitynew(deadnode, 1) ~= 0)
-                    fprintf('ERROR: Deadnode still has connections and should not be removed. See Line 184 of mergenodes.m /n');
-                    %deadnode
-                    %rnnew
-                    %connectivitynew
-                    %pause
-                end
+function [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid, deadconnection)
+    %This subroutine deletes an entry in a node's connectivity list and updates the linksinconnet array
 
-                lrn = length(rnnew(:, 1));
+    lastconnection = connectivity(nodeid, 1);
+    %remove the entry in linksinconnect to show that the connectivity data no longer exits for that link
+    linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = 0;
 
-                if deadnode < lrn
-                    rnnew(deadnode, :) = rnnew(lrn, :);
-                    connectivitynew(deadnode, :) = connectivitynew(lrn, :);
+    if (lastconnection > deadconnection)
+        %replace link in the connectivitylist with the lastlink in the connectivity list
+        connectivity(nodeid, 2 * deadconnection:2 * deadconnection + 1) = connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1);
+        % update linksinconnect to reflect the change in position of the lastconnection
+        linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = deadconnection;
+    end
 
-                    for j = 1:connectivitynew(deadnode, 1)% change the nodeid in linksnew from lrn to i
-                        linksnew(connectivitynew(deadnode, 2 * j), connectivitynew(deadnode, 2 * j + 1)) = deadnode;
-                    end
-
-                end
-
-                rnnew(lrn, :) = [];
-                connectivitynew(lrn, :) = [];
-
-                function [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid, deadconnection);
-                    %This subroutine deletes an entry in a node's connectivity list and updates the linksinconnet array
-
-                    lastconnection = connectivity(nodeid, 1);
-                    %remove the entry in linksinconnect to show that the connectivity data no longer exits for that link
-                    linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = 0;
-
-                    if (lastconnection > deadconnection)
-                        %replace link in the connectivitylist with the lastlink in the connectivity list
-                        connectivity(nodeid, 2 * deadconnection:2 * deadconnection + 1) = connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1);
-                        % update linksinconnect to reflect the change in position of the lastconnection
-                        linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = deadconnection;
-                    end
-
-                    connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1) = [0 0];
-                    connectivity(nodeid, 1) = lastconnection - 1;
+    connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1) = [0 0];
+    connectivity(nodeid, 1) = lastconnection - 1;
+end

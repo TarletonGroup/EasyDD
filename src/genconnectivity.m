@@ -5,7 +5,7 @@ function [connectivity, linksinconnect, node_connectivity] = genconnectivity(rn,
     % connectivity(i,1)= number of links that node i is part of
     % connectivity(i,2:7)= the list of connectivity(i,1) links that node i is part of
 
-%     disp('Initiliazing connectivity list.');
+    %     disp('Initiliazing connectivity list.');
 
     rnlength = length(rn(:, 4));
     connectivity = zeros(rnlength, 1 + 2 * maxconnections);
@@ -27,7 +27,6 @@ function [connectivity, linksinconnect, node_connectivity] = genconnectivity(rn,
 
     end
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     num_nodes = size(rn, 1);
     node_connectivity = zeros(num_nodes, maxconnections);
     %node_connectivity : each line = 1 node, the numbers correspond to the

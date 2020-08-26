@@ -40,15 +40,17 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
             refposveli = rn(i, 1:6);
             refconnecti = connectivity(i, :);
 
+            reffsegi = zeros(c, size(fseg, 2));
+
             for j = 1:c
                 reffsegi(j, :) = fseg(refconnecti(2 * j), :);
             end
 
-            reflinksinconnect = linksinconnect;
-            refrn = rn;
-            refconnectivity = connectivity;
-            reffseg = fseg;
-            reflinks = links;
+            % reflinksinconnect = linksinconnect;
+            % refrn = rn;
+            % refconnectivity = connectivity;
+            % reffseg = fseg;
+            % reflinks = links;
             % begin investigating the power dissipation of the separated configurations
             for j = 1:numsplitmodes
                 s = conlist(j, :);
@@ -74,7 +76,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                 clist(1, 2:1 + connectivity(i, 1)) = linspace(1, connectivity(i, 1), connectivity(i, 1));
                 clist(2, 2:1 + connectivity(lastnode, 1)) = linspace(1, connectivity(lastnode, 1), connectivity(lastnode, 1));
                 % do an evaluataion to find out what the splitting direction is
-                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
+                [vntmp, ~] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
                 vd1 = vntmp(1, :) * vntmp(1, :)';
                 vd2 = vntmp(2, :) * vntmp(2, :)';
                 rn([i lastnode], 4:6) = vntmp;
@@ -175,7 +177,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
 
                 end
 
-                disp(sprintf('separation: node %d has %d arms', i, c));
+                fprintf('separation: node %d has %d arms\n', i, c);
                 %             disp(sprintf('separation: the following connections have split off'));
                 %             for j=1:length(s)
                 %                 disp(sprintf('separation: connection %d',s(j)));
@@ -210,14 +212,14 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                     linkid = connectivity(i, 2 * k);
                     othernode = links(linkid, 3 - connectivity(i, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
+                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                 end
 
                 for k = 1:connectivity(lastnode, 1)
                     linkid = connectivity(lastnode, 2 * k);
                     othernode = links(linkid, 3 - connectivity(lastnode, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), fntmp] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
+                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
                 end
 
                 [lrn, lrn2] = size(rn);
@@ -225,6 +227,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
             else
                 i = i + 1;
             end
+
         else
             i = i + 1;
         end
@@ -282,7 +285,7 @@ function [splitmodes] = createsplitmodelist(nodeconnectivity, numsplitarms)
         for i = 1:nodeconnectivity - numsplitarms + 1
             % initialize the subslitmodes matrix b
             addlength = factorial(nodeconnectivity - i) / factorial(nodeconnectivity - i - numsplitarms + 1) / factorial(numsplitarms - 1);
-            b = zeros(addlength, numsplitarms - 1);
+            % b = zeros(addlength, numsplitarms - 1);
             % calculate the subsplitmodes with a call to splitmodes
             b = createsplitmodelist(nodeconnectivity - i, numsplitarms - 1);
             % add the subspitmode list b to the growing splitmode list

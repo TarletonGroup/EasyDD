@@ -184,7 +184,6 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(...
     %% Map analytical nodal forces into a useful form for the force superposition scheme.
     % Loop through the number of nodes.
     k = 0;
-    tmp = zeros(n_nodes, 1);
 
     for i = 1:n_nodes_t
         % Populate tmp array with the indices corresponding to nodes of

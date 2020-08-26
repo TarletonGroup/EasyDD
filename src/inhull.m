@@ -179,7 +179,7 @@ function in = inhull(testpts, xyz, tess, tol)
     for i = 1:blocks
         j = i:blocks:n;
 
-        if size(aNr, 2) ~= length(j),
+        if size(aNr, 2) ~= length(j)
             aNr = repmat(aN, 1, length(j));
         end
 

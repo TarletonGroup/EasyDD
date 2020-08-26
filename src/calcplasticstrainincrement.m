@@ -1,4 +1,4 @@
-function [ep_inc, wp_inc] = calcplasticstrainincrement(rnnew, rn, links, Volume);
+function [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, Volume)
     % this needs commenting
     seg = rn(links(:, 2), 1:3) - rn(links(:, 1), 1:3);
     segnew = rnnew(links(:, 2), 1:3) - rnnew(links(:, 1), 1:3);
@@ -7,3 +7,4 @@ function [ep_inc, wp_inc] = calcplasticstrainincrement(rnnew, rn, links, Volume)
     fp_inc = 0.5 .* (links(:, 3:5)' * dA) ./ Volume;
     ep_inc = 0.5 .* (fp_inc + fp_inc');
     wp_inc = 0.5 .* (fp_inc - fp_inc');
+end

@@ -11,6 +11,7 @@ function [Stress] = FieldPointStress(x, x1, x2, b, a, mu, nu);
     % the components of the stress are organized in the following fashion
     % Stress(i,:)=[s_11 s_22 s_33 s_12 s_23 s_13]
     sx = size(x, 1);
+    Stress = zeros(size(x, 1), 6);
 
     if sx > 1
 
@@ -61,7 +62,6 @@ function [Stress] = FieldPointStress(x, x1, x2, b, a, mu, nu);
         m8p = 0.5 * m4p;
         m4pn = m4p / (1 - nu);
         mn4pn = m4pn * nu;
-        a2m4pn = a2 * m4pn;
         a2m8p = a2 * m8p;
 
         onev = ones(size(x1, 1), 1);

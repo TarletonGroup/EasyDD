@@ -13,15 +13,12 @@ function sigma = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0)
     p = i + (k - 1) * mx + (j - 1) * mx * mz;
 
     if any(x0 < 0) || p > mx * mz * mz || isnan(p)
-        %disp('Node outside domain! See hatStress.m')
-        %disp(strcat('x0 = [',num2str(x0),']'));
-        %Usually stemming from NaN in utilda!
-        %pause;
+        % Sort of have to do this when using int_trapezium.m because real
+        % segment will move out of domain during trial before it can be
+        % remeshed?
+        % fprintf('Node outside domain! See hatStress.m\n')
         sigma = zeros(3); % do something better like remeshing later...
-        %Sort of have to do this when using int_trapezium.m because real
-        %segment will move out of domain during trial before it can be
-        %remeshed?
-        return;
+        return
     end
 
     % 4. ----- .3
@@ -41,6 +38,7 @@ function sigma = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0)
     %       . -----> s1
     % redefine local corordinate system (s1,s2,s3) to have same orientation as
     % the global system (x,y,z) this should save calcualting Jij and inv(J)
+    xc = zeros(3, 1);
 
     for i = 1:3
         xc(i) = 0.5 * (x(nc(p, 1), i) + x(nc(p, 7), i)); %xc is center of element p
@@ -67,6 +65,9 @@ function sigma = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0)
     % dN1/dx = 1/a(dNa/ds1) = -b*c*(1+s2)(1-s3)/(abc)
 
     B = zeros(6, 24);
+    dNds1 = zeros(8, 1);
+    dNds2 = zeros(8, 1);
+    dNds3 = zeros(8, 1);
 
     for a = 1:8
         dNds1(a) = 1/8 * pm1(a) * (1 + pm2(a) * s2) * (1 + pm3(a) * s3);
@@ -89,7 +90,7 @@ function sigma = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0)
 
     %
     %----------------------------------------------------------------------
-    U = zeros(24, 1); sigmaA = zeros(6, 1);
+    U = zeros(24, 1);
 
     for a = 1:8
         U(3 * a - 2) = uhat(3 * nc(p, a) - 2);

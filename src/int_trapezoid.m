@@ -69,3 +69,4 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, link
     %Rearrange rnvec and vnvec into rn and vn matrices
     rn = [reshape(rnvec1, length(rnvec1) / 3, 3), flag];
     vn = reshape(vnvec1, length(vnvec1) / 3, 3);
+end

@@ -24,3 +24,4 @@ function [segments, index] = constructsegmentlist(rn, links, novirtsegs)
     end
 
     segments = segments(1:nseg, :);
+end

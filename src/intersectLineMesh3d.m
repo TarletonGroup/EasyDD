@@ -110,220 +110,227 @@ function [points, pos, faceInds] = intersectLineMesh3d(line, vertices, faces, va
         faceInds = tri2Face(faceInds);
     end
 
-    function [tri, inds] = triangulateFaces(faces)
-        %TRIANGULATEFACES Convert face array to an array of triangular faces
-        %
-        %   TRI = triangulateFaces(FACES)
-        %   Returns a 3-columns array of indices, based on the data stored in the
-        %   argument FACES:
-        %   - if FACES is a N-by-3 array, returns the same array
-        %   - if FACES is a N-by-4 array, returns an array with 2*N rows and 3
-        %       columns, splitting each square into 2 triangles (uses first and
-        %       third vertex of each square as diagonal).
-        %   - if FACES is a cell array, split each face into a set of triangles,
-        %       and returns the union of all triangles. Faces are assumed to be
-        %       convex.
-        %
-        %   [TRI INDS] = triangulateFaces(FACES)
-        %   Also returns original face index of each new triangular face. INDS has
-        %   the same number of rows as TRI, and has values between 1 and the
-        %   number of rows of the original FACES array.
-        %
-        %
-        %   Example
-        %     % create a basic shape
-        %     [n e f] = createCubeOctahedron;
-        %     % draw with plain faces
-        %     figure;
-        %     drawMesh(n, f);
-        %     % draw as a triangulation
-        %     tri = triangulateFaces(f);
-        %     figure;
-        %     patch('vertices', n, 'faces', tri, 'facecolor', 'r');
-        %
-        %   See also
-        %   meshes3d, drawMesh, mergeCoplanarFaces
-        %
+end
 
-        % ------
-        % Author: David Legland
-        % e-mail: david.legland@nantes.inra.fr
-        % Created: 2008-09-08,    using Matlab 7.4.0.287 (R2007a)
-        % Copyright 2008 INRA - BIA PV Nantes - MIAJ Jouy-en-Josas.
+function [tri, inds] = triangulateFaces(faces)
+    %TRIANGULATEFACES Convert face array to an array of triangular faces
+    %
+    %   TRI = triangulateFaces(FACES)
+    %   Returns a 3-columns array of indices, based on the data stored in the
+    %   argument FACES:
+    %   - if FACES is a N-by-3 array, returns the same array
+    %   - if FACES is a N-by-4 array, returns an array with 2*N rows and 3
+    %       columns, splitting each square into 2 triangles (uses first and
+    %       third vertex of each square as diagonal).
+    %   - if FACES is a cell array, split each face into a set of triangles,
+    %       and returns the union of all triangles. Faces are assumed to be
+    %       convex.
+    %
+    %   [TRI INDS] = triangulateFaces(FACES)
+    %   Also returns original face index of each new triangular face. INDS has
+    %   the same number of rows as TRI, and has values between 1 and the
+    %   number of rows of the original FACES array.
+    %
+    %
+    %   Example
+    %     % create a basic shape
+    %     [n e f] = createCubeOctahedron;
+    %     % draw with plain faces
+    %     figure;
+    %     drawMesh(n, f);
+    %     % draw as a triangulation
+    %     tri = triangulateFaces(f);
+    %     figure;
+    %     patch('vertices', n, 'faces', tri, 'facecolor', 'r');
+    %
+    %   See also
+    %   meshes3d, drawMesh, mergeCoplanarFaces
+    %
 
-        %% Tri mesh case: return original set of faces
+    % ------
+    % Author: David Legland
+    % e-mail: david.legland@nantes.inra.fr
+    % Created: 2008-09-08,    using Matlab 7.4.0.287 (R2007a)
+    % Copyright 2008 INRA - BIA PV Nantes - MIAJ Jouy-en-Josas.
 
-        if isnumeric(faces) && size(faces, 2) == 3
-            tri = faces;
+    %% Tri mesh case: return original set of faces
 
-            if nargout > 1
-                inds = (1:size(faces, 1))';
-            end
+    if isnumeric(faces) && size(faces, 2) == 3
+        tri = faces;
 
-            return;
+        if nargout > 1
+            inds = (1:size(faces, 1))';
         end
 
-        %% Square faces: split each square into 2 triangles
+        return;
+    end
 
-        if isnumeric(faces) && size(faces, 2) == 4
-            nf = size(faces, 1);
-            tri = zeros(nf * 2, 3);
-            tri(1:2:end, :) = faces(:, [1 2 3]);
-            tri(2:2:end, :) = faces(:, [1 3 4]);
+    %% Square faces: split each square into 2 triangles
 
-            if nargout > 1
-                inds = kron(1:size(faces, 1), ones(1, 2))';
-            end
+    if isnumeric(faces) && size(faces, 2) == 4
+        nf = size(faces, 1);
+        tri = zeros(nf * 2, 3);
+        tri(1:2:end, :) = faces(:, [1 2 3]);
+        tri(2:2:end, :) = faces(:, [1 3 4]);
 
-            return;
+        if nargout > 1
+            inds = kron(1:size(faces, 1), ones(1, 2))';
         end
 
-        %% Pentagonal faces (for dodecahedron...): split into 3 triangles
+        return;
+    end
 
-        if isnumeric(faces) && size(faces, 2) == 5
-            nf = size(faces, 1);
-            tri = zeros(nf * 3, 3);
-            tri(1:3:end, :) = faces(:, [1 2 3]);
-            tri(2:3:end, :) = faces(:, [1 3 4]);
-            tri(3:3:end, :) = faces(:, [1 4 5]);
+    %% Pentagonal faces (for dodecahedron...): split into 3 triangles
 
-            if nargout > 1
-                inds = kron(1:size(faces, 1), ones(1, 2))';
-            end
+    if isnumeric(faces) && size(faces, 2) == 5
+        nf = size(faces, 1);
+        tri = zeros(nf * 3, 3);
+        tri(1:3:end, :) = faces(:, [1 2 3]);
+        tri(2:3:end, :) = faces(:, [1 3 4]);
+        tri(3:3:end, :) = faces(:, [1 4 5]);
 
-            return;
+        if nargout > 1
+            inds = kron(1:size(faces, 1), ones(1, 2))';
         end
 
-        %% Faces as cell array
+        return;
+    end
 
-        % number of faces
-        nf = length(faces);
+    %% Faces as cell array
 
-        % compute total number of triangles
-        ni = zeros(nf, 1);
+    % number of faces
+    nf = length(faces);
 
-        for i = 1:nf
-            % as many triangles as the number of vertices minus 1
-            ni(i) = length(faces{i}) - 2;
+    % compute total number of triangles
+    ni = zeros(nf, 1);
+
+    for i = 1:nf
+        % as many triangles as the number of vertices minus 1
+        ni(i) = length(faces{i}) - 2;
+    end
+
+    nt = sum(ni);
+
+    % allocate memory for triangle array
+    tri = zeros(nt, 3);
+    inds = zeros(nt, 1);
+
+    % convert faces to triangles
+    t = 1;
+
+    for i = 1:nf
+        face = faces{i};
+        nv = length(face);
+        v0 = face(1);
+
+        for j = 3:nv
+            tri(t, :) = [v0 face(j - 1) face(j)];
+            inds(t) = i;
+            t = t + 1;
         end
 
-        nt = sum(ni);
+    end
 
-        % allocate memory for triangle array
-        tri = zeros(nt, 3);
-        inds = zeros(nt, 1);
+end
 
-        % convert faces to triangles
-        t = 1;
+function vn = normalizeVector3d(v)
+    %NORMALIZEVECTOR3D Normalize a 3D vector to have norm equal to 1
+    %
+    %   V2 = normalizeVector3d(V);
+    %   Returns the normalization of vector V, such that ||V|| = 1. Vector V is
+    %   given as a row vector.
+    %
+    %   If V is a N-by-3 array, normalization is performed for each row of the
+    %   input array.
+    %
+    %   See also:
+    %   vectors3d, vectorNorm3d
+    %
+    %   ---------
+    %   author : David Legland
+    %   INRA - TPV URPOI - BIA IMASTE
+    %   created the 29/11/2004.
+    %
 
-        for i = 1:nf
-            face = faces{i};
-            nv = length(face);
-            v0 = face(1);
+    % HISTORY
+    % 2005-11-30 correct a bug
+    % 2009-06-19 rename as normalizeVector3d
+    % 2010-11-16 use bsxfun (Thanks to Sven Holcombe)
 
-            for j = 3:nv
-                tri(t, :) = [v0 face(j - 1) face(j)];
-                inds(t) = i;
-                t = t + 1;
-            end
+    vn = bsxfun(@rdivide, v, sqrt(sum(v.^2, 2)));
+end
 
-        end
+function c = vectorCross3d(a, b)
+    %VECTORCROSS3D Vector cross product faster than inbuilt MATLAB cross.
+    %
+    %   C = vectorCross3d(A, B)
+    %   returns the cross product of the 3D vectors A and B, that is:
+    %       C = A x B
+    %   A and B must be N-by-3 element vectors. If either A or B is a 1-by-3
+    %   row vector, the result C will have the size of the other input and will
+    %   be the  concatenation of each row's cross product.
+    %
+    %   Example
+    %     v1 = [2 0 0];
+    %     v2 = [0 3 0];
+    %     vectorCross3d(v1, v2)
+    %     ans =
+    %         0   0   6
+    %
+    %
+    %   Class support for inputs A,B:
+    %      float: double, single
+    %
+    %   See also DOT.
 
-        function vn = normalizeVector3d(v)
-            %NORMALIZEVECTOR3D Normalize a 3D vector to have norm equal to 1
-            %
-            %   V2 = normalizeVector3d(V);
-            %   Returns the normalization of vector V, such that ||V|| = 1. Vector V is
-            %   given as a row vector.
-            %
-            %   If V is a N-by-3 array, normalization is performed for each row of the
-            %   input array.
-            %
-            %   See also:
-            %   vectors3d, vectorNorm3d
-            %
-            %   ---------
-            %   author : David Legland
-            %   INRA - TPV URPOI - BIA IMASTE
-            %   created the 29/11/2004.
-            %
+    %   Sven Holcombe
 
-            % HISTORY
-            % 2005-11-30 correct a bug
-            % 2009-06-19 rename as normalizeVector3d
-            % 2010-11-16 use bsxfun (Thanks to Sven Holcombe)
+    % needed_colons = max([3, length(size(a)), length(size(b))]) - 3;
+    % tmp_colon = {':'};
+    % clnSet = tmp_colon(ones(1, needed_colons));
+    %
+    % c = bsxfun(@times, a(:,[2 3 1],clnSet{:}), b(:,[3 1 2],clnSet{:})) - ...
+    %     bsxfun(@times, b(:,[2 3 1],clnSet{:}), a(:,[3 1 2],clnSet{:}));
 
-            vn = bsxfun(@rdivide, v, sqrt(sum(v.^2, 2)));
+    sza = size(a);
+    szb = size(b);
 
-            function c = vectorCross3d(a, b)
-                %VECTORCROSS3D Vector cross product faster than inbuilt MATLAB cross.
-                %
-                %   C = vectorCross3d(A, B)
-                %   returns the cross product of the 3D vectors A and B, that is:
-                %       C = A x B
-                %   A and B must be N-by-3 element vectors. If either A or B is a 1-by-3
-                %   row vector, the result C will have the size of the other input and will
-                %   be the  concatenation of each row's cross product.
-                %
-                %   Example
-                %     v1 = [2 0 0];
-                %     v2 = [0 3 0];
-                %     vectorCross3d(v1, v2)
-                %     ans =
-                %         0   0   6
-                %
-                %
-                %   Class support for inputs A,B:
-                %      float: double, single
-                %
-                %   See also DOT.
+    % Initialise c to the size of a or b, whichever has more dimensions. If
+    % they have the same dimensions, initialise to the larger of the two
+    switch sign(numel(sza) - numel(szb))
+        case 1
+            c = zeros(sza);
+        case - 1
+            c = zeros(szb);
+        otherwise
+            c = zeros(max(sza, szb));
+    end
 
-                %   Sven Holcombe
+    c(:) = bsxfun(@times, a(:, [2 3 1], :), b(:, [3 1 2], :)) - ...
+        bsxfun(@times, b(:, [2 3 1], :), a(:, [3 1 2], :));
+end
 
-                % needed_colons = max([3, length(size(a)), length(size(b))]) - 3;
-                % tmp_colon = {':'};
-                % clnSet = tmp_colon(ones(1, needed_colons));
-                %
-                % c = bsxfun(@times, a(:,[2 3 1],clnSet{:}), b(:,[3 1 2],clnSet{:})) - ...
-                %     bsxfun(@times, b(:,[2 3 1],clnSet{:}), a(:,[3 1 2],clnSet{:}));
+function n = vectorNorm3d(v)
+    %VECTORNORM3D Norm of a 3D vector or of set of 3D vectors
+    %
+    %   N = vectorNorm3d(V);
+    %   Returns the norm of vector V.
+    %
+    %   When V is a N-by-3 array, compute norm for each vector of the array.
+    %   Vector are given as rows. Result is then a N-by-1 array.
+    %
+    %   NOTE: compute only euclidean norm.
+    %
+    %   See Also
+    %   vectors3d, normalizeVector3d, vectorAngle3d, hypot3
+    %
+    %   ---------
+    %   author : David Legland
+    %   INRA - TPV URPOI - BIA IMASTE
+    %   created the 21/02/2005.
 
-                sza = size(a);
-                szb = size(b);
+    %   HISTORY
+    %   19/06/2009 rename as vectorNorm3d
 
-                % Initialise c to the size of a or b, whichever has more dimensions. If
-                % they have the same dimensions, initialise to the larger of the two
-                switch sign(numel(sza) - numel(szb))
-                    case 1
-                        c = zeros(sza);
-                    case - 1
-                        c = zeros(szb);
-                    otherwise
-                        c = zeros(max(sza, szb));
-                end
-
-                c(:) = bsxfun(@times, a(:, [2 3 1], :), b(:, [3 1 2], :)) - ...
-                    bsxfun(@times, b(:, [2 3 1], :), a(:, [3 1 2], :));
-
-                function n = vectorNorm3d(v)
-                    %VECTORNORM3D Norm of a 3D vector or of set of 3D vectors
-                    %
-                    %   N = vectorNorm3d(V);
-                    %   Returns the norm of vector V.
-                    %
-                    %   When V is a N-by-3 array, compute norm for each vector of the array.
-                    %   Vector are given as rows. Result is then a N-by-1 array.
-                    %
-                    %   NOTE: compute only euclidean norm.
-                    %
-                    %   See Also
-                    %   vectors3d, normalizeVector3d, vectorAngle3d, hypot3
-                    %
-                    %   ---------
-                    %   author : David Legland
-                    %   INRA - TPV URPOI - BIA IMASTE
-                    %   created the 21/02/2005.
-
-                    %   HISTORY
-                    %   19/06/2009 rename as vectorNorm3d
-
-                    n = sqrt(sum(v .* v, 2));
+    n = sqrt(sum(v .* v, 2));
+end

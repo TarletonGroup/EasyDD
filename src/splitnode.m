@@ -1,4 +1,4 @@
-function [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connectivity, linksinconnect, nodeid, splitconnections, posvel);
+function [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connectivity, linksinconnect, nodeid, splitconnections, posvel)
     % this function splits up the connectivity of nodeid with a new node that is added to the end of rn
     % after the node is added and the connectivity list is split a check is done to determine whether a link from the new node
     % to nodeid is needed to conserve burgers vector. if a link is needed one is added
@@ -88,20 +88,22 @@ function [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connec
 
     %disp(sprintf('node %d has split into node %d and node %d',nodeid,nodeid,newnodeid));
     % end of function splitnode
+end
 
-    function [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid, deadconnection);
-        %This subroutine deletes an entry in a node's connectivity list and updates the linksinconnet array
+function [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid, deadconnection)
+    %This subroutine deletes an entry in a node's connectivity list and updates the linksinconnet array
 
-        lastconnection = connectivity(nodeid, 1);
-        %remove the entry in linksinconnect to show that the connectivity data no longer exits for that link
-        linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = 0;
+    lastconnection = connectivity(nodeid, 1);
+    %remove the entry in linksinconnect to show that the connectivity data no longer exits for that link
+    linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = 0;
 
-        if (lastconnection > deadconnection)
-            %replace link in the connectivitylist with the lastlink in the connectivity list
-            connectivity(nodeid, 2 * deadconnection:2 * deadconnection + 1) = connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1);
-            % update linksinconnect to reflect the change in position of the lastconnection
-            linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = deadconnection;
-        end
+    if (lastconnection > deadconnection)
+        %replace link in the connectivitylist with the lastlink in the connectivity list
+        connectivity(nodeid, 2 * deadconnection:2 * deadconnection + 1) = connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1);
+        % update linksinconnect to reflect the change in position of the lastconnection
+        linksinconnect(connectivity(nodeid, 2 * deadconnection), connectivity(nodeid, 2 * deadconnection + 1)) = deadconnection;
+    end
 
-        connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1) = [0 0];
-        connectivity(nodeid, 1) = lastconnection - 1;
+    connectivity(nodeid, 2 * lastconnection:2 * lastconnection + 1) = [0 0];
+    connectivity(nodeid, 1) = lastconnection - 1;
+end

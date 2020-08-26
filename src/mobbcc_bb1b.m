@@ -227,3 +227,5 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
         %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
         %    end
     end
+
+end

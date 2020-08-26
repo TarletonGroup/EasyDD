@@ -32,3 +32,4 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = cleanu
     connectivitynew = connectivity;
     linksinconnectnew = linksinconnect;
     fsegnew = fseg;
+end

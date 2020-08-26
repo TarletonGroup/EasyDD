@@ -242,104 +242,107 @@ function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = c
 
     end
 
-    function collisionpoint = findcollisionpoint(mergenode1, mergenode2, rn, connectivity, links)
-        % this subroutine finds the collision point of two nodes given that there are strict glide plane constraints
-        eps = 1e-12;
-        newplanecondition = 0.875;
-        p1 = rn(mergenode1, 1:3);
-        p2 = rn(mergenode2, 1:3);
-        Nmat = zeros(3, 3);
-        Nsize = 0;
-        vector = zeros(3, 1);
-        s = size(rn, 2);
+end
 
-        if rn(mergenode1, s) == 7
-            collisionpoint = rn(mergenode1, 1:3);
-            return;
-        elseif rn(mergenode2, s) == 7
-            collisionpoint = rn(mergenode2, 1:3);
-            return;
-        end
+function collisionpoint = findcollisionpoint(mergenode1, mergenode2, rn, connectivity, links)
+    % this subroutine finds the collision point of two nodes given that there are strict glide plane constraints
+    eps = 1e-12;
+    newplanecondition = 0.875;
+    p1 = rn(mergenode1, 1:3);
+    p2 = rn(mergenode2, 1:3);
+    Nmat = zeros(3, 3);
+    Nsize = 0;
+    vector = zeros(3, 1);
+    s = size(rn, 2);
 
-        for i = 1:connectivity(mergenode1, 1)
+    if rn(mergenode1, s) == 7
+        collisionpoint = rn(mergenode1, 1:3);
+        return;
+    elseif rn(mergenode2, s) == 7
+        collisionpoint = rn(mergenode2, 1:3);
+        return;
+    end
 
-            if Nsize < 3
-                linkid = connectivity(mergenode1, 2 * i);
-                connode = links(connectivity(mergenode1, 2 * i), 3 - connectivity(mergenode1, 2 * i + 1));
-                rt = rn(mergenode1, 1:3) - rn(connode, 1:3);
-                L = norm(rt);
-                linedir = rt ./ L;
-                n1 = cross(linedir, links(linkid, 3:5));
-                n2 = cross(linedir, rn(mergenode1, 4:6));
+    for i = 1:connectivity(mergenode1, 1)
 
-                if n1 * n1' > eps
-                    plane = n1 ./ norm(n1);
-                elseif n2 * n2' > eps
-                    plane = n2 ./ norm(n2);
+        if Nsize < 3
+            linkid = connectivity(mergenode1, 2 * i);
+            connode = links(connectivity(mergenode1, 2 * i), 3 - connectivity(mergenode1, 2 * i + 1));
+            rt = rn(mergenode1, 1:3) - rn(connode, 1:3);
+            L = norm(rt);
+            linedir = rt ./ L;
+            n1 = cross(linedir, links(linkid, 3:5));
+            n2 = cross(linedir, rn(mergenode1, 4:6));
+
+            if n1 * n1' > eps
+                plane = n1 ./ norm(n1);
+            elseif n2 * n2' > eps
+                plane = n2 ./ norm(n2);
+            end
+
+            if ((n1 * n1' > eps) || (n2 * n2' > eps))
+
+                if Nsize == 0
+                    conditionismet = 1;
+                elseif Nsize == 1
+                    conditionismet = ((Nmat(1, :) * plane')^2 < newplanecondition * newplanecondition);
+                else
+                    detN = det([Nmat(1:2, :); plane]);
+                    conditionismet = detN * detN > (1 - newplanecondition)^4;
                 end
 
-                if ((n1 * n1' > eps) || (n2 * n2' > eps))
-
-                    if Nsize == 0
-                        conditionismet = 1;
-                    elseif Nsize == 1
-                        conditionismet = ((Nmat(1, :) * plane')^2 < newplanecondition * newplanecondition);
-                    else
-                        detN = det([Nmat(1:2, :); plane]);
-                        conditionismet = detN * detN > (1 - newplanecondition)^4;
-                    end
-
-                    if conditionismet
-                        Nsize = Nsize + 1;
-                        Nmat(Nsize, :) = plane;
-                        vector(Nsize) = plane * p1';
-                    end
-
+                if conditionismet
+                    Nsize = Nsize + 1;
+                    Nmat(Nsize, :) = plane;
+                    vector(Nsize) = plane * p1';
                 end
 
             end
 
         end
 
-        for i = 1:connectivity(mergenode2, 1)
+    end
 
-            if Nsize < 3
-                linkid = connectivity(mergenode2, 2 * i);
-                connode = links(connectivity(mergenode2, 2 * i), 3 - connectivity(mergenode2, 2 * i + 1));
-                rt = rn(mergenode2, 1:3) - rn(connode, 1:3);
-                L = norm(rt);
-                linedir = rt ./ L;
-                n1 = cross(linedir, links(linkid, 3:5));
-                n2 = cross(linedir, rn(mergenode2, 4:6));
+    for i = 1:connectivity(mergenode2, 1)
 
-                if n1 * n1' > eps
-                    plane = n1 ./ norm(n1);
-                elseif n2 * n2' > eps
-                    plane = n2 ./ norm(n2);
+        if Nsize < 3
+            linkid = connectivity(mergenode2, 2 * i);
+            connode = links(connectivity(mergenode2, 2 * i), 3 - connectivity(mergenode2, 2 * i + 1));
+            rt = rn(mergenode2, 1:3) - rn(connode, 1:3);
+            L = norm(rt);
+            linedir = rt ./ L;
+            n1 = cross(linedir, links(linkid, 3:5));
+            n2 = cross(linedir, rn(mergenode2, 4:6));
+
+            if n1 * n1' > eps
+                plane = n1 ./ norm(n1);
+            elseif n2 * n2' > eps
+                plane = n2 ./ norm(n2);
+            end
+
+            if ((n1 * n1' > eps) || (n2 * n2' > eps))
+
+                if Nsize == 1
+                    conditionismet = ((Nmat(1, :) * plane')^2 < newplanecondition * newplanecondition);
+                else
+                    detN = det([Nmat(1:2, :); plane]);
+                    conditionismet = detN * detN > (1 - newplanecondition)^4;
                 end
 
-                if ((n1 * n1' > eps) || (n2 * n2' > eps))
-
-                    if Nsize == 1
-                        conditionismet = ((Nmat(1, :) * plane')^2 < newplanecondition * newplanecondition);
-                    else
-                        detN = det([Nmat(1:2, :); plane]);
-                        conditionismet = detN * detN > (1 - newplanecondition)^4;
-                    end
-
-                    if conditionismet
-                        Nsize = Nsize + 1;
-                        Nmat(Nsize, :) = plane;
-                        vector(Nsize) = plane * p2';
-                    end
-
+                if conditionismet
+                    Nsize = Nsize + 1;
+                    Nmat(Nsize, :) = plane;
+                    vector(Nsize) = plane * p2';
                 end
 
             end
 
         end
 
-        Matrix = [eye(3) Nmat(1:Nsize, :)'; Nmat(1:Nsize, :) zeros(Nsize, Nsize)];
-        V = [(rn(mergenode1, 1:3)' + rn(mergenode2, 1:3)') ./ 2; vector(1:Nsize)];
-        res = Matrix \ V;
-        collisionpoint = res(1:3)';
+    end
+
+    Matrix = [eye(3) Nmat(1:Nsize, :)'; Nmat(1:Nsize, :) zeros(Nsize, Nsize)];
+    V = [(rn(mergenode1, 1:3)' + rn(mergenode2, 1:3)') ./ 2; vector(1:Nsize)];
+    res = Matrix \ V;
+    collisionpoint = res(1:3)';
+end

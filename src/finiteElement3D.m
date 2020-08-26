@@ -41,7 +41,7 @@ vertices = [0, 0, 0; ...
             dx, dy, dz];
 % not that this code uses a constant element size in base and beam: (w,h,d)
 % also gammau is the left surface (eg baseLength=0)
-loading = 1;
+% loading = 1;
 
 w = dx / mx; % elements width
 
@@ -242,12 +242,11 @@ for q = 1:8
 end
 
 if any(dNds ~= ns)
-    'error'
+    fprintf('error\n')
     pause
 end
 
 J = zeros(3, 3, mel, 8); % 3Dx3D, mel elements, 8 quad pts/element
-invJ = zeros(3, 3); % inv(J)
 detJ = zeros(mel, 8); % det(J) at mel elements, 9 quad points/element
 nx = zeros(mel, 8, 8, 3); % derivative of shape functions w.r.t global x,y
 B = zeros(6, 24, mel, 8); % (# strain components, # dof/element, # elements, int pts/element)

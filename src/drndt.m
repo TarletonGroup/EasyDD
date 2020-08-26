@@ -87,12 +87,6 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
                 vn(p, :) = [0 0 0];
                 continue
             elseif size(lines, 1) == 2
-                %            if 1 - abs(lines(1,:) * lines(2,:)') < eps
-                %                lines=lines(1,:);
-                %            else
-                %                vn(p,:)=[0 0 0];
-                %                continue
-                %            end
                 rn(p, 4) = 0;
                 continue
             end
@@ -113,31 +107,8 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
 
         end
 
-        %     % Daniel Celis Garza 20200120: Surface node has zero velocity in the
-        %     % direction of the surface normal.
-        %     if rn(p,4) == 6
-        %         % Find the coordinates of the nodes connected to the surface node.
-        %         connodes = [rn(links(links(:,1)==p,2),[1:3,end]);
-        %                     rn(links(links(:,2)==p,1),[1:3,end])];
-        %         % Out of the connected nodes find if any of them is external (67).
-        %         virtual_connection = connodes(connodes(:,end)==67,1:3);
-        %         % If the surface node is connected to an external node, we
-        %         % eliminate the surface node's velocity component in that
-        %         % direction.
-        %         if ~isempty(virtual_connection)
-        %             % If the node is connected to more than one external node we
-        %             % find the mean line direction and use that vector to correct
-        %             % the velocity.
-        %             if size(virtual_connection,1)>1
-        %                 virtual_connection = mean(virtual_connection);
-        %             end
-        %             virtual_connection = virtual_connection/norm(virtual_connection);
-        %             % Vector rejection eliminates the velocity components in the
-        %             % direction of the virtual segment.
-        %             vn(p,:) = vn(p,:) - dot(vn(p,:), virtual_connection)*virtual_connection;
-        %         end
-        %     end
     end
 
     %make up the last
     vnvec = reshape(vn, length(vn(:, 1)) * 3, 1);
+end

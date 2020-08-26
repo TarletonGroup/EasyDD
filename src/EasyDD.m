@@ -103,23 +103,6 @@ u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 
 disp('Initialisation complete.');
-%%
-% if ~exist('dt', 'var')
-%     dt = dt0;
-% end
-
-% dt = min(dt, dt0);
-% plotCounter = 1;
-% close all
-
-% Fend = zeros(1e6, 1); fend = [];
-% U_bar = zeros(1e6, 1); Ubar = [];
-% t = zeros(1e6, 1); simTime = 0;
-% sign_u_dot = -1;
-% sign_f_dot = -1;
-% u_dot = 100 * 1E3 * dx * (1E-4/160E9) * 100; % Marielle
-% f_dot = 0;
-% simType = 1;
 
 while simTime < totalSimTime
 
@@ -145,17 +128,7 @@ while simTime < totalSimTime
         rmax, rntol, mobility, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag);
 
     % plastic strain and plastic spin calculations
-    [ep_inc, wp_inc] = calcplasticstrainincrement(rnnew, rn, links, (2 * plim)^3);
-
-    % if (mod(curstep, printfreq) == 0) && not(isempty(vn))
-    %     fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
-    %         curstep, dt, printnode, vn(printnode, 1), vn(printnode, 2), vn(printnode, 3));
-    %     close all;
-    %     save restart_temp
-    % elseif (mod(curstep, printfreq) == 0)
-    %     fprintf('step%3d dt=%e v%d=(%e,%e,%e) \n', ...
-    %         curstep, dt, printnode);
-    % end
+    [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, (2 * plim)^3);
 
     if (mod(curstep, plotfreq) == 0)
         plotnodes(rn, links, plim, vertices);

@@ -28,6 +28,7 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist)
     % now cycle through all of the nodes for which the velocity must be calculated
     vn = zeros(L1, 3);
     fn = zeros(L1, 3);
+    oneTwoThree = [1 2 3];
 
     for n = 1:L1
         n0 = nodelist(n); %n0 is the nodeid of the nth node in nodelist
@@ -49,7 +50,7 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist)
 
             %fprintf('ii=%i, linkid=%i, n0=%i, n1=%i, L=%f \n',ii,linkid,n0,n1,L);
             if L > 0.0
-                fsegn0 = fseg(linkid, 3 * (posinlink - 1) + [1:3]);
+                fsegn0 = fseg(linkid, 3 * (posinlink - 1) + oneTwoThree);
                 fn(n, :) = fn(n, :) + fsegn0; % nodeid for the node that n0 is connected to
                 burgv = links(connectivity(n0, 2 * ii), 3:5); % burgers vector of the link
                 linedir = rt ./ L;
@@ -117,3 +118,5 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist)
         %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
         %    end
     end
+
+end
