@@ -1,4 +1,4 @@
-function [Stress] = FieldPointStress(x, x1, x2, b, a, mu, nu);
+function [Stress] = FieldPointStress(x, x1, x2, b, a, mu, nu)
     % inputs:x(dim,1:3) a list of positions where you want the stress calculated
     %        x1(nseg,1:3) a list of starting positions of the dislocations segments
     %        x2(nseg,1:3) a list of ending positions of the dislocation segments
