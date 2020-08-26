@@ -23,3 +23,4 @@ Dislocation plasticity simulations using explicitly calculated interactions.
   - wip: contains folders for work in progress of the researches using the code
 - test: place for unit and integral tests
 - shadow_realm: compressed folder with old code kept around for posterity
+- publications: each publication is a folder containing the commit and any auxiliary code used to generate the publication.
