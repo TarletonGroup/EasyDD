@@ -14,3 +14,12 @@ Dislocation plasticity simulations using explicitly calculated interactions.
 - Pillar compression and extension.
 - Nanoindentation.
 - Inclusion-dislocation interaction.
+
+## Folder structure
+
+- input: contains inputs
+- output: contains outputs
+- scr: source files
+  - wip: contains folders for work in progress of the researches using the code
+- test: place for unit and integral tests
+- shadow_realm: compressed folder with old code kept around for posterity
