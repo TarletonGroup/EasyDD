@@ -157,13 +157,11 @@ while simTime < totalSimTime
 
     if ~any(rn(:, 4) == 0)
         fprintf('No more real segments, ending simulation.\n')
-        saveSimulation(simName, curstep, saveFreq)
+        saveSimulation(simName, curstep, 1)
         return;
     end
 
 end
 
 fprintf('Simulation completed.\n')
-saveSimulation(simName, curstep, saveFreq)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+saveSimulation(simName, curstep, 1)
