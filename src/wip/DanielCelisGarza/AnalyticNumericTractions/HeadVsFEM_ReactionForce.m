@@ -154,7 +154,7 @@ for k = 2
 
     close all
 
-    %         save(sprintf('./mat_files/headVsFEM_%d', cntr))
+    %         save(fprintf('./mat_files/headVsFEM_%d', cntr))
 
     %             figCounter = figCounter + 1;
     %             figure(figCounter)

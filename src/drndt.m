@@ -46,7 +46,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
             linvec = rn(p, 1:3) - realconnodes;
             % Segments should not have zero length
             if norm(linvec) < eps
-                disp('Remeshing error detected. See line 48 of drndt.m')
+                fprintf('Remeshing error detected. See line 48 of drndt.m\n')
                 pause
             end
 
@@ -69,7 +69,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
             surfplanes = normals(abs(dotprods) > tol, :);
             % If no surface normals can be detected then there is an error
             if isempty(surfplanes)
-                disp('Weird surface node detected. See line 67 of drndt.m')
+                fprintf('Weird surface node detected. See line 67 of drndt.m\n')
                 pause
             end
 
@@ -78,7 +78,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
             lines(:, 1:3) = lines(:, 1:3) / norm(lines(:, 1:3));
             % If the surface plane is a viable slip plane
             if any(any(isnan(lines)))
-                disp('Check surface remeshing re line 75 of drndt.m')
+                fprintf('Check surface remeshing re line 75 of drndt.m\n')
                 continue
             end
 

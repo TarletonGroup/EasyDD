@@ -8,7 +8,7 @@ function [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connec
 
     if ((testl == 0) | (testl == connectivity(nodeid, :)) | (max(splitconnections) > connectivity(nodeid, :)))
         %sanity check%
-        disp('node was not split because of a problem with the connections to be split');
+        fprintf('node was not split because of a problem with the connections to be split\n');
         return;
     end
 
@@ -86,8 +86,6 @@ function [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connec
 
     end
 
-    %disp(sprintf('node %d has split into node %d and node %d',nodeid,nodeid,newnodeid));
-    % end of function splitnode
 end
 
 function [connectivity, linksinconnect] = removedeadconnection(connectivity, linksinconnect, nodeid, deadconnection)

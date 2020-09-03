@@ -10,13 +10,14 @@
 % January 2014
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, doremesh, dovirtmesh, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, P, fn, CUDA_flag, Bcoeff)
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rn, links, ...
+        connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, ...
+        doremesh, dovirtmesh, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, P, fn, CUDA_flag, Bcoeff)
 
-    % Original remesh rule %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (dovirtmesh)
-        % Beginning of surface remeshing for surface node. %%%%%%%%%%%%%%%%%%%%
-        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_surf(rn, links, connectivity, linksinconnect, fseg, vertices, P, fn);
+    if dovirtmesh
+        % Beginning of surface remeshing for surface node.
+        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_surf(rn, links, ...
+            connectivity, linksinconnect, fseg, vertices, P, fn);
     else
         rnnew = rn;
         linksnew = links;
@@ -25,27 +26,10 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh
         fsegnew = fseg;
     end
 
-    % if (doremesh)
-    % [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh(rn,links,connectivity,linksinconnect,fseg,lmin,lmax,areamin,areamax,MU,NU,a,Ec,mobility,vertices,...
-    %     uhat,nc,xnodes,D,mx,mz,w,h,d);
-    % end
-
-    % if doremesh == 0   %to enter in remesh_all doremesh has to be 1.. so is the loop useless? M
-    % rnnew = rn;
-    % linksnew = links;
-    % fsegnew = fseg;
-    % connectivitynew = connectivity;
-    % linksinconnectnew = linksinconnect;
-    % end
-
-    if (doremesh)
-        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, vertices, ...
-            uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
+    if doremesh
+        [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh(rnnew, linksnew, ...
+            connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, ...
+            Ec, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
     end
-
-    % if (dovirtmesh)
-    % % Beginning of surface remeshing for surface node. %%%%%%%%%%%%%%%%%%%%
-    % [rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew]=remesh_surf(rnnew,linksnew,connectivitynew,linksinconnectnew,fsegnew,vertices,P,fn);
-    % end
 
 end

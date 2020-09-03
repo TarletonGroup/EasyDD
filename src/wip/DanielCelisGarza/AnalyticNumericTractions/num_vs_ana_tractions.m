@@ -72,7 +72,7 @@ for mx = min_mx:stp_mx:max_mx
         %         mean(ftilda_n - ftilda_a_par)
 
         % Plotting
-        %         save(sprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_a_par', 'ftilda_n', 'dim', 'face', 'midpoint_element')
+        %         save(fprintf('mx=%d_face=%d', mx, face), 'ftilda_a_lin', 'ftilda_a_par', 'ftilda_n', 'dim', 'face', 'midpoint_element')
         %         plot_figs(face, dim, ftilda_n, ftilda_a_lin, x, y, z);
     end %for
 
@@ -89,7 +89,7 @@ cntr = 1;
 for face = min_face:stp_face:max_face
 
     for mx = 100:stp_mx:max_mx
-        load(sprintf('mx=%d_face=%d', mx, face));
+        load(fprintf('mx=%d_face=%d', mx, face));
         rms_rel_err_val(face, cntr, :) = ...
             plot_figs(face, dim, ftilda_n, ftilda_a_lin, ...
             midpoint_element(:, 1), midpoint_element(:, 2), ...
@@ -270,9 +270,9 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         caxis(colorvec);
         colorbar
 
-        title(sprintf('Relative Error, $F_{%s}$', str_dim(i)), 'Interpreter', 'latex');
-        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
-        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        title(fprintf('Relative Error, $F_{%s}$', str_dim(i)), 'Interpreter', 'latex');
+        ylabel(fprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(fprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
 
@@ -287,9 +287,9 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         colorvec = [min(cvec) max(cvec)]; %[min(f_dln_a(:, i))*(mean_rel_err + 1) max(f_dln_a(:, i))*(mean_rel_err + 1)];
         caxis(colorvec);
         colorbar
-        title(sprintf('$F^{A}_{%s}$', str_dim(i)), 'Interpreter', 'latex');
-        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
-        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        title(fprintf('$F^{A}_{%s}$', str_dim(i)), 'Interpreter', 'latex');
+        ylabel(fprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(fprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
 
@@ -303,9 +303,9 @@ function rms_rel_err = plot_figs(face, dim, f_dln_n, f_dln_a, x, y, z)
         colorvec = [min(cvec) max(cvec)];
         caxis(colorvec);
         colorbar
-        title(sprintf('$F^{A}_{%s}$', str_dim(i)), 'Interpreter', 'latex');
-        ylabel(sprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
-        xlabel(sprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
+        title(fprintf('$F^{A}_{%s}$', str_dim(i)), 'Interpreter', 'latex');
+        ylabel(fprintf('$%s$', str_label(2)), 'Interpreter', 'latex');
+        xlabel(fprintf('$%s$', str_label(1)), 'Interpreter', 'latex');
         axis equal
     end %for
 

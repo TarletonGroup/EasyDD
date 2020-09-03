@@ -1,5 +1,15 @@
-function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links, connectivity, linksinconnect, fseg, mobility, MU, NU, a, Ec, mindist, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparation, rn, ...
+        links, connectivity, linksinconnect, fseg, mobility, MU, NU, a, Ec, mindist, ...
+        vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+
+    if ~doseparation
+        return
+    end
+
+    % Spliting nodes with 4 or more connections.
+    if max(connectivity(:, 1)) < 4
+        return
+    end
 
     [lrn, lrn2] = size(rn);
     i = 1;
@@ -14,7 +24,6 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
         c = connectivity(i, 1);
 
         if (c > 3) && (rn(i, lrn2) == 0)
-            % disp(sprintf('separation: node %d has %d arms',i,c));
             % a high order node has been found
             % calculate the power dissipated by the connected geometry and not splitting
             ft = zeros(1, 3);
@@ -178,10 +187,6 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(rn, links,
                 end
 
                 fprintf('separation: node %d has %d arms\n', i, c);
-                %             disp(sprintf('separation: the following connections have split off'));
-                %             for j=1:length(s)
-                %                 disp(sprintf('separation: connection %d',s(j)));
-                %             end
                 % get the positions and velocities of the nodes after the split
                 vel1 = splittingvel(1, :);
                 vel2 = splittingvel(2, :);

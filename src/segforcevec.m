@@ -12,7 +12,7 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
     [~, m] = size(rn);
 
     if (m ~= 4)
-        disp('rn should have 4 columns!');
+        fprintf('rn should have 4 columns!\n');
         return;
     end
 
@@ -31,15 +31,13 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
     % segments = segments(index,:);
 
     if any(any(isnan(segments)))
-        disp('YDFUS, see line 32 segforcevec.m')
+        fprintf('YDFUS, see line 32 segforcevec.m\n')
     end
 
     if linkid == 0%calculate forces on all segments
         %PK force due to applied stress
-        %t0=clock;
 
         fpk = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments);
-        %t=etime(clock,t0); disp(sprintf('pkforcevec time = %6.2f seconds\n',t));
 
         %self force due to self stress
         [fs0, fs1] = selfforcevec(MU, NU, a, Ec, segments);
@@ -48,7 +46,6 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
         [fr0, fr1] = remoteforcevec(MU, NU, a, segments, 0, CUDA_flag);
 
         %PK force due to image stress
-        %fimg = imageforce(segments,a,MU,NU,vertices);
 
         fseg = [fpk, fpk] * 0.5 + [fs0, fs1] + [fr0, fr1]; %combine all force contributions
 
@@ -76,9 +73,7 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
         end
 
         %PK force due to applied stress
-        %t0=clock;
         fpk = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments(linkid, :));
-        %t=etime(clock,t0); disp(sprintf('pkforcevec time = %6.2f seconds\n',t));
 
         %self force due to self stress
         [fs0, fs1] = selfforcevec(MU, NU, a, Ec, segments(linkid, :));
@@ -120,7 +115,7 @@ function f = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments)
         xi = rmid(i, 1:3);
 
         if any(isnan(xi))
-            disp('Segment midpoint is undefined! See segforcevec.m');
+            fprintf('Segment midpoint is undefined! See segforcevec.m\n');
             pause;
         end
 

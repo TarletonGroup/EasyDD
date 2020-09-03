@@ -123,7 +123,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
         rnnew = extend(rnnew, linksnew, i, index, fn);
 
         if any(any(isnan(rnnew)))
-            disp('The new extended node is NaN! See Line 46 in remesh_surf.m');
+            fprintf('The new extended node is NaN! See Line 46 in remesh_surf.m\n');
             pause;
         end
 

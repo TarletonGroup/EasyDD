@@ -142,7 +142,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
                         end
 
                         if ~isequal(size(cosdev_alt), [1 1]) ||~isequal(size(slipplanes, 1), size(dotprods2_alt, 1)) ||~isequal(size(dotprods2_alt, 2), 1)
-                            disp('YDFUS')
+                            fprintf('mobbcc_bb1b: erroneous slip planes\n')
                         end
 
                         ndir_alt = slipplanes(dotprods2_alt == cosdev_alt, :);
@@ -190,19 +190,6 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
         if norm(Btotal) < eps
             vn(n, :) = [0 0 0];
         elseif rcond(Btotal) < 1e-15
-
-            %         [evec,eval]=eig(Btotal);                    % find eigenvalues and eigen vectors of drag matrix
-            %         evalmax=eval(1,1);
-            %         eval=eval./evalmax;
-            %         fvec=fn(n,:)'./evalmax;
-            %         for i=2:3                                   % invert drag matrix and keep zero eigen values as zero
-            %             if eval(i,i)>tol
-            %                 eval(i,i)=1/eval(i,i);
-            %             else
-            %                 eval(i,i)=0.0d0;
-            %             end
-            %         end
-            %         vn(n,:)=(evec*eval*evec'*fvec)';  % calculate the velocity
             Btotal_temp = Btotal + 1e-6 * max(max(abs(Btotal))) * eye(3);
             Btotal_temp2 = Btotal - 1e-6 * max(max(abs(Btotal))) * eye(3);
             vn_temp = (Btotal_temp \ fn(n, :)')';
@@ -213,19 +200,9 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
         end
 
         if any(isnan(vn))
-            disp('YDFUS, see line 157 of mobbcc_bb1b');
+            fprintf('YDFUS, see line 157 of mobbcc_bb1b\n');
         end
 
-        %    if numNbrs==2
-        %        ii=conlist(n,2);
-        %        n1=links(connectivity(n0,2*ii),3-connectivity(n0,2*ii+1));
-        %        ii=conlist(n,3);
-        %        n2=links(connectivity(n0,2*ii),3-connectivity(n0,2*ii+1));
-        %        rt=rn(n1,1:3)-rn(n2,1:3);
-        %        L=norm(rt);
-        %        linedir=rt./L;
-        %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
-        %    end
     end
 
 end

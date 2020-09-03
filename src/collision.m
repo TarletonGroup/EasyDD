@@ -99,14 +99,10 @@ function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = c
                 posvel = rn(n1s2, 1:lrn3) .* (1 - L2) + rn(n2s2, 1:lrn3) .* L2;
                 [rn, links, connectivity, linksinconnect] = splitnode(rn, links, connectivity, linksinconnect, spnode, splitconnection, posvel);
                 mergenode2 = length(rn(:, 1));
-                %linknew=length(links(:,1));
-                %links(linknew,6:8)=links(s2,6:8);
                 fseg = [fseg; zeros(1, 6)];
             end
 
             if colliding_segments == 1
-                % merge the two colliding nodes
-                %                 disp(sprintf('node %d and node %d are colliding by two line collision',mergenode1,mergenode2))
                 collisionpoint = findcollisionpoint(mergenode1, mergenode2, rn, connectivity, links);
                 rn(mergenode1, 1:lrn2) = [collisionpoint 0 0 0 max(rn(mergenode1, lrn2), rn(mergenode2, lrn2))];
                 [rn, connectivity, links, linksinconnect, fseg, mergednodeid] = mergenodes(rn, connectivity, links, linksinconnect, fseg, mergenode1, mergenode2, MU, NU, a, Ec);
@@ -218,7 +214,6 @@ function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = c
             end
 
             %merge the two nodes
-            %                     disp(sprintf('node %d and node %d are colliding by hinge condition',mergenode2,mergenode1))
             collisionpoint = findcollisionpoint(mergenode1, mergenode2, rn, connectivity, links);
             rn(mergenode1, 1:lrn2) = [collisionpoint 0 0 0 max(rn(mergenode1, lrn2), rn(mergenode2, lrn2))];
             [rn, connectivity, links, linksinconnect, fseg, mergednodeid] = mergenodes(rn, connectivity, links, linksinconnect, fseg, mergenode1, mergenode2, MU, NU, a, Ec);

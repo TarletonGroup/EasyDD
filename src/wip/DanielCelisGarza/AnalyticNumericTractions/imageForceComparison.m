@@ -782,7 +782,7 @@ function f = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments)
         xi = rmid(i, 1:3);
 
         if any(isnan(xi))
-            disp('Segment midpoint is undefined! See segforcevec.m');
+            fprintf('Segment midpoint is undefined! See segforcevec.m\n');
             pause;
         end
 

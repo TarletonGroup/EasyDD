@@ -50,13 +50,13 @@ for i = 1:size(n_q)
                     nodal_surface_force_linear_rectangle_mex(x1, x2, ...
                     x3, x4, x5, x6, b, mu, nu, a, 1, 1, 0.0);
                 ftota = ftota';
-                save(sprintf("./worst_case/aeperp_%f_%f_x3.mat", x1(1, 3), x2(end, 3)), "ftota")
+                save(fprintf("./worst_case/aeperp_%f_%f_x3.mat", x1(1, 3), x2(end, 3)), "ftota")
             end %if
 
-            save(sprintf("./worst_case/neperp_%d_%f_%f_x3.mat", n_q(i), x1(1, 3), x2(end, 3)), "ftotn")
+            save(fprintf("./worst_case/neperp_%d_%f_%f_x3.mat", n_q(i), x1(1, 3), x2(end, 3)), "ftotn")
         end %for
 
-        %         sprintf("q = %d, dist = %f, err = %f, ", n_q(i), dist(j), abs(ftotn(2)-ftota(2))./ftota(2))
+        %         fprintf("q = %d, dist = %f, err = %f, ", n_q(i), dist(j), abs(ftotn(2)-ftota(2))./ftota(2))
     end %for
 
 end %for
@@ -93,10 +93,10 @@ for i = 1:size(n_q)
                 nodal_surface_force_linear_rectangle_mex(reshape(x1', dim, 1), reshape(x2', dim, 1), ...
                 x3, x4, x5, x6, b, mu, nu, a, 1, n_dln, 1e-6);
             ftota = ftota';
-            save(sprintf("./worst_case/aepar_%f_%f_x3x6.mat", x1(1, 3), x2(end, 3)), "ftota")
+            save(fprintf("./worst_case/aepar_%f_%f_x3x6.mat", x1(1, 3), x2(end, 3)), "ftota")
         end %if
 
-        save(sprintf("./worst_case/nepar_%d_%f_%f_x3x6.mat", n_q(i), x1(1, 3), x2(end, 3)), "ftotn")
+        save(fprintf("./worst_case/nepar_%d_%f_%f_x3x6.mat", n_q(i), x1(1, 3), x2(end, 3)), "ftotn")
     end %for
 
 end %for
@@ -133,9 +133,9 @@ end %for
 %                 nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
 %                                 x3, x4, x5, x6, b, mu, nu, a, 1, n_dln, 1e-6);
 %             ftota = ftota';
-%             save(sprintf("aspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+%             save(fprintf("aspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
 %         end %if
-%         save(sprintf("nspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+%         save(fprintf("nspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
 %     end %for
 % end %for
 %%
@@ -174,9 +174,9 @@ end %for
 % %                     nodal_surface_force_linear_rectangle_mex(x1, x2, ...
 % %                                     x3, x4, x5, x6, b, mu, nu, a, 1, 1);
 % %                 ftota = ftota';
-% %                 save(sprintf("aaeperp_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+% %                 save(fprintf("aaeperp_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
 % %             end %if
-% %             save(sprintf("aneperp_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+% %             save(fprintf("aneperp_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
 % %         end %for
 % %     end %for
 % % end %for
@@ -210,9 +210,9 @@ end %for
 %                     nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
 %                                     x3, x4, x5, x6, b, mu, nu, a, 1, n_dln);
 %                 ftota = ftota';
-% %                 save(sprintf("aaepar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+% %                 save(fprintf("aaepar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
 %             end %if
-% %             save(sprintf("anepar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+% %             save(fprintf("anepar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
 %         end %for
 %     end %for
 % end %for
@@ -251,9 +251,9 @@ end %for
 %                     nodal_surface_force_linear_rectangle_mex(reshape(x1',dim,1), reshape(x2',dim,1), ...
 %                                     x3, x4, x5, x6, b, mu, nu, a, 1, n_dln);
 %                 ftota = ftota';
-% %                 save(sprintf("aaspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
+% %                 save(fprintf("aaspar_%f_%f.mat", x1(1,3), x2(end,3)), "ftota")
 %             end %if
-% %             save(sprintf("anspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
+% %             save(fprintf("anspar_%d_%f_%f.mat", n_q(i), x1(1,3), x2(end,3)), "ftotn")
 %         end %for
 %     end %for
 % end %for

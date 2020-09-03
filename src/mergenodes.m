@@ -143,9 +143,6 @@ function [rn, connectivity, links, linksinconnect, fseg, nodeid] = mergenodes(rn
 
 end
 
-%disp(sprintf('node %d and node %d have successfully merged',nodeid,deadnode))
-% nodes have been successfully merged
-
 function [links, connectivity, linksinconnect, fseg] = removelink(links, connectivity, linksinconnect, fseg, linkid)
     % this subroutine is called by meshcoarsen
     % this subroutine deletes the link information from the connectivity list

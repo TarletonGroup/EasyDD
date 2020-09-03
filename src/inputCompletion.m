@@ -48,8 +48,8 @@ if ~exist('mx', 'var')
 end
 
 if ~exist('loading', 'var')
-    loading = 1;
-    fprintf('Providing default value for loading = %d.', loading)
+    loading = 'displacementControl';
+    fprintf('Providing default value for loading = %s.', loading)
 end
 
 if ~exist('vertices', 'var')
@@ -202,9 +202,19 @@ if ~exist('printfreq', 'var')
     fprintf('Providing default value for printfreq = %d.\n', printfreq)
 end
 
-if ~exist('plotfreq', 'var')
-    plotfreq = 100;
-    fprintf('Providing default value for plotfreq = %d.\n', plotfreq)
+if ~exist('plotFreq', 'var')
+    plotFreq = 100;
+    fprintf('Providing default value for plotFreq = %d.\n', plotFreq)
+end
+
+if ~exist('simName', 'var')
+    simName = date;
+    fprintf('Providing default value for saveFreq = %s.\n', simName)
+end
+
+if ~exist('saveFreq', 'var')
+    saveFreq = 100;
+    fprintf('Providing default value for saveFreq = %d.\n', saveFreq)
 end
 
 if ~exist('plim', 'var')
@@ -257,14 +267,9 @@ if ~exist('f_dot', 'var')
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
 end
 
-if ~exist('loading', 'var')
-    loading = 1;
-    fprintf('Providing default value for loading = %d.\n', loading)
-end
-
 if ~exist('simType', 'var')
-    simType = 1;
-    fprintf('Providing default value for simType = %d.\n', simType)
+    simType = 'cantileverBending';
+    fprintf('Providing default value for simType = %s.\n', simType)
 end
 
 if ~exist('Fsim', 'var')

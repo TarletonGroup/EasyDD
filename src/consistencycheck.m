@@ -37,7 +37,7 @@ function consistencycheck(rn, links, connectivity, linksinconnect)
         numNbrs = connectivity(i, 1);
 
         if (sum(connectivity(i, 2 * (numNbrs + 1):end) ~= 0))
-            disp('inconsistent connectivity list');
+            fprintf('inconsistent connectivity list\n');
             fprintf('%d\n', i)
             connectivity(i, :)
             pause(0.01)
@@ -68,11 +68,6 @@ function consistencycheck(rn, links, connectivity, linksinconnect)
         end
 
     end
-
-    %if(sum(sum(connectivity==length(links(:,1))))~=2)
-    %    disp(sprintf('arm %d has %d ends',length(links(:,1)),sum(sum(connectivity==length(links(:,1))))))
-    %    pause(0.01)
-    %end
 
     %item 4
     % a node cannot be connected to another node twice
@@ -175,7 +170,7 @@ function consistencycheck(rn, links, connectivity, linksinconnect)
             pause(0.01)
         end
 
-        disp('Consistencycheck : Done!');
+        fprintf('Consistencycheck : Done!\n');
     end
 
 end

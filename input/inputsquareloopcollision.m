@@ -38,7 +38,7 @@ dy = 5 / amag; %2micron
 dz = 5 / amag; %2micron
 
 mx = 20; % number of elements along beam length
-loading = 1;
+loading = 'displacementControl';
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
             0, dy, 0; ...
@@ -154,7 +154,7 @@ links = [1 2 b1 n1;
 % rmax = lmax;
 
 % %Plotting
-% plotfreq = 20;
+% plotFreq = 20;
 % plim = 12 / amag; %12microns
 % viewangle = [-35, 15];
 % printfreq = 1;
@@ -167,7 +167,7 @@ links = [1 2 b1 n1;
 % totalSimTime = 1e9;
 % dt0 = 1e60;
 % printfreq = 100000;
-% plotfreq = 1;
+% plotFreq = 1;
 % Bedge = 1;
 % Bscrew = 10;
 % mobility = 'mobbcc_bb1b';

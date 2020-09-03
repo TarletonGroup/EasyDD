@@ -159,12 +159,12 @@ planesref(find(abs(planesref) < eps)) = 0;
 burgsref(find(abs(burgsref) < eps)) = 0;
 
 %Plotting
-plotfreq = 100;
+plotFreq = 100;
 savefreq = 50;
 plim = 12 / amag; %12microns
 viewangle2 = [-81, 81];
 viewangle = [-25, 40];
-printfreq = plotfreq;
+printfreq = plotFreq;
 printnode = 2;
 
 %Dislocation nodes and segments generator
