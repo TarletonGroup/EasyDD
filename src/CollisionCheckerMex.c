@@ -45,6 +45,8 @@ void mexFunction(int nlhs, mxArray *plhs[],
     int connectivity_M, connectivity_N;
     double *floop;
     double *segpair;
+    double smallestMinDistTmp = 0.0;
+    double smallestMinDist = 0.0;
     /********* MEX memory management *********/
     rn_x = (double *)mxGetPr(prhs[0]);
     rn_y = (double *)mxGetPr(prhs[1]);
@@ -375,18 +377,19 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 logic = (((dist2[0] < mindist2) && (ddist2dt[0] < -eps)) || (dist2[0] < eps)) && remesh_flag == 1;
                 if (logic == 1)
                 {
-                    colliding_segments[0] = 1;
-                    n1s1[0] = (double)(n1s1_int + 1); /*correct for matlab indexing*/
-                    n1s2[0] = (double)(n1s2_int + 1); /*correct for matlab indexing*/
-                    n2s1[0] = (double)(n2s1_int + 1); /*correct for matlab indexing*/
-                    n2s2[0] = (double)(n2s2_int + 1); /*correct for matlab indexing*/
-                    s1[0] = (double)(i + 1);
-                    s2[0] = (double)(j + 1);
-                    floop[0] = 1;
-                    //                     printf("Unconnected links found... Running collision correction.");
-                    /*remember to de-allocate 2D connectivity array*/
-                    mxFree(connectivity);
-                    return;
+                    smallestMinDistTmp = 1 / dist2[0];
+                    if (smallestMinDistTmp > smallestMinDist)
+                    {
+                        smallestMinDist = smallestMinDistTmp;
+                        colliding_segments[0] = 1;
+                        n1s1[0] = (double)(n1s1_int + 1); /*correct for matlab indexing*/
+                        n1s2[0] = (double)(n1s2_int + 1); /*correct for matlab indexing*/
+                        n2s1[0] = (double)(n2s1_int + 1); /*correct for matlab indexing*/
+                        n2s2[0] = (double)(n2s2_int + 1); /*correct for matlab indexing*/
+                        s1[0] = (double)(i + 1);
+                        s2[0] = (double)(j + 1);
+                        floop[0] = 1;
+                    }
                 }
             }
             j = j + 1;
@@ -394,13 +397,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
         i = i + 1;
     }
 
-        /*printf("n1s2_int = %i, n2s2_int = %i",n1s2_int,n2s2_int);*/
-    n1s1[0] = (double)(n1s1_int + 1); /*correct for matlab indexing*/
-    n2s1[0] = (double)(n2s1_int + 1); /*correct for matlab indexing*/
-    n1s2[0] = (double)(n1s2_int + 1); /*correct for matlab indexing*/
-    n2s2[0] = (double)(n2s2_int + 1); /*correct for matlab indexing*/
     /*remember to de-allocate 2D connectivity array*/
     mxFree(connectivity);
+    return;
 }
 
 /**************************************************************************/
