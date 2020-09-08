@@ -53,7 +53,7 @@
 % TODO: #11 in remesh_surf, make it so dislocations do not leave the domain via
 % the fixed end depending on the simulation type.
 
-% [fList, pList] = matlab.codetools.requiredFilesAndProducts('dd3d_next.m');
+% [fList, pList] = matlab.codetools.requiredFilesAndProducts('EasyDD.m');
 % fList(:)
 run inputCompletion.m
 
@@ -126,7 +126,8 @@ while simTime < totalSimTime
 
     [planeindex] = outofplanecheck(rn, links);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = updateMatricesForward(rnnew, vn, links, connectivity, linksinconnect, fseg);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = updateMatricesForward(rnnew, vn, links, ...
+        connectivity, linksinconnect, fseg);
 
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remeshPreCollision(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
