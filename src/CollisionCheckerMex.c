@@ -377,7 +377,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 logic = (((dist2[0] < mindist2) && (ddist2dt[0] < -eps)) || (dist2[0] < eps)) && remesh_flag == 1;
                 if (logic == 1)
                 {
-                    smallestMinDistTmp = 1 / dist2[0];
+                    smallestMinDistTmp = 1 / (dist2[0] + eps);
                     if (smallestMinDistTmp > smallestMinDist)
                     {
                         smallestMinDist = smallestMinDistTmp;
