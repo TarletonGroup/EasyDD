@@ -412,7 +412,7 @@ ylabel('b')
 hold on
 plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
 hold off
-%%
+
 
 figCounter = figCounter + 1;
 figure(figCounter)
@@ -645,7 +645,8 @@ function [txx, tyy, txy] = imageStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
 
     txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-        2 .* a .* (3 .* xpa2 .* xpa2 - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+        2 .* a .* ((3*x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+    %%%
     txx = D .* txx;
 
     tyy = ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...

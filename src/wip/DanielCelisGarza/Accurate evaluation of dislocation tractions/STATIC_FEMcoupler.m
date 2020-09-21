@@ -56,12 +56,13 @@ function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, M
     uhat(fixedDofs) = u(fixedDofs); % - utilda(fixedDofs);
 
     fhat = zeros(3 * (mno), 1);
+    ftilda = zeros(3 * (mno), 1);
 
     % gamma=[gammat;gammaMixed];
     gamma = gammat;
 
     %ftilda = zeros(3*mno,1);
-    ftilda = traction(gamma, segments, xnodes, mno, a, MU, NU);
+    ftilda = traction(gamma, segments, xnodes, a, MU, NU, ftilda);
 
     %%
     %ftilda=zeros(3*mno,1); %ET uncomment later!
