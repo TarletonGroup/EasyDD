@@ -220,23 +220,23 @@ Although exact, the use of arctangents/hyperbolic arctangents and logarithmic fu
 In simulations, the tractions are manifested in the reaction forces calculated by the FE solver at FE nodes. In order to validate and compare the differences in tractions have on dislocation plasticity simulations we compare the analytic expressions for infinite dislocations in inhomogenous media by \citet{head1953edge}. The original paper has a few typos that have been replicated in other sources so we write the correct expressions for an edge dislocation parallel to a surface described by the line $x = 0$, where the dislocation coordinates are $(a,~c)$ and we are looking at the $xy$-plane where $\vec{b}$ is perpendicular to the surface in \cref{e:imageStressAnalyticEdge1} and parallel to the surface in \cref{e:imageStressAnalyticEdge2}.
 \begin{subequations}
     \begin{align}\label{e:imageStressAnalyticEdge1}
-        \sigma_{xx} = D (y - c) & \left\{-\dfrac{3 (x - a)^2 + (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}\right.                                                                                                        \\\nonumber
-                                & \left. +\dfrac{3 (x + a)^2 + (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\},                                   \\
-        \sigma_{yy} = D (y - c) & \left\{\dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}                                                 \right.                                                          \\\nonumber
-                                & \left. -\dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} + 4 a (2 a - x) \dfrac{(x + a)^2 + (3 x + 2 a) (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\},                   \\
-        \sigma_{xy} = D         & \left\{(x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} \right.                                                                                                  \\\nonumber
-                                & \left. -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} + 2 a \dfrac{6 x (x + a) (y - c)^2 - (x - a) (x + a)^3 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\},
+        \sigma_{xx} = D (y - c) & \left\{-\dfrac{3 (x - a)^2 + (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} +\dfrac{3 (x + a)^2 + (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}\right.                                            \\\nonumber
+                                & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\},                                                                                               \\
+        \sigma_{yy} = D (y - c) & \left\{\dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}-\dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}                                                 \right. \\\nonumber
+                                & \left. + 4 a (2 a - x) \dfrac{(x + a)^2 + (3 x + 2 a) (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\},                                                                             \\
+        \sigma_{xy} = D         & \left\{(x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}\right.                                 \\\nonumber
+                                & \left. + 2 a \dfrac{6 x (x + a) (y - c)^2 - (x - a) (x + a)^3 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\},
     \end{align}
 \end{subequations}
 
 \begin{subequations}
     \begin{align}\label{e:imageStressAnalyticEdge2}
-        \sigma_{xx} = D         & \left\{ (x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}\right.                                                                                                    \\\nonumber
-                                & \left. -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} + 2 a \dfrac{(3 x + a) (x + a)^3 - 6 x (x + a) (y - c)^2 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}  \\
-        \sigma_{yy} = D         & \left\{ (x - a) \dfrac{(x - a)^2 + 3 (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}\right.                                                                                                  \\\nonumber
-                                & \left. - (x + a) \dfrac{(x + a)^2 + 3 (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} - 2 a \dfrac{(x - a) (x + a)^3 - 6 x (x + a) (y - c)^2 + (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\} \\
-        \sigma_{xy} = D (y - c) & \left\{\dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}\right.                                                                                                             \\\nonumber
-                                & \left. - \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}
+        \sigma_{xx} = D         & \left\{ (x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} \right.    \\\nonumber
+                                & \left. + 2 a \dfrac{(3 x + a) (x + a)^3 - 6 x (x + a) (y - c)^2 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}                                       \\
+        \sigma_{yy} = D         & \left\{ (x - a) \dfrac{(x - a)^2 + 3 (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}- (x + a) \dfrac{(x + a)^2 + 3 (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}\right. \\\nonumber
+                                & \left. - 2 a \dfrac{(x - a) (x + a)^3 - 6 x (x + a) (y - c)^2 + (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}                                         \\
+        \sigma_{xy} = D (y - c) & \left\{\dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2}- \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} \right.                     \\\nonumber
+                                & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}
     \end{align}
 \end{subequations}
 
