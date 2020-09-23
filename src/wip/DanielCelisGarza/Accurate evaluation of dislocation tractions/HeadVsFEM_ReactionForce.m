@@ -26,6 +26,7 @@ dz = 1000;
 figCounter = 0;
 cntr = 0;
 
+% TODO #25
 for j = 15
     mx = j;
 
@@ -286,7 +287,7 @@ end
 % end
 
 %%
-
+% TODO #26
 figCounter = figCounter + 1;
 figure(figCounter)
 contourf(X, Z, sxxA);
