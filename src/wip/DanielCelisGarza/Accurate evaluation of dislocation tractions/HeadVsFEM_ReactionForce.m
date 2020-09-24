@@ -1,5 +1,6 @@
 %%% Script to compare Head's analytical solutions to those obtained via FEM using analytic and numeric tractions.
 close all
+clear all
 amag = 3.18e-4;
 
 CRYSTAL_STRUCTURE = 'bcc';
@@ -26,8 +27,7 @@ dz = 1000;
 figCounter = 0;
 cntr = 0;
 
-% TODO #25
-for j = 15
+for j = 20
     mx = j;
 
     gridSize = mx;
@@ -50,7 +50,7 @@ for j = 15
                 dx, dy, dz];
 
     plim = 12 / amag; %12microns
-    [B, xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
+    [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
             Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
             w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
 
@@ -102,8 +102,10 @@ for j = 15
     plot3(rn(:, 1), rn(:, 2), rn(:, 3), 'r.')
     hold off
 end
-
+close all;
+save('mesh')
 %%
+% TODO #34 Couplers to use features in to v2.0
 for k = 2
     cntr = cntr + 1;
     b = bVec(k, :);
@@ -414,7 +416,6 @@ hold on
 plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
 hold off
 
-
 figCounter = figCounter + 1;
 figure(figCounter)
 contourf(X, Z, sxxFP);
@@ -646,7 +647,7 @@ function [txx, tyy, txy] = imageStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
 
     txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-        2 .* a .* ((3*x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+        2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
     %%%
     txx = D .* txx;
 
