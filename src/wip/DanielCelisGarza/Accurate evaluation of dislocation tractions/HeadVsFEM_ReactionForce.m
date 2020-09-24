@@ -29,52 +29,52 @@ cntr = 0;
 
 for j = 20
     mx = j;
-
+    
     gridSize = mx;
     x = linspace(0, dx, gridSize);
     y = linspace(0.5 * dy, 0.5 * dy, gridSize);
     z = linspace(0, dz, gridSize);
     [X, Z] = meshgrid(x, z);
     Y = meshgrid(y);
-
+    
     clear x y z;
-
+    
     loading = 1;
     vertices = [0, 0, 0; ...
-                dx, 0, 0; ...
-                0, dy, 0; ...
-                dx, dy, 0; ...
-                0, 0, dz; ...
-                dx, 0, dz; ...
-                0, dy, dz; ...
-                dx, dy, dz];
-
+        dx, 0, 0; ...
+        0, dy, 0; ...
+        dx, dy, 0; ...
+        0, 0, dz; ...
+        dx, 0, dz; ...
+        0, dy, dz; ...
+        dx, dy, dz];
+    
     plim = 12 / amag; %12microns
     [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
-            Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
-            w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
-
+        Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
+        w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
+    
     gamma_dln = [gammat(:, 1)];
-
+    
     % Set surface node labels for surface node extraction.
     n_nodes = 4;
     surf_node_util = zeros(n_nodes + 2, 6);
     xy = mx * my;
     xz = mx * mz;
     yz = my * mz;
-
+    
     f_hat = zeros(3 * mno, 1);
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx; my; mz], ...
         planes, 4);
     [f_dln_node, f_dln_se, ...
-            f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
+        f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
     tolerance = dx / 10^6;
-
+    
     figCounter = figCounter + 1;
     figure(figCounter)
     clf; hold on; view(3)
     xlabel('x'); ylabel('y'); zlabel('z')
-
+    
     plot3(xnodes(Stop(:, 1), 1), xnodes(Stop(:, 1), 2), xnodes(Stop(:, 1), 3), 'r*')
     plot3(xnodes(Sbot(:, 1), 1), xnodes(Sbot(:, 1), 2), xnodes(Sbot(:, 1), 3), 'r*')
     plot3(xnodes(Sright(:, 1), 1), xnodes(Sright(:, 1), 2), xnodes(Sright(:, 1), 3), 'b.')
@@ -84,7 +84,7 @@ for j = 20
     plot3(xnodes(Smixed(:, 1), 1), xnodes(Smixed(:, 1), 2), xnodes(Smixed(:, 1), 3), 'g*')
     axis('equal')
     hold off
-
+    
     len = 100;
     x = linspace(0.1 * dx, 0.1 * dx, len);
     y = linspace(0, dy, len);
@@ -103,25 +103,25 @@ for j = 20
     hold off
 end
 close all;
-save('mesh')
+% save('mesh')
 %%
 % TODO #34 Couplers to use features in to v2.0
-for k = 2
+for k = 1:2
     cntr = cntr + 1;
     b = bVec(k, :);
-
+    
     for i = 1:len - 1
         links(i, :) = [i, i + 1, b, n];
     end
-
+    
     [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
         0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
-
+    
     [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
-
+    
     sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
     sxxA = squeeze(sigmaA(1, 1, :, :));
     szzA = squeeze(sigmaA(3, 3, :, :));
@@ -130,238 +130,248 @@ for k = 2
     sxxN = squeeze(sigmaN(1, 1, :, :));
     szzN = squeeze(sigmaN(3, 3, :, :));
     sxzN = squeeze(sigmaN(1, 3, :, :));
-
+    
     segments = constructsegmentlist(rn, links, true);
     p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
     p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
-
+    
     sigmaFP = FieldPointStressSurf(X, Y, Z, p1, p2, b, a, MU, NU);
     sxxFP = squeeze(sigmaFP(1, 1, :, :));
     szzFP = squeeze(sigmaFP(3, 3, :, :));
     sxzFP = squeeze(sigmaFP(1, 3, :, :));
-
+    
     x = linspace(0, dx, gridSize);
     z = linspace(0, dz, gridSize);
     b = sqrt(3) / 2;
     [X, Z] = meshgrid(x, z);
-
+    
     if k == 1
         [txx, tzz, txz] = imageStressAnalyticEdgePerp(MU, b, NU, X, Z, x1, z1);
         [txxFP, tzzFP, txzFP] = FPStressAnalyticEdgePerp(MU, b, NU, X, Z, x1, z1);
-        name = ' perp';
+        orientationB = 'Eperp';
     else
         [txx, tzz, txz] = imageStressAnalyticEdgePar(MU, b, NU, X, Z, x1, z1);
         [txxFP, tzzFP, txzFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Z, x1, z1);
-        name = ' par';
+        orientationB = 'Epar';
     end
-
+    
     close all
+    
+    % TODO #26
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, sxxA);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(sxxA, 'all');
+    stddev = std(sxxA, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{xx}^{\textrm{A}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxxA', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, szzA);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(szzA, 'all');
+    stddev = std(szzA, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{zz}^{\textrm{A}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('szzA', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, sxzA);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(sxzA, 'all');
+    stddev = std(sxzA, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{xz}^{\textrm{A}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxzA', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, sxxN);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(sxxN, 'all');
+    stddev = std(sxxN, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{xx}^{\textrm{N}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxxN', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, szzN);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(szzN, 'all');
+    stddev = std(szzN, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{zz}^{\textrm{N}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('szzN', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    contourf(X, Z, sxzN);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(sxzN, 'all');
+    stddev = std(sxzN, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title('$\hat{\sigma}_{xz}^{\textrm{N}}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxzN', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
+    
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    txx = txx; %./norm(txx);
+    meantxx = mean(txx, 'all');
+    stdtxx = std(txx, 0, 'all');
+    displace = 5 * stdtxx;
+    limits = [meantxx - displace, meantxx + displace];
+    contourf(X, Z, txx);
+    colormap(parula)
+    cb = colorbar;
+    caxis(limits)
+    title('$\hat{\sigma}_{xx}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxx', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
 
-    %         save(fprintf('./mat_files/headVsFEM_%d', cntr))
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    tzz = tzz; %./norm(tzz);
+    meantzz = mean(tzz, 'all');
+    stdtzz = std(tzz, 0, 'all');
+    displace = 5 * stdtzz;
+    limits = [meantzz - displace, meantzz + displace];
+    contourf(X, Z, tzz);
+    colormap(parula)
+    cb = colorbar;
+    caxis(limits)
+    title('$\hat{\sigma}_{zz}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('szz', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
 
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,sxxA);
-    %             colormap(parula)
-    %             colorbar
-    %             title('A sxx')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,szzA);
-    %             colormap(parula)
-    %             colorbar
-    %             title('A szz')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,sxzA);
-    %             colormap(parula)
-    %             colorbar
-    %             title('A sxz')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,sxxN);
-    %             colormap(parula)
-    %             colorbar
-    %             title('N sxx')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,szzN);
-    %             colormap(parula)
-    %             colorbar
-    %             title('N szz')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             contourf(X,Z,sxzN);
-    %             colormap(parula)
-    %             colorbar
-    %             title('N sxz')
-    %             xlabel('x')
-    %             ylabel('z')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             txx = txx;%./norm(txx);
-    %             meantxx = mean(txx,'all');
-    %             stdtxx = std(txx,0,'all');
-    %             displace = 5*stdtxx;
-    %             limits = [meantxx - displace, meantxx + displace];
-    %             contourf(X,Z,txx);
-    %             colormap(parula)
-    %             colorbar
-    %             caxis(limits)
-    %             title(strcat('b', name, ' sxx'))
-    %             xlabel('b')
-    %             ylabel('b')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             tzz = tzz;%./norm(tzz);
-    %             meantzz = mean(tzz,'all');
-    %             stdtzz = std(tzz,0,'all');
-    %             displace = 5*stdtzz;
-    %             limits = [meantzz - displace, meantzz + displace];
-    %             contourf(X,Z,tzz);
-    %             colormap(parula)
-    %             colorbar
-    %             caxis(limits)
-    %             title(strcat('b', name, ' szz'))
-    %             xlabel('b')
-    %             ylabel('b')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
-    %
-    %             figCounter = figCounter + 1;
-    %             figure(figCounter)
-    %             txz = txz;%./norm(txz);
-    %             meantxz = mean(txz,'all');
-    %             stdtxz = std(txz,0,'all');
-    %             displace = 5*stdtxz;
-    %             limits = [meantxz - displace, meantxz + displace];
-    %             contourf(X,Z,txz);
-    %             colormap(parula)
-    %             colorbar
-    %             caxis(limits)
-    %             title(strcat('b', name, ' sxz'))
-    %             xlabel('b')
-    %             ylabel('b')
-    %             hold on
-    %             plot(x1,z1,'.','color','black','MarkerSize',10)
-    %             hold off
+    figCounter = figCounter + 1;
+    fig = figure(figCounter);
+    txz = txz; %./norm(txz);
+    meantxz = mean(txz, 'all');
+    stdtxz = std(txz, 0, 'all');
+    displace = 5 * stdtxz;
+    limits = [meantxz - displace, meantxz + displace];
+    contourf(X, Z, txz);
+    colormap(parula)
+    cb = colorbar;
+    caxis(limits)
+    title('$\hat{\sigma}_{xz}$', 'Interpreter', 'latex', 'FontSize', 15)
+    xlabel('$x,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel('$z,~b$', 'Interpreter', 'latex', 'FontSize', 15)
+    ylabel(cb, 'Pa', 'Interpreter', 'latex', 'FontSize', 15)
+    hold on
+    plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 15)
+    hold off
+    name = strcat('sxz', orientationB);
+    set(fig,'Units','Inches');
+    pos = get(fig,'Position');
+    set(fig,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+    print(fig,sprintf('./paper/images/%s.pdf', name),'-dpdf','-r0')
 end
+%%
 
-% end
 
 %%
-% TODO #26
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, sxxA);
-colormap(parula)
-colorbar
-title('A sxx')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, szzA);
-colormap(parula)
-colorbar
-title('A szz')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, sxzA);
-colormap(parula)
-colorbar
-title('A sxz')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, sxxN);
-colormap(parula)
-colorbar
-title('N sxx')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, szzN);
-colormap(parula)
-colorbar
-title('N szz')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
-figCounter = figCounter + 1;
-figure(figCounter)
-contourf(X, Z, sxzN);
-colormap(parula)
-colorbar
-title('N sxz')
-xlabel('x')
-ylabel('z')
-hold on
-plot(x1, z1, '.', 'color', 'black', 'MarkerSize', 10)
-hold off
-
 figCounter = figCounter + 1;
 figure(figCounter)
 txx = txx; %./norm(txx);
@@ -508,193 +518,193 @@ hold off
 
 function sigma = hatStressSurf(uhat, nc, x, D, mx, mz, w, h, d, X, Y, Z)
 
-    gridSize = size(X);
+gridSize = size(X);
 
-    sigma = zeros(3, 3, gridSize(1), gridSize(2));
-    x0 = zeros(3, 1);
+sigma = zeros(3, 3, gridSize(1), gridSize(2));
+x0 = zeros(3, 1);
 
-    for col = 1:gridSize(2)
-
-        for row = 1:gridSize(1)
-            x0(1) = X(row, col);
-            x0(2) = Y(row, col);
-            x0(3) = Z(row, col);
-            sigma(:, :, row, col) = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0);
-        end
-
+for col = 1:gridSize(2)
+    
+    for row = 1:gridSize(1)
+        x0(1) = X(row, col);
+        x0(2) = Y(row, col);
+        x0(3) = Z(row, col);
+        sigma(:, :, row, col) = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0);
     end
+    
+end
 
 end
 
 function sigma = FieldPointStressSurf(X, Y, Z, x1, x2, b, a, mu, nu)
-    gridSize = size(X);
-    sigma = zeros(3, 3, gridSize(1), gridSize(2));
-    x0 = zeros(1, 3);
+gridSize = size(X);
+sigma = zeros(3, 3, gridSize(1), gridSize(2));
+x0 = zeros(1, 3);
 
-    for col = 1:gridSize(2)
-
-        for row = 1:gridSize(1)
-            x0(1) = X(row, col);
-            x0(2) = Y(row, col);
-            x0(3) = Z(row, col);
-            stress = FieldPointStress(x0, x1, x2, b, a, mu, nu);
-
-            sigma(1, 1, row, col) = stress(:, 1);
-            sigma(2, 2, row, col) = stress(:, 2);
-            sigma(3, 3, row, col) = stress(:, 3);
-            sigma(1, 2, row, col) = stress(:, 4);
-            sigma(2, 1, row, col) = stress(:, 4);
-            sigma(2, 3, row, col) = stress(:, 5);
-            sigma(3, 2, row, col) = stress(:, 5);
-            sigma(1, 3, row, col) = stress(:, 6);
-            sigma(3, 1, row, col) = stress(:, 6);
-        end
-
+for col = 1:gridSize(2)
+    
+    for row = 1:gridSize(1)
+        x0(1) = X(row, col);
+        x0(2) = Y(row, col);
+        x0(3) = Z(row, col);
+        stress = FieldPointStress(x0, x1, x2, b, a, mu, nu);
+        
+        sigma(1, 1, row, col) = stress(:, 1);
+        sigma(2, 2, row, col) = stress(:, 2);
+        sigma(3, 3, row, col) = stress(:, 3);
+        sigma(1, 2, row, col) = stress(:, 4);
+        sigma(2, 1, row, col) = stress(:, 4);
+        sigma(2, 3, row, col) = stress(:, 5);
+        sigma(3, 2, row, col) = stress(:, 5);
+        sigma(1, 3, row, col) = stress(:, 6);
+        sigma(3, 1, row, col) = stress(:, 6);
     end
+    
+end
 
 end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
-    %%%
-    % Stress on point (x, y) induced by edge dislocation parallel to the
-    % surface at x = 0. Dislocation coordinates are (a, c).
-    % b perpendicular to surface.
-    %%%
-    E = (2 * (1 + nu)) * mu;
+%%%
+% Stress on point (x, y) induced by edge dislocation parallel to the
+% surface at x = 0. Dislocation coordinates are (a, c).
+% b perpendicular to surface.
+%%%
+E = (2 * (1 + nu)) * mu;
 
-    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-    ymc = y - c;
-    ymc2 = ymc.^2;
-    xma = x - a;
-    xma2 = xma.^2;
-    xpa = x + a;
-    xpa2 = xpa.^2;
-    den1 = (xma2 + ymc2).^2;
-    den2 = (xpa2 + ymc2).^2;
-    den3 = den2 .* (xpa2 + ymc2);
+D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+ymc = y - c;
+ymc2 = ymc.^2;
+xma = x - a;
+xma2 = xma.^2;
+xpa = x + a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
 
-    txx = ... - ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
-        ymc .* (3 .* xpa2 + ymc2) ./ den2 + ...
-        4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
-    txx = D .* txx;
+txx = ... - ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
+    ymc .* (3 .* xpa2 + ymc2) ./ den2 + ...
+    4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
+txx = D .* txx;
 
-    tyy = ...%ymc .* (xma2 - ymc2)./den1 + ...
+tyy = ...%ymc .* (xma2 - ymc2)./den1 + ...
     -ymc .* (xpa2 - ymc2) ./ den2 + ...
-        4 .* a .* ymc .* ((2 .* a - x) .* xpa2 + (3 .* x + 2 .* a) .* ymc2) ./ den3;
-    tyy = D .* tyy;
+    4 .* a .* ymc .* ((2 .* a - x) .* xpa2 + (3 .* x + 2 .* a) .* ymc2) ./ den3;
+tyy = D .* tyy;
 
-    txy = ...%xma .* (xma2 - ymc2)./den1 + ...
+txy = ...%xma .* (xma2 - ymc2)./den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-        2 .* a .* (-xma .* xpa .* xpa2 + 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
-    txy = D .* txy;
+    2 .* a .* (-xma .* xpa .* xpa2 + 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+txy = D .* txy;
 end
 
 function [txx, tyy, txy] = FPStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
-    %%%
-    % Stress on point (x, y) induced by edge dislocation parallel to the
-    % surface at x = 0. Dislocation coordinates are (a, c).
-    % b perpendicular to surface.
-    %%%
-    E = (2 * (1 + nu)) * mu;
+%%%
+% Stress on point (x, y) induced by edge dislocation parallel to the
+% surface at x = 0. Dislocation coordinates are (a, c).
+% b perpendicular to surface.
+%%%
+E = (2 * (1 + nu)) * mu;
 
-    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-    ymc = y - c;
-    ymc2 = ymc.^2;
-    xma = x - a;
-    xma2 = xma.^2;
-    xpa = x + a;
-    xpa2 = xpa.^2;
-    den1 = (xma2 + ymc2).^2;
-    den2 = (xpa2 + ymc2).^2;
-    den3 = den2 .* (xpa2 + ymc2);
+D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+ymc = y - c;
+ymc2 = ymc.^2;
+xma = x - a;
+xma2 = xma.^2;
+xpa = x + a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
 
-    txx = -ymc .* (3 .* xma2 + ymc2) ./ den1;
-    %                 + ...
-    %                 ymc .* (3.*xpa2 + ymc2)./den2 + ...
-    %       4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
-    txx = D .* txx;
+txx = -ymc .* (3 .* xma2 + ymc2) ./ den1;
+%                 + ...
+%                 ymc .* (3.*xpa2 + ymc2)./den2 + ...
+%       4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
+txx = D .* txx;
 
-    tyy = ymc .* (xma2 - ymc2) ./ den1;
-    %               + ...
-    %              -ymc .* (xpa2 - ymc2)./den2 + ...
-    %       4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
-    tyy = D .* tyy;
+tyy = ymc .* (xma2 - ymc2) ./ den1;
+%               + ...
+%              -ymc .* (xpa2 - ymc2)./den2 + ...
+%       4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
+tyy = D .* tyy;
 
-    txy = xma .* (xma2 - ymc2) ./ den1;
-    %                 + ...
-    %                -xpa .* (xpa2 - ymc2)./den2 + ...
-    %       2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
-    txy = D .* txy;
+txy = xma .* (xma2 - ymc2) ./ den1;
+%                 + ...
+%                -xpa .* (xpa2 - ymc2)./den2 + ...
+%       2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+txy = D .* txy;
 end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
-    %%%
-    % Stress on point (a, c) induced by edge dislocation parallel to the
-    % surface at x = 0. Dislocation coordinates are (x, y).
-    % p parallel to surface.
-    %%%
-    E = (2 * (1 + nu)) * mu;
-    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-    ymc = y - c;
-    ymc2 = ymc.^2;
-    xma = x - a;
-    xma2 = xma.^2;
-    xpa = x + a;
-    xpa2 = xpa.^2;
-    den1 = (xma2 + ymc2).^2;
-    den2 = (xpa2 + ymc2).^2;
-    den3 = den2 .* (xpa2 + ymc2);
+%%%
+% Stress on point (a, c) induced by edge dislocation parallel to the
+% surface at x = 0. Dislocation coordinates are (x, y).
+% p parallel to surface.
+%%%
+E = (2 * (1 + nu)) * mu;
+D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+ymc = y - c;
+ymc2 = ymc.^2;
+xma = x - a;
+xma2 = xma.^2;
+xpa = x + a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
 
-    txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
+txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-        2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
-    %%%
-    txx = D .* txx;
+    2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+%%%
+txx = D .* txx;
 
-    tyy = ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...
+tyy = ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...
     -xpa .* (xpa2 + 3 .* ymc2) ./ den2 + ...
-        -2 .* a .* (xma .* xpa .* xpa2 - 6 .* x .* xpa .* ymc2 + ymc2 .* ymc2) ./ den3;
-    tyy = D .* tyy;
+    -2 .* a .* (xma .* xpa .* xpa2 - 6 .* x .* xpa .* ymc2 + ymc2 .* ymc2) ./ den3;
+tyy = D .* tyy;
 
-    txy = ...%ymc .* (xma2 - ymc2) ./ den1 + ...
+txy = ...%ymc .* (xma2 - ymc2) ./ den1 + ...
     -ymc .* (xpa2 - ymc2) ./ den2 + ...
-        4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
-    txy = D .* txy;
+    4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
+txy = D .* txy;
 end
 
 function [txx, tyy, txy] = FPStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
-    %%%
-    % Stress on point (a, c) induced by edge dislocation parallel to the
-    % surface at x = 0. Dislocation coordinates are (x, y).
-    % p parallel to surface.
-    %%%
-    E = (2 * (1 + nu)) * mu;
-    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-    ymc = y - c;
-    ymc2 = ymc.^2;
-    xma = x - a;
-    xma2 = xma.^2;
-    xpa = x + a;
-    xpa2 = xpa.^2;
-    den1 = (xma2 + ymc2).^2;
-    den2 = (xpa2 + ymc2).^2;
-    den3 = den2 .* (xpa2 + ymc2);
+%%%
+% Stress on point (a, c) induced by edge dislocation parallel to the
+% surface at x = 0. Dislocation coordinates are (x, y).
+% p parallel to surface.
+%%%
+E = (2 * (1 + nu)) * mu;
+D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+ymc = y - c;
+ymc2 = ymc.^2;
+xma = x - a;
+xma2 = xma.^2;
+xpa = x + a;
+xpa2 = xpa.^2;
+den1 = (xma2 + ymc2).^2;
+den2 = (xpa2 + ymc2).^2;
+den3 = den2 .* (xpa2 + ymc2);
 
-    txx = xma .* (xma2 - ymc2) ./ den1;
-    %             + ...
-    %              -xpa .* (xpa2 - ymc2) ./ den2 + ...
-    %       2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
-    txx = D .* txx;
+txx = xma .* (xma2 - ymc2) ./ den1;
+%             + ...
+%              -xpa .* (xpa2 - ymc2) ./ den2 + ...
+%       2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
+txx = D .* txx;
 
-    tyy = xma .* (xma2 + 3 .* ymc2) ./ den1;
-    %                 + ...
-    %                -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
-    %       -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
-    tyy = D .* tyy;
+tyy = xma .* (xma2 + 3 .* ymc2) ./ den1;
+%                 + ...
+%                -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
+%       -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
+tyy = D .* tyy;
 
-    txy = ymc .* (xma2 - ymc2) ./ den1;
-    %                 + ...
-    %                 -ymc .* (xpa2 - ymc2) ./ den2 + ...
-    %       4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
-    txy = D .* txy;
+txy = ymc .* (xma2 - ymc2) ./ den1;
+%                 + ...
+%                 -ymc .* (xpa2 - ymc2) ./ den2 + ...
+%       4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
+txy = D .* txy;
 end
