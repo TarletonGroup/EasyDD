@@ -29,52 +29,52 @@ cntr = 0;
 
 for j = 20
     mx = j;
-    
+
     gridSize = mx;
     x = linspace(0, dx, gridSize);
     y = linspace(0.5 * dy, 0.5 * dy, gridSize);
     z = linspace(0, dz, gridSize);
     [X, Z] = meshgrid(x, z);
     Y = meshgrid(y);
-    
+
     clear x y z;
-    
+
     loading = 1;
     vertices = [0, 0, 0; ...
-        dx, 0, 0; ...
-        0, dy, 0; ...
-        dx, dy, 0; ...
-        0, 0, dz; ...
-        dx, 0, dz; ...
-        0, dy, dz; ...
-        dx, dy, dz];
-    
+                dx, 0, 0; ...
+                0, dy, 0; ...
+                dx, dy, 0; ...
+                0, 0, dz; ...
+                dx, 0, dz; ...
+                0, dy, dz; ...
+                dx, dy, dz];
+
     plim = 12 / amag; %12microns
     [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
-        Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
-        w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
-    
+            Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
+            w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
+
     gamma_dln = [gammat(:, 1)];
-    
+
     % Set surface node labels for surface node extraction.
     n_nodes = 4;
     surf_node_util = zeros(n_nodes + 2, 6);
     xy = mx * my;
     xz = mx * mz;
     yz = my * mz;
-    
+
     f_hat = zeros(3 * mno, 1);
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx; my; mz], ...
         planes, 4);
     [f_dln_node, f_dln_se, ...
-        f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
+            f_dln, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
     tolerance = dx / 10^6;
-    
+
     figCounter = figCounter + 1;
     figure(figCounter)
     clf; hold on; view(3)
     xlabel('x'); ylabel('y'); zlabel('z')
-    
+
     plot3(xnodes(Stop(:, 1), 1), xnodes(Stop(:, 1), 2), xnodes(Stop(:, 1), 3), 'r*')
     plot3(xnodes(Sbot(:, 1), 1), xnodes(Sbot(:, 1), 2), xnodes(Sbot(:, 1), 3), 'r*')
     plot3(xnodes(Sright(:, 1), 1), xnodes(Sright(:, 1), 2), xnodes(Sright(:, 1), 3), 'b.')
@@ -84,7 +84,7 @@ for j = 20
     plot3(xnodes(Smixed(:, 1), 1), xnodes(Smixed(:, 1), 2), xnodes(Smixed(:, 1), 3), 'g*')
     axis('equal')
     hold off
-    
+
     len = 100;
     x = linspace(0.1 * dx, 0.1 * dx, len);
     y = linspace(0, dy, len);
@@ -111,19 +111,19 @@ for k = 1:2
     close all
     cntr = cntr + 1;
     b = bVec(k, :);
-    
+
     for i = 1:len - 1
         links(i, :) = [i, i + 1, b, n];
     end
-    
+
     [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
         0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
-    
+
     [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
-    
+
     sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
     sxxA = squeeze(sigmaA(1, 1, :, :));
     szzA = squeeze(sigmaA(3, 3, :, :));
@@ -132,21 +132,21 @@ for k = 1:2
     sxxN = squeeze(sigmaN(1, 1, :, :));
     szzN = squeeze(sigmaN(3, 3, :, :));
     sxzN = squeeze(sigmaN(1, 3, :, :));
-    
+
     segments = constructsegmentlist(rn, links, true);
     p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
     p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
-    
+
     sigmaFP = FieldPointStressSurf(X, Y, Z, p1, p2, b, a, MU, NU);
     sxxFP = squeeze(sigmaFP(1, 1, :, :));
     szzFP = squeeze(sigmaFP(3, 3, :, :));
     sxzFP = squeeze(sigmaFP(1, 3, :, :));
-    
+
     x = linspace(0, dx, gridSize);
     z = linspace(0, dz, gridSize);
     b = sqrt(3) / 2;
     [X, Z] = meshgrid(x, z);
-    
+
     if k == 1
         [txx, tzz, txz] = imageStressAnalyticEdgePerp(MU, b, NU, X, Z, x1, z1);
         [txxFP, tzzFP, txzFP] = FPStressAnalyticEdgePerp(MU, b, NU, X, Z, x1, z1);
@@ -156,43 +156,44 @@ for k = 1:2
         [txxFP, tzzFP, txzFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Z, x1, z1);
         orientationB = 'Epar';
     end
-    
-    %     % FEM + Analytic tractions
-    %     plotCountourfSigmaHat(X, Z, sxxA, x1, z1, orientationB, 'xx', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzA, x1, z1, orientationB, 'zz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzA, x1, z1, orientationB, 'xz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     % FEM + Numeric tractions
-    %     plotCountourfSigmaHat(X, Z, sxxN, x1, z1, orientationB, 'xx', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzN, x1, z1, orientationB, 'zz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzN, x1, z1, orientationB, 'xz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     % Head
-    %     plotCountourfSigmaHat(X, Z, txx, x1, z1, orientationB, 'xx', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, tzz, x1, z1, orientationB, 'zz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     plotCountourfSigmaHat(X, Z, txz, x1, z1, orientationB, 'xz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-    %     % Rel Err FEM + Analytic tractions
-    %     plotCountourfSigmaHat(X, Z, sxxA./txx - 1, x1, z1, orientationB, 'xx', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzA./tzz - 1, x1, z1, orientationB, 'zz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzA./txz - 1, x1, z1, orientationB, 'xz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     % Rel Err FEM + Numeric tractions
-    %     plotCountourfSigmaHat(X, Z, sxxN./txx - 1, x1, z1, orientationB, 'xx', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzN./tzz - 1, x1, z1, orientationB, 'zz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzN./txz - 1, x1, z1, orientationB, 'xz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    %     % Abs Err FEM + Analytic tractions
-    %     plotCountourfSigmaHat(X, Z, sxxA - txx, x1, z1, orientationB, 'xx', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzA - tzz, x1, z1, orientationB, 'zz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzA - txz, x1, z1, orientationB, 'xz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    %     % Abs Err FEM + Numeric tractions
-    %     plotCountourfSigmaHat(X, Z, sxxN - txx, x1, z1, orientationB, 'xx', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, szzN - tzz, x1, z1, orientationB, 'zz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    %     plotCountourfSigmaHat(X, Z, sxzN - txz, x1, z1, orientationB, 'xz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-end
 
+    % FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Z, sxxA, x1, z1, orientationB, 'xx', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, szzA, x1, z1, orientationB, 'zz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzA, x1, z1, orientationB, 'xz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
+    % FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Z, sxxN, x1, z1, orientationB, 'xx', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, szzN, x1, z1, orientationB, 'zz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzN, x1, z1, orientationB, 'xz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
+    % Head
+    plotCountourfSigmaHat(X, Z, txx, x1, z1, orientationB, 'xx', '', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, tzz, x1, z1, orientationB, 'zz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, txz, x1, z1, orientationB, 'xz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
+    % Rel Err FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Z, sxxA ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, szzA ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzA ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    % Rel Err FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Z, sxxN ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, szzN ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzN ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    % Abs Err FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Z, sxxA - txx, x1, z1, orientationB, 'xx', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, szzA - tzz, x1, z1, orientationB, 'zz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzA - txz, x1, z1, orientationB, 'xz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    % Abs Err FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Z, sxxN - txx, x1, z1, orientationB, 'xx', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, szzN - tzz, x1, z1, orientationB, 'zz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxzN - txz, x1, z1, orientationB, 'xz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+end
 
 %% Screw
 b = [0 1 0];
+
 for i = 1:len - 1
     links(i, :) = [i, i + 1, b, n];
 end
+
 [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
     0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
     gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
@@ -203,15 +204,14 @@ sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 sigmaN = hatStressSurf(uhat2, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 syzA = squeeze(sigmaA(2, 3, :, :));
 syzN = squeeze(sigmaN(2, 3, :, :));
-tyz = imageStressAnalyticScrew(MU, sqrt(3)/2, NU, X, Z, x1, z1);
+tyz = imageStressAnalyticScrew(MU, sqrt(3) / 2, NU, X, Z, x1, z1);
 plotCountourfSigmaHat(X, Z, syzA, x1, z1, 'screw', 'yz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
 plotCountourfSigmaHat(X, Z, syzN, x1, z1, 'screw', 'yz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
 plotCountourfSigmaHat(X, Z, tyz, x1, z1, 'screw', 'yz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-plotCountourfSigmaHat(X, Z, syzA./tyz - 1, x1, z1, 'screw', 'yz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-plotCountourfSigmaHat(X, Z, syzN./tyz - 1, x1, z1, 'screw', 'yz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+plotCountourfSigmaHat(X, Z, syzA ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+plotCountourfSigmaHat(X, Z, syzN ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
 plotCountourfSigmaHat(X, Z, syzA - tyz, x1, z1, 'screw', 'yz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
 plotCountourfSigmaHat(X, Z, syzN - tyz, x1, z1, 'screw', 'yz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-
 
 % figCounter = figCounter + 1;
 % figure(figCounter)
@@ -358,233 +358,233 @@ plotCountourfSigmaHat(X, Z, syzN - tyz, x1, z1, 'screw', 'yz', '$\Delta$N', 'x,~
 % hold off
 
 function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orientationB, component, equation, xaxis, yaxis, units, fontSize, save)
-fig = figure();
-contourf(X, Y, Z);
-colormap(parula)
-cb = colorbar;
-meanval = mean(Z, 'all');
-stddev = std(Z, 0, 'all');
-displace = 5 * stddev;
-limits = [meanval - displace, meanval + displace];
-caxis(limits)
-title(sprintf('$\\hat{\\sigma}_{%s}^{\\textrm{%s}}$', component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
-xlabel(sprintf('$%s$', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
-ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
-ylabel(cb, sprintf('%s', units), 'Interpreter', 'latex', 'FontSize', fontSize)
-hold on
-plot(x0, y0, '.', 'color', 'black', 'MarkerSize', fontSize)
-hold off
+    fig = figure();
+    contourf(X, Y, Z);
+    colormap(parula)
+    cb = colorbar;
+    meanval = mean(Z, 'all');
+    stddev = std(Z, 0, 'all');
+    displace = 5 * stddev;
+    limits = [meanval - displace, meanval + displace];
+    caxis(limits)
+    title(sprintf('$\\hat{\\sigma}_{%s}^{\\textrm{%s}}$', component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
+    xlabel(sprintf('$%s$', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
+    ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
+    ylabel(cb, sprintf('%s', units), 'Interpreter', 'latex', 'FontSize', fontSize)
+    hold on
+    plot(x0, y0, '.', 'color', 'black', 'MarkerSize', fontSize)
+    hold off
 
-if save
-    name = erase(sprintf('s%s%s%s', component, equation, orientationB), ["\", "$"]);
-    set(fig, 'Units', 'Inches');
-    pos = get(fig, 'Position');
-    set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
-    print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
-end
+    if save
+        name = erase(sprintf('s%s%s%s', component, equation, orientationB), ["\", "$"]);
+        set(fig, 'Units', 'Inches');
+        pos = get(fig, 'Position');
+        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+        print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
+    end
 
 end
 
 function sigma = hatStressSurf(uhat, nc, x, D, mx, mz, w, h, d, X, Y, Z)
 
-gridSize = size(X);
+    gridSize = size(X);
 
-sigma = zeros(3, 3, gridSize(1), gridSize(2));
-x0 = zeros(3, 1);
+    sigma = zeros(3, 3, gridSize(1), gridSize(2));
+    x0 = zeros(3, 1);
 
-for col = 1:gridSize(2)
-    
-    for row = 1:gridSize(1)
-        x0(1) = X(row, col);
-        x0(2) = Y(row, col);
-        x0(3) = Z(row, col);
-        sigma(:, :, row, col) = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0);
+    for col = 1:gridSize(2)
+
+        for row = 1:gridSize(1)
+            x0(1) = X(row, col);
+            x0(2) = Y(row, col);
+            x0(3) = Z(row, col);
+            sigma(:, :, row, col) = hatStress(uhat, nc, x, D, mx, mz, w, h, d, x0);
+        end
+
     end
-    
-end
 
 end
 
 function sigma = FieldPointStressSurf(X, Y, Z, x1, x2, b, a, mu, nu)
-gridSize = size(X);
-sigma = zeros(3, 3, gridSize(1), gridSize(2));
-x0 = zeros(1, 3);
+    gridSize = size(X);
+    sigma = zeros(3, 3, gridSize(1), gridSize(2));
+    x0 = zeros(1, 3);
 
-for col = 1:gridSize(2)
-    
-    for row = 1:gridSize(1)
-        x0(1) = X(row, col);
-        x0(2) = Y(row, col);
-        x0(3) = Z(row, col);
-        stress = FieldPointStress(x0, x1, x2, b, a, mu, nu);
-        
-        sigma(1, 1, row, col) = stress(:, 1);
-        sigma(2, 2, row, col) = stress(:, 2);
-        sigma(3, 3, row, col) = stress(:, 3);
-        sigma(1, 2, row, col) = stress(:, 4);
-        sigma(2, 1, row, col) = stress(:, 4);
-        sigma(2, 3, row, col) = stress(:, 5);
-        sigma(3, 2, row, col) = stress(:, 5);
-        sigma(1, 3, row, col) = stress(:, 6);
-        sigma(3, 1, row, col) = stress(:, 6);
+    for col = 1:gridSize(2)
+
+        for row = 1:gridSize(1)
+            x0(1) = X(row, col);
+            x0(2) = Y(row, col);
+            x0(3) = Z(row, col);
+            stress = FieldPointStress(x0, x1, x2, b, a, mu, nu);
+
+            sigma(1, 1, row, col) = stress(:, 1);
+            sigma(2, 2, row, col) = stress(:, 2);
+            sigma(3, 3, row, col) = stress(:, 3);
+            sigma(1, 2, row, col) = stress(:, 4);
+            sigma(2, 1, row, col) = stress(:, 4);
+            sigma(2, 3, row, col) = stress(:, 5);
+            sigma(3, 2, row, col) = stress(:, 5);
+            sigma(1, 3, row, col) = stress(:, 6);
+            sigma(3, 1, row, col) = stress(:, 6);
+        end
+
     end
-    
-end
 
 end
 
 function [tyz] = imageStressAnalyticScrew(mu, b, nu, x, y, a, c)
-E = (2 * (1 + nu)) * mu;
-D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+    E = (2 * (1 + nu)) * mu;
+    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
 
-xpa = x + a;
-ymc = y - c;
+    xpa = x + a;
+    ymc = y - c;
 
-tyz = xpa ./ (xpa.^2 + ymc.^2);
-tyz = D .* tyz;
+    tyz = xpa ./ (xpa.^2 + ymc.^2);
+    tyz = D .* tyz;
 end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
-%%%
-% Stress on point (x, y) induced by edge dislocation parallel to the
-% surface at x = 0. Dislocation coordinates are (a, c).
-% b perpendicular to surface.
-%%%
-E = (2 * (1 + nu)) * mu;
+    %%%
+    % Stress on point (x, y) induced by edge dislocation parallel to the
+    % surface at x = 0. Dislocation coordinates are (a, c).
+    % b perpendicular to surface.
+    %%%
+    E = (2 * (1 + nu)) * mu;
 
-D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-ymc = y - c;
-ymc2 = ymc.^2;
-xma = x - a;
-xma2 = xma.^2;
-xpa = x + a;
-xpa2 = xpa.^2;
-den1 = (xma2 + ymc2).^2;
-den2 = (xpa2 + ymc2).^2;
-den3 = den2 .* (xpa2 + ymc2);
+    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+    ymc = y - c;
+    ymc2 = ymc.^2;
+    xma = x - a;
+    xma2 = xma.^2;
+    xpa = x + a;
+    xpa2 = xpa.^2;
+    den1 = (xma2 + ymc2).^2;
+    den2 = (xpa2 + ymc2).^2;
+    den3 = den2 .* (xpa2 + ymc2);
 
-txx = ... - ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
-    ymc .* (3 .* xpa2 + ymc2) ./ den2 + ...
-    4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
-txx = D .* txx;
+    txx = ... - ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
+        ymc .* (3 .* xpa2 + ymc2) ./ den2 + ...
+        4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
+    txx = D .* txx;
 
-tyy = ...%ymc .* (xma2 - ymc2)./den1 + ...
+    tyy = ...%ymc .* (xma2 - ymc2)./den1 + ...
     -ymc .* (xpa2 - ymc2) ./ den2 + ...
-    4 .* a .* ymc .* ((2 .* a - x) .* xpa2 + (3 .* x + 2 .* a) .* ymc2) ./ den3;
-tyy = D .* tyy;
+        4 .* a .* ymc .* ((2 .* a - x) .* xpa2 + (3 .* x + 2 .* a) .* ymc2) ./ den3;
+    tyy = D .* tyy;
 
-txy = ...%xma .* (xma2 - ymc2)./den1 + ...
+    txy = ...%xma .* (xma2 - ymc2)./den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-    2 .* a .* (-xma .* xpa .* xpa2 + 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
-txy = D .* txy;
+        2 .* a .* (-xma .* xpa .* xpa2 + 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+    txy = D .* txy;
 end
 
 function [txx, tyy, txy] = FPStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
-%%%
-% Stress on point (x, y) induced by edge dislocation parallel to the
-% surface at x = 0. Dislocation coordinates are (a, c).
-% b perpendicular to surface.
-%%%
-E = (2 * (1 + nu)) * mu;
+    %%%
+    % Stress on point (x, y) induced by edge dislocation parallel to the
+    % surface at x = 0. Dislocation coordinates are (a, c).
+    % b perpendicular to surface.
+    %%%
+    E = (2 * (1 + nu)) * mu;
 
-D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-ymc = y - c;
-ymc2 = ymc.^2;
-xma = x - a;
-xma2 = xma.^2;
-xpa = x + a;
-xpa2 = xpa.^2;
-den1 = (xma2 + ymc2).^2;
-den2 = (xpa2 + ymc2).^2;
-den3 = den2 .* (xpa2 + ymc2);
+    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+    ymc = y - c;
+    ymc2 = ymc.^2;
+    xma = x - a;
+    xma2 = xma.^2;
+    xpa = x + a;
+    xpa2 = xpa.^2;
+    den1 = (xma2 + ymc2).^2;
+    den2 = (xpa2 + ymc2).^2;
+    den3 = den2 .* (xpa2 + ymc2);
 
-txx = -ymc .* (3 .* xma2 + ymc2) ./ den1;
-%                 + ...
-%                 ymc .* (3.*xpa2 + ymc2)./den2 + ...
-%       4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
-txx = D .* txx;
+    txx = -ymc .* (3 .* xma2 + ymc2) ./ den1;
+    %                 + ...
+    %                 ymc .* (3.*xpa2 + ymc2)./den2 + ...
+    %       4.*a.*x .* ymc .* (3.*xpa2 - ymc2)./den3;
+    txx = D .* txx;
 
-tyy = ymc .* (xma2 - ymc2) ./ den1;
-%               + ...
-%              -ymc .* (xpa2 - ymc2)./den2 + ...
-%       4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
-tyy = D .* tyy;
+    tyy = ymc .* (xma2 - ymc2) ./ den1;
+    %               + ...
+    %              -ymc .* (xpa2 - ymc2)./den2 + ...
+    %       4.*a .* ymc .* ((2.*a - x) .* xpa2 + (3.*x + 2.*a) .* ymc2)./den3;
+    tyy = D .* tyy;
 
-txy = xma .* (xma2 - ymc2) ./ den1;
-%                 + ...
-%                -xpa .* (xpa2 - ymc2)./den2 + ...
-%       2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
-txy = D .* txy;
+    txy = xma .* (xma2 - ymc2) ./ den1;
+    %                 + ...
+    %                -xpa .* (xpa2 - ymc2)./den2 + ...
+    %       2.*a .* (-xma .* xpa .* xpa2 + 6.*x.*xpa.*ymc2 - ymc2.*ymc2)./den3;
+    txy = D .* txy;
 end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
-%%%
-% Stress on point (a, c) induced by edge dislocation parallel to the
-% surface at x = 0. Dislocation coordinates are (x, y).
-% p parallel to surface.
-%%%
-E = (2 * (1 + nu)) * mu;
-D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-ymc = y - c;
-ymc2 = ymc.^2;
-xma = x - a;
-xma2 = xma.^2;
-xpa = x + a;
-xpa2 = xpa.^2;
-den1 = (xma2 + ymc2).^2;
-den2 = (xpa2 + ymc2).^2;
-den3 = den2 .* (xpa2 + ymc2);
+    %%%
+    % Stress on point (a, c) induced by edge dislocation parallel to the
+    % surface at x = 0. Dislocation coordinates are (x, y).
+    % p parallel to surface.
+    %%%
+    E = (2 * (1 + nu)) * mu;
+    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+    ymc = y - c;
+    ymc2 = ymc.^2;
+    xma = x - a;
+    xma2 = xma.^2;
+    xpa = x + a;
+    xpa2 = xpa.^2;
+    den1 = (xma2 + ymc2).^2;
+    den2 = (xpa2 + ymc2).^2;
+    den3 = den2 .* (xpa2 + ymc2);
 
-txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
+    txx = ...%xma .* (xma2 - ymc2) ./ den1 + ...
     -xpa .* (xpa2 - ymc2) ./ den2 + ...
-    2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
-%%%
-txx = D .* txx;
+        2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
+    %%%
+    txx = D .* txx;
 
-tyy = ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...
+    tyy = ...%xma .* (xma2 + 3.*ymc2) ./ den1 + ...
     -xpa .* (xpa2 + 3 .* ymc2) ./ den2 + ...
-    -2 .* a .* (xma .* xpa .* xpa2 - 6 .* x .* xpa .* ymc2 + ymc2 .* ymc2) ./ den3;
-tyy = D .* tyy;
+        -2 .* a .* (xma .* xpa .* xpa2 - 6 .* x .* xpa .* ymc2 + ymc2 .* ymc2) ./ den3;
+    tyy = D .* tyy;
 
-txy = ...%ymc .* (xma2 - ymc2) ./ den1 + ...
+    txy = ...%ymc .* (xma2 - ymc2) ./ den1 + ...
     -ymc .* (xpa2 - ymc2) ./ den2 + ...
-    4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
-txy = D .* txy;
+        4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
+    txy = D .* txy;
 end
 
 function [txx, tyy, txy] = FPStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
-%%%
-% Stress on point (a, c) induced by edge dislocation parallel to the
-% surface at x = 0. Dislocation coordinates are (x, y).
-% p parallel to surface.
-%%%
-E = (2 * (1 + nu)) * mu;
-D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-ymc = y - c;
-ymc2 = ymc.^2;
-xma = x - a;
-xma2 = xma.^2;
-xpa = x + a;
-xpa2 = xpa.^2;
-den1 = (xma2 + ymc2).^2;
-den2 = (xpa2 + ymc2).^2;
-den3 = den2 .* (xpa2 + ymc2);
+    %%%
+    % Stress on point (a, c) induced by edge dislocation parallel to the
+    % surface at x = 0. Dislocation coordinates are (x, y).
+    % p parallel to surface.
+    %%%
+    E = (2 * (1 + nu)) * mu;
+    D = E .* b ./ (4 .* pi .* (1 - nu.^2));
+    ymc = y - c;
+    ymc2 = ymc.^2;
+    xma = x - a;
+    xma2 = xma.^2;
+    xpa = x + a;
+    xpa2 = xpa.^2;
+    den1 = (xma2 + ymc2).^2;
+    den2 = (xpa2 + ymc2).^2;
+    den3 = den2 .* (xpa2 + ymc2);
 
-txx = xma .* (xma2 - ymc2) ./ den1;
-%             + ...
-%              -xpa .* (xpa2 - ymc2) ./ den2 + ...
-%       2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
-txx = D .* txx;
+    txx = xma .* (xma2 - ymc2) ./ den1;
+    %             + ...
+    %              -xpa .* (xpa2 - ymc2) ./ den2 + ...
+    %       2.*a .* ymc .* ((3.*x+a) .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 - ymc2.*ymc2) ./ den3;
+    txx = D .* txx;
 
-tyy = xma .* (xma2 + 3 .* ymc2) ./ den1;
-%                 + ...
-%                -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
-%       -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
-tyy = D .* tyy;
+    tyy = xma .* (xma2 + 3 .* ymc2) ./ den1;
+    %                 + ...
+    %                -xma .* (xpa2 + 3.*ymc2) ./ den2 + ...
+    %       -2.*a .* (xma .* xpa .* xpa2 - 6.*x.*xpa.*ymc2 + ymc2.*ymc2) ./ den3;
+    tyy = D .* tyy;
 
-txy = ymc .* (xma2 - ymc2) ./ den1;
-%                 + ...
-%                 -ymc .* (xpa2 - ymc2) ./ den2 + ...
-%       4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
-txy = D .* txy;
+    txy = ymc .* (xma2 - ymc2) ./ den1;
+    %                 + ...
+    %                 -ymc .* (xpa2 - ymc2) ./ den2 + ...
+    %       4.*a.*x .* ymc .* (3.*xpa2 - ymc2) ./ den3;
+    txy = D .* txy;
 end
