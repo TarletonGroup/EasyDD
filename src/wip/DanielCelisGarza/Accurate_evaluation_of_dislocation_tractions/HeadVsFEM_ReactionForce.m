@@ -188,7 +188,7 @@ for k = 1:2
 end
 
 %% Screw
-b = [0 1 0];
+b = -[0 1 0];
 
 for i = 1:len - 1
     links(i, :) = [i, i + 1, b, n];
@@ -440,7 +440,7 @@ function [tyz] = imageStressAnalyticScrew(mu, b, nu, x, y, a, c)
     xpa = x + a;
     ymc = y - c;
 
-    tyz = xpa ./ (xpa.^2 + ymc.^2);
+    tyz = -xpa ./ (xpa.^2 + ymc.^2);
     tyz = D .* tyz;
 end
 
