@@ -1,7 +1,7 @@
 % clear all
 % mx=1,dx=6,dy=1,dz=1,mu=1,nu=.3,loading=1;
 
-function [B, xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
+function [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
         Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
         w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, mu, nu, loading)
 
@@ -309,7 +309,7 @@ for p = 1:mel%all elements
     end
 
 end
-
+clear B;
 % ensure ke is symmetric eg remove any very small entries due to numerical
 % error.
 disp('global K...');
