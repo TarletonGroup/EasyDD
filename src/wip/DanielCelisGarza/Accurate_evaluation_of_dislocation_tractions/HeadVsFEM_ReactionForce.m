@@ -157,34 +157,35 @@ for k = 1:2
         orientationB = 'Epar';
     end
 
+    % TODO #35
     % FEM + Analytic tractions
-    plotCountourfSigmaHat(X, Z, sxxA, x1, z1, orientationB, 'xx', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, szzA, x1, z1, orientationB, 'zz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzA, x1, z1, orientationB, 'xz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxA, x1, z1, orientationB, 'xx', 'A', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzA, x1, z1, orientationB, 'zz', 'A', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzA, x1, z1, orientationB, 'xz', 'A', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
     % FEM + Numeric tractions
-    plotCountourfSigmaHat(X, Z, sxxN, x1, z1, orientationB, 'xx', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, szzN, x1, z1, orientationB, 'zz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzN, x1, z1, orientationB, 'xz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxN, x1, z1, orientationB, 'xx', 'N', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzN, x1, z1, orientationB, 'zz', 'N', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzN, x1, z1, orientationB, 'xz', 'N', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
     % Head
-    plotCountourfSigmaHat(X, Z, txx, x1, z1, orientationB, 'xx', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, tzz, x1, z1, orientationB, 'zz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-    plotCountourfSigmaHat(X, Z, txz, x1, z1, orientationB, 'xz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
+    plotCountourfSigmaHat(X, Z, txx, x1, z1, orientationB, 'xx', '', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, tzz, x1, z1, orientationB, 'zz', '', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+    plotCountourfSigmaHat(X, Z, txz, x1, z1, orientationB, 'xz', '', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
     % Rel Err FEM + Analytic tractions
-    plotCountourfSigmaHat(X, Z, sxxA ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    plotCountourfSigmaHat(X, Z, szzA ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzA ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxA ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzA ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzA ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
     % Rel Err FEM + Numeric tractions
-    plotCountourfSigmaHat(X, Z, sxxN ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    plotCountourfSigmaHat(X, Z, szzN ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzN ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxN ./ txx - 1, x1, z1, orientationB, 'xx', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzN ./ tzz - 1, x1, z1, orientationB, 'zz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzN ./ txz - 1, x1, z1, orientationB, 'xz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
     % Abs Err FEM + Analytic tractions
-    plotCountourfSigmaHat(X, Z, sxxA - txx, x1, z1, orientationB, 'xx', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    plotCountourfSigmaHat(X, Z, szzA - tzz, x1, z1, orientationB, 'zz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzA - txz, x1, z1, orientationB, 'xz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxA - txx, x1, z1, orientationB, 'xx', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzA - tzz, x1, z1, orientationB, 'zz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzA - txz, x1, z1, orientationB, 'xz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
     % Abs Err FEM + Numeric tractions
-    plotCountourfSigmaHat(X, Z, sxxN - txx, x1, z1, orientationB, 'xx', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    plotCountourfSigmaHat(X, Z, szzN - tzz, x1, z1, orientationB, 'zz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-    plotCountourfSigmaHat(X, Z, sxzN - txz, x1, z1, orientationB, 'xz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+    plotCountourfSigmaHat(X, Z, sxxN - txx, x1, z1, orientationB, 'xx', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, szzN - tzz, x1, z1, orientationB, 'zz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+    plotCountourfSigmaHat(X, Z, sxzN - txz, x1, z1, orientationB, 'xz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
 end
 
 %% Screw
@@ -205,13 +206,23 @@ sigmaN = hatStressSurf(uhat2, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 syzA = squeeze(sigmaA(2, 3, :, :));
 syzN = squeeze(sigmaN(2, 3, :, :));
 tyz = imageStressAnalyticScrew(MU, sqrt(3) / 2, NU, X, Z, x1, z1);
-plotCountourfSigmaHat(X, Z, syzA, x1, z1, 'screw', 'yz', 'A', 'x,~b', 'z,~b', 'Pa', 15, true)
-plotCountourfSigmaHat(X, Z, syzN, x1, z1, 'screw', 'yz', 'N', 'x,~b', 'z,~b', 'Pa', 15, true)
-plotCountourfSigmaHat(X, Z, tyz, x1, z1, 'screw', 'yz', '', 'x,~b', 'z,~b', 'Pa', 15, true)
-plotCountourfSigmaHat(X, Z, syzA ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-plotCountourfSigmaHat(X, Z, syzN ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, true)
-plotCountourfSigmaHat(X, Z, syzA - tyz, x1, z1, 'screw', 'yz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, true)
-plotCountourfSigmaHat(X, Z, syzN - tyz, x1, z1, 'screw', 'yz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, true)
+plotCountourfSigmaHat(X, Z, syzA, x1, z1, 'screw', 'yz', 'A', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, syzN, x1, z1, 'screw', 'yz', 'N', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, tyz, x1, z1, 'screw', 'yz', '', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, syzA ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, syzN ./ tyz - 1, x1, z1, 'screw', 'yz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, syzA - tyz, x1, z1, 'screw', 'yz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, syzN - tyz, x1, z1, 'screw', 'yz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+
+sxzA = squeeze(sigmaA(1, 3, :, :));
+sxzN = squeeze(sigmaN(1, 3, :, :));
+plotCountourfSigmaHat(X, Z, sxzA, x1, z1, 'screw', 'yz', 'A', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, sxzN, x1, z1, 'screw', 'yz', 'N', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, txz, x1, z1, 'screw', 'yz', '', 'x,~b', 'z,~b', '$\mu$', 15, ~true)
+plotCountourfSigmaHat(X, Z, sxzA ./ txz - 1, x1, z1, 'screw', 'yz', '$\eta$A', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, sxzN ./ txz - 1, x1, z1, 'screw', 'yz', '$\eta$N', 'x,~b', 'z,~b', 'Rel Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, sxzA - txz, x1, z1, 'screw', 'yz', '$\Delta$A', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
+plotCountourfSigmaHat(X, Z, sxzN - txz, x1, z1, 'screw', 'yz', '$\Delta$N', 'x,~b', 'z,~b', 'Abs Err', 15, ~true)
 
 % figCounter = figCounter + 1;
 % figure(figCounter)
