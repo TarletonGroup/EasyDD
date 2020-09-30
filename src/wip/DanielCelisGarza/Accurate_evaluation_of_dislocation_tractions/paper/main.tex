@@ -122,23 +122,23 @@ The force exerted by a dislocation ensemble on a node $a$ belong to element $e$ 
 %
 \begin{align}
     \vec{F}^{a} = \int_{S^{e}} \left[\tilde{\bm{\sigma}}(\vec{x}) \cdot \vec{n}\right] N^{a}(\vec{x})\; \mathrm{d}S\,,
-    \label{e:ddd_fem_force}
+    \label{eq:ddd_fem_force}
 \end{align}
 %
-where $\mathrm{d}S^{e}$ is the surface of element $e$ with surface area $S^{e}$ and $N^{a}$ is the finite element shape function for node $a$ which is bi-linear in this paper. In the parent element (shown in figure  \ref{f:2d_gaussian_quad}) the shape functions are,
+where $\mathrm{d}S^{e}$ is the surface of element $e$ with surface area $S^{e}$ and $N^{a}$ is the finite element shape function for node $a$ which is bi-linear in this paper. In the parent element (shown in \cref{f:2d_gaussian_quad}) the shape functions are,
 
 \begin{align}
-    \label{e:shape_function}
+    \label{eq:shape_function}
     N^{1} & = \dfrac{1}{4}(1-s_1)(1-s_2)             \\
     N^{2} & = \dfrac{1}{4}(1+s_1)(1-s_2)\nonumber    \\
     N^{3} & = \dfrac{1}{4}(1+s_1)(1+s_2)\nonumber    \\
     N^{4} & = \dfrac{1}{4}(1-s_1)(1+s_2)\nonumber\,.
 \end{align}
 
-Usually Gauss quadrature is used to evaluate the surface integral in equation (\ref{e:ddd_fem_force}) numerically. The 1D Gauss quadrature is,
+Usually Gauss quadrature is used to evaluate the surface integral in \cref{eq:ddd_fem_force} numerically. The 1D Gauss quadrature is,
 %
 \begin{align}
-    \label{e:gauss_leg}
+    \label{eq:gauss_leg}
     \int\limits_{-1}^{1} f(s)\;\mathrm{d}s \approx \sum\limits_{i=1}^{n} w_{i} f(s_{i}) \quad \textrm{where}\quad
     %
     w_{i} = \dfrac{2}{\left(1-s_{i}^{2}\right) \left[P_{n}^{'}\left(s_{i}\right)\right]^{2}},
@@ -148,10 +148,10 @@ is the weighting of the Gauss point $s_{i}$ which is the $i\textsuperscript{th}$
 
 The method is very accurate for functions that can be approximated by polynomials, but unsuitable for functions with singularities and near singularities \cite{gauss_leg, gauss_leg_sing}. We use a non-singular formulation for the forces \cite{Cai2006}, but the singularity is avoided by adding a small cut off radius to account for the dislocation core. However if the integration point falls close to or within the dislocation core, numerical integration can still generate large errors.
 
-For rectangular surface elements we must transform from the parent element in $(s_1,\,s_2)$ in equation (\ref{e:gauss_leg}) to the real element coordinate system $(x,y,z)$ shown in \cref{f:force_lin_rect}. Evaluating equation (\ref{e:ddd_fem_force}) in the parent element and mapping to the real element gives the force on node $a$,
+For rectangular surface elements we must transform from the parent element in $(s_1,\,s_2)$ in \cref{eq:gauss_leg} to the real element coordinate system $(x,y,z)$ shown in \cref{f:force_lin_rect}. Evaluating \cref{eq:ddd_fem_force} in the parent element and mapping to the real element gives the force on node $a$,
 %
 \begin{align}
-    \label{e:gauss_leg_ddd_fem_force}
+    \label{eq:gauss_leg_ddd_fem_force}
     \vec{F}^{a} \approx \sum\limits_{i=1}^{Q} w_{i} \sum\limits_{j=1}^{Q} w_{j} [\tns{\sigma}(r_{i}, s_{j})\cdot \vec{n}] N^{a}(r_{i}, s_{j}) \det(\mtx{J})\,.
 \end{align}
 %
@@ -172,10 +172,10 @@ Where the sum is over the $Q$ quadrature points and $J_{ij}=dx_{i}/ds_{j}$ is th
 \end{figure}
 %
 
-Equation \ref{e:ddd_fem_force} is actually a triple vector integral. It involves integrating over the surface element and along the dislocation line segment, as shown in \cref{f:force_lin_rect}. Using the isotropic Burgers vector distribution proposed in \cite{Cai2006}, the dyadic form of the stress tensor produced by a straight finite dislocation segment bounded by nodes at $\mathbf{x_1}$ and $\mathbf{x_2}$ is \cite{Queyreau},
+\Cref{eq:ddd_fem_force} is actually a triple vector integral. It involves integrating over the surface element and along the dislocation line segment, as shown in \cref{f:force_lin_rect}. Using the isotropic Burgers vector distribution proposed in \cite{Cai2006}, the dyadic form of the stress tensor produced by a straight finite dislocation segment bounded by nodes at $\mathbf{x_1}$ and $\mathbf{x_2}$ is \cite{Queyreau},
 %
 \begin{align}
-    \label{e:stress}
+    \label{eq:stress}
     \tns{\sigma}(\vec{x}) = &
     - \dfrac{\mu}{8\pi} \int\limits_{\mathbf{x_1}}^{\mathbf{x_2}} \left( \dfrac{2}{R_{a}^{3}} + \dfrac{3a^2}{R_{a}^{5}} \right) \left[ \left(\vec{R} \times \vec{b}\right) \otimes \mathrm{d}\vec{x'} + \mathrm{d}\vec{x'} \otimes \left(\vec{R} \times \vec{b}\right) \right]  \\
     %
@@ -194,32 +194,33 @@ where
     \mathrm{d}\vec{x'} & = -\mathrm{d} y \vec{l}
 \end{align}
 %
-The vectors $\vec{p}$ and $\vec{q}$ are aligned with the edges of the rectangular finite element, $\vec{n} = \vec{p} \times \vec{q}$ is the element surface normal (pointing away from the dislocation), and $\vec{l}$ is parallel to the dislocation line segment as shown in figure \ref{f:force_lin_rect}. Then (provided $\vec{l}$ is not parallel to $\vec{p}$ or $\vec{q}$) $\vec{R}$ can be expressed in terms of $(\vec{l},~\vec{p},~\vec{q})$ with coefficients
+The vectors $\vec{p}$ and $\vec{q}$ are aligned with the edges of the rectangular finite element, $\vec{n} = \vec{p} \times \vec{q}$ is the element surface normal (pointing away from the dislocation), and $\vec{l}$ is parallel to the dislocation line segment as shown in \cref{f:force_lin_rect}. Then (provided $\vec{l}$ is not parallel to $\vec{p}$ or $\vec{q}$) $\vec{R}$ can be expressed in terms of $(\vec{l},~\vec{p},~\vec{q})$ with coefficients
 %
 \begin{align}
-    y = \dfrac{\vec{R}\cdot \vec{n}}{\vec{l}\cdot \vec{n}} \label{se:problem},\quad
+    y = \dfrac{\vec{R}\cdot \vec{n}}{\vec{l}\cdot \vec{n}} \label{eq:problem},\quad
     %
     r = \dfrac{\vec{R}\cdot (\vec{q} \times \vec{l})}{\vec{p}\cdot (\vec{q} \times \vec{l})}, \quad
     %
     s = \dfrac{\vec{R}\cdot (\vec{p} \times \vec{l})}{\vec{q}\cdot (\vec{p} \times \vec{l})}\,.
 \end{align}
 %
-Substituting (\ref{e:stress}) and (\ref{e:shape_function}) into (\ref{e:ddd_fem_force}) yields four long and messy equations (one for each FE node) that were elegantly solved by \citet{Queyreau} by utilising the fact that the triple integrals all had the form,
+Substituting \cref{eq:stress} and \cref{eq:shape_function} into \cref{eq:ddd_fem_force} yields four long and messy equations (one for each FE node) that were elegantly solved by \citet{Queyreau} by utilising the fact that the triple integrals all had the form,
 %
 \begin{align}
-    H_{ijkl}        & = \int\limits_{r_{1}}^{r_{2}}\int\limits_{s_{1}}^{s_{2}}\int\limits_{y_{1}}^{y_{2}} \dfrac{r^i s^j y^k}{R_{a}^{m}}\label{e:triple_int} \\
-    \textrm{when }m & = 5 \textrm{ then } i,\, j \in [0,\,3],~k \in [0,\,2]\nonumber                                                                         \\
-    \textrm{when }m & = 3 \textrm{ then } i,\, j \in [0,\,2],~k \in [0,\,1]\nonumber                                                                         \\
+    H_{ijkl}        & = \int\limits_{r_{1}}^{r_{2}}\int\limits_{s_{1}}^{s_{2}}\int\limits_{y_{1}}^{y_{2}} \dfrac{r^i s^j y^k}{R_{a}^{m}}\label{eq:triple_int} \\
+    \textrm{when }m & = 5 \textrm{ then } i,\, j \in [0,\,3],~k \in [0,\,2]\nonumber                                                                          \\
+    \textrm{when }m & = 3 \textrm{ then } i,\, j \in [0,\,2],~k \in [0,\,1]\nonumber                                                                          \\
     \textrm{when }m & = 1 \textrm{ then } i = j = k = 0\nonumber.
 \end{align}
 %
-Using partial differentiation and integration by parts, they found a series of recurrence relations that lead to double and single integrals with a similar form to equation (\ref{e:triple_int}). Together they are used to construct a full solution. The recurrence relations stop working when $i = j = k = 0 \textrm{ and } m = 1,\, 3$. At which point, direct integration of the resulting single and double integrals (the last triple integrals all cancel out in the global calculation) yields six seed functions that are used as the starting point for the recurrence relations. Three of them are logarithms and three either arctangents or---if a discriminant is negative---hyperbolic arctangents. The details of the procedure can be found in \cite{Queyreau}.
+Using partial differentiation and integration by parts, they found a series of recurrence relations that lead to double and single integrals with a similar form to equation (\cref{eq:triple_int}). Together they are used to construct a full solution. The recurrence relations stop working when $i = j = k = 0 \textrm{ and } m = 1,\, 3$. At which point, direct integration of the resulting single and double integrals (the last triple integrals all cancel out in the global calculation) yields six seed functions that are used as the starting point for the recurrence relations. Three of them are logarithms and three either arctangents or---if a discriminant is negative---hyperbolic arctangents. The details of the procedure can be found in \cite{Queyreau}.
 
 Although exact, the use of arctangents/hyperbolic arctangents and logarithmic functions, compounded by the large number of recurrence relations is prime territory for error propagation and numerical problems (see \cref{s:method}). This is particularly egregious when using general purpose compilers instead of high-performance or scientific computing compilers where mathematical functions are implemented more precisely. These issues must be taken into account when using analytic tractions in the form of numeric tolerances.
 
-In simulations, the tractions are manifested in the reaction forces calculated by the FE solver at FE nodes. In order to validate and compare the differences in tractions have on dislocation plasticity simulations we compare the analytic expressions for infinite dislocations in inhomogenous media by \citet{head1953edge}. The original paper has a few typos that have been replicated in other sources so we write the correct expressions for an edge dislocation parallel to a surface described by the line $x = 0$, where the dislocation coordinates are $(a,~c)$ and we are looking at the $xy$-plane where $\vec{b}$ is perpendicular to the surface in \cref{e:imageStressAnalyticEdge1},
+In simulations, the tractions are manifested in the reaction forces calculated by the FE solver at FE nodes. In order to validate and compare the differences in tractions have on dislocation plasticity simulations we compare the analytic expressions for infinite dislocations in inhomogenous media by \citet{head1953edge}. The original paper has a few typos that have been replicated in other sources so we write the correct expressions for an edge dislocation parallel to a surface described by the line $x = 0$, where the dislocation coordinates are $(a,~c)$ and we are looking down the $xy$-plane where $\vec{b}$ is perpendicular to the surface in \cref{eq:imageStressAnalyticEdge1},
+% TODO #37
 \begin{subequations}
-    \begin{align}\label{e:imageStressAnalyticEdge1}
+    \begin{align}\label{eq:imageStressAnalyticEdge1}
         \sigma_{xx} = D (y - c) & \left\{-\dfrac{3 (x - a)^2 + (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} + \dfrac{3 (x + a)^2 + (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}\right.                                             \\\nonumber
                                 & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}\,,                                                                                               \\
         \sigma_{yy} = D (y - c) & \left\{\dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} - \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}                                                 \right. \\\nonumber
@@ -228,9 +229,9 @@ In simulations, the tractions are manifested in the reaction forces calculated b
                                 & \left. + 2 a \dfrac{6 x (x + a) (y - c)^2 - (x - a) (x + a)^3 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
-The case where the Burgers vector lies parallel to the surface is found in \cref{e:imageStressAnalyticEdge2}.
+The case where the Burgers vector lies parallel to the surface is found in \cref{eq:imageStressAnalyticEdge2}.
 \begin{subequations}
-    \begin{align}\label{e:imageStressAnalyticEdge2}
+    \begin{align}\label{eq:imageStressAnalyticEdge2}
         \sigma_{xx} = D         & \left\{ (x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} \right.     \\\nonumber
                                 & \left. + 2 a \dfrac{(3 x + a) (x + a)^3 - 6 x (x + a) (y - c)^2 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}\,,                                     \\
         \sigma_{yy} = D         & \left\{ (x - a) \dfrac{(x - a)^2 + 3 (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} - (x + a) \dfrac{(x + a)^2 + 3 (y - c)^2}{[(x + a)^2 + (y - c)^2]^2}\right. \\\nonumber
@@ -239,13 +240,14 @@ The case where the Burgers vector lies parallel to the surface is found in \cref
                                 & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
-
+Screw dislocations are markedly simpler, as only the shear components are non-zero. Their equations are the following.
 \begin{subequations}
-    \begin{align}
+    \begin{align}\label{eq:imageStressAnalyticScrew}
         \sigma_{xz} & = -D \left(\dfrac{y - c}{(x - a)^2 + (y - c)^2} - \dfrac{y - c}{(x + a)^2 + (y - c)^2}\right) \\
         \sigma_{yz} & = D \left(\dfrac{x - a}{(x - a)^2 + (y - c)^2} - \dfrac{x + a}{(x + a)^2 + (y - c)^2}\right)
     \end{align}
 \end{subequations}
+Note the first terms of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew} all correspond to the stress field generated by the dislocation. The following terms are the corrective terms required to make the boundary conditions on the surface equal to zero.
 
 \section{Methodology}\label{s:method}
 Numerical integration of tractions can produces unexpected behaviour such as force hot spots (see \cref{f:err_basic_cantilever}) and sign inversions as a dislocation approaches a surface. During a large simulation, these effects are hard to spot. \citet{Queyreau} identified that for a given number of quadrature points, the error is dependent on the dislocation character but always increases rapidly as the distance between the segment and element surface decrease (see \cref{f:rel_err_perp_edge,f:rel_err_par_edge}).
@@ -277,7 +279,7 @@ The symmetry of the simple test cases can also influence how solution is as the 
     \label{f:gauss_quad_test}
 \end{figure}
 
-\citet{Queyreau} found the analytic solution is approximately 10 times more computationally expensive than its numerical counterpart for 1 quadrature point. The implementation of the analytic solution is also much more involved. One issue is the calculation of the $y$-coordinate in the local coordinate frame as shown in \cref{f:force_lin_rect} and equation (\ref{se:problem}), if $\vec{l} \perp \vec{n}$, we get a singularity. As mentioned in \cite{Queyreau}, an easy fix is to rotate the line segment about its midpoint around the $\vec{l} \times \vec{n}$ axis and use the mean values either side as the true result. An example of what this looks like in terms of forces can be seen in \cref{f:rotate} (we removed the singularity to keep the graph smooth).
+\citet{Queyreau} found the analytic solution is approximately 10 times more computationally expensive than its numerical counterpart for 1 quadrature point. The implementation of the analytic solution is also much more involved. One issue is the calculation of the $y$-coordinate in the local coordinate frame as shown in \cref{f:force_lin_rect} and \cref{eq:problem}, if $\vec{l} \perp \vec{n}$, we get a singularity. As mentioned in \cite{Queyreau}, an easy fix is to rotate the line segment about its midpoint around the $\vec{l} \times \vec{n}$ axis and use the mean values either side as the true result. An example of what this looks like in terms of forces can be seen in \cref{f:rotate} (we removed the singularity to keep the graph smooth).
 %
 \begin{figure}[htb]
     \centering
@@ -368,12 +370,12 @@ The specifics of the mapping depend on the global FE node numbering. Using \cref
             \vec{x_{2}} \\
             \vdots      \\
             \vec{x_{9}}
-        \end{bmatrix}\,.\label{e:force_imp}
+        \end{bmatrix}\,.\label{eq:force_imp}
     \end{align}
 \end{subequations}
-Where $\vec{x_{e,n}}$ is a $3\times1$ column vector corresponding to the $x,~y,~z$ dislocation induced forces on node $n$ on the surface element $e$. There are four of these per rectangular surface element, where a given node, $n$, can appear in multiple surface elements (e.g. node 5 in \cref{f:shared_node} is shared by all 4 surface elements), all of which independently contribute to the total force on said node. $\vec{x_n}$ is a $3\times1$ column vector corresponding to the total $x,~y,~z$ dislocation induced forces on node $n$. These are used to shorten the definition of equation (\ref{e:force_imp}) and are not explicitly defined in the implementation, rather they give the force matrices $\mtx{F_{e}}$ and $\vec{\tilde{F}}$ a specific row order. $\mtx{N_{L}}$ is crucial for the correct implementation of this analytical solution in traditional FE codes. It is the $E\times4$ matrix corresponding to the global label of each node in a given surface element. Each row of the matrix represents a surface element and each column represents a node in the surface element. We cannot na\"ively add the columns together as that would give the total force acting on the element as a whole, not each FE node individually. We chose to arrange the columns in accordance to \cref{f:force_lin_rect} as it makes it easier to implement the solution, but the only thing that matters is that the basis vectors $\vec{n},\,\vec{p},\,\vec{q}$ are calculated appropriately. $\vec{\gamma}$ is the vector with the FE node labels, which makes mapping force to node possible. $\mtx{F_{e}}$ is the $3E \times 4$ matrix where the forces acting on each of the four nodes (column) in a particular surface element (each element corresponds to three consecutive rows because there are three dimensions) are stored. $\vec{\tilde{F}}$ is the $3N\times1$ column vector where the total forces on each node are stored (each node has three rows because there are three dimensions). This is easily generalisable to $E$ elements and $N$ nodes.
+Where $\vec{x_{e,n}}$ is a $3\times1$ column vector corresponding to the $x,~y,~z$ dislocation induced forces on node $n$ on the surface element $e$. There are four of these per rectangular surface element, where a given node, $n$, can appear in multiple surface elements (e.g. node 5 in \cref{f:shared_node} is shared by all 4 surface elements), all of which independently contribute to the total force on said node. $\vec{x_n}$ is a $3\times1$ column vector corresponding to the total $x,~y,~z$ dislocation induced forces on node $n$. These are used to shorten the definition of \cref{eq:force_imp} and are not explicitly defined in the implementation, rather they give the force matrices $\mtx{F_{e}}$ and $\vec{\tilde{F}}$ a specific row order. $\mtx{N_{L}}$ is crucial for the correct implementation of this analytical solution in traditional FE codes. It is the $E\times4$ matrix corresponding to the global label of each node in a given surface element. Each row of the matrix represents a surface element and each column represents a node in the surface element. We cannot na\"ively add the columns together as that would give the total force acting on the element as a whole, not each FE node individually. We chose to arrange the columns in accordance to \cref{f:force_lin_rect} as it makes it easier to implement the solution, but the only thing that matters is that the basis vectors $\vec{n},\,\vec{p},\,\vec{q}$ are calculated appropriately. $\vec{\gamma}$ is the vector with the FE node labels, which makes mapping force to node possible. $\mtx{F_{e}}$ is the $3E \times 4$ matrix where the forces acting on each of the four nodes (column) in a particular surface element (each element corresponds to three consecutive rows because there are three dimensions) are stored. $\vec{\tilde{F}}$ is the $3N\times1$ column vector where the total forces on each node are stored (each node has three rows because there are three dimensions). This is easily generalisable to $E$ elements and $N$ nodes.
 
-The following algorithm illustrates how the total force on each node is obtained. The resulting force vector is later used in eq. (\ref{eq:thatbc}) as $\tilde{\vec{T}} \equiv \tilde{\vec{F}}$.
+The following algorithm illustrates how the total force on each node is obtained. The resulting force vector is later used in \cref{eq:thatbc} as $\tilde{\vec{T}} \equiv \tilde{\vec{F}}$.
 \begin{algorithm}
     \caption{Assuming $ \vec{\tilde{F}} $ is arranged the same way as $ \vec{\gamma} $ and indexing starts at 0.}
     \begin{algorithmic}[1]
@@ -435,7 +437,7 @@ The limitations of Gauss quadrature become evident when the dislocation line seg
 %
 In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, which results in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$. The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$.
 
-For a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular segment, as shown in figure \ref{f:rel_err_par_edge}. This is because numerical quadrature is only accurate for integrating functions that can be approximated by polynomials. Whereas the dislocation stress field \cite{Cai2006} decays as $1/R_{a}$. This makes numerical quadrature unsuitable as (\ref{e:gauss_leg_ddd_fem_force}) fails to accurately capture the stress, which varies rapidly across the element surface for small $R_a$. The relevant components of the stress tensor for a perpendicular edge segment which is not penetrating the surface are shown in \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric and the resultant forces vanish which is captured when numerically integrating with small $Q$, while $\sigma_{yz}$ does not but can be accurately integrated with sufficiently large $Q$.
+For a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular segment, as shown in \cref{f:rel_err_par_edge}. This is because numerical quadrature is only accurate for integrating functions that can be approximated by polynomials. Whereas the dislocation stress field \cite{Cai2006} decays as $1/R_{a}$. This makes numerical quadrature unsuitable as \cref{eq:gauss_leg_ddd_fem_force} fails to accurately capture the stress, which varies rapidly across the element surface for small $R_a$. The relevant components of the stress tensor for a perpendicular edge segment which is not penetrating the surface are shown in \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric and the resultant forces vanish which is captured when numerically integrating with small $Q$, while $\sigma_{yz}$ does not but can be accurately integrated with sufficiently large $Q$.
 
 \begin{figure}[t]
     \centering
