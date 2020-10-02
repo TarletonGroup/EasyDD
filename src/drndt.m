@@ -27,6 +27,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
         if rn(p, 4) == 7 || rn(p, 4) == 67
             vn(p, :) = [0 0 0];
             % Surface nodes are confined to moving in the movement plane and surface plane.
+        % TODO #41
         elseif rn(p, 4) == 6
             % Skip stationary surface nodes
             if norm(vn(p, :)) < eps

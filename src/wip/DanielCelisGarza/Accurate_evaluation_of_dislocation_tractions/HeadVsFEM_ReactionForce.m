@@ -76,20 +76,20 @@ for j = 20
     clf; hold on; view(3)
     xlabel('x'); ylabel('y'); zlabel('z')
 
-%     plot3(xnodes(Stop(:, 1), 1), xnodes(Stop(:, 1), 2), xnodes(Stop(:, 1), 3), 'b*')
-%     plot3(xnodes(Sbot(:, 1), 1), xnodes(Sbot(:, 1), 2), xnodes(Sbot(:, 1), 3), 'b*')
-%     plot3(xnodes(Sright(:, 1), 1), xnodes(Sright(:, 1), 2), xnodes(Sright(:, 1), 3), 'r.')
+    %     plot3(xnodes(Stop(:, 1), 1), xnodes(Stop(:, 1), 2), xnodes(Stop(:, 1), 3), 'b*')
+    %     plot3(xnodes(Sbot(:, 1), 1), xnodes(Sbot(:, 1), 2), xnodes(Sbot(:, 1), 3), 'b*')
+    %     plot3(xnodes(Sright(:, 1), 1), xnodes(Sright(:, 1), 2), xnodes(Sright(:, 1), 3), 'r.')
     plot3(xnodes(Sleft(:, 1), 1), xnodes(Sleft(:, 1), 2), xnodes(Sleft(:, 1), 3), 'r.')
-%     plot3(xnodes(Sfront(:, 1), 1), xnodes(Sfront(:, 1), 2), xnodes(Sfront(:, 1), 3), 'k*')
-%     plot3(xnodes(Sback(:, 1), 1), xnodes(Sback(:, 1), 2), xnodes(Sback(:, 1), 3), 'k*')
-%     plot3(xnodes(Smixed(:, 1), 1), xnodes(Smixed(:, 1), 2), xnodes(Smixed(:, 1), 3), 'g*')
+    %     plot3(xnodes(Sfront(:, 1), 1), xnodes(Sfront(:, 1), 2), xnodes(Sfront(:, 1), 3), 'k*')
+    %     plot3(xnodes(Sback(:, 1), 1), xnodes(Sback(:, 1), 2), xnodes(Sback(:, 1), 3), 'k*')
+    %     plot3(xnodes(Smixed(:, 1), 1), xnodes(Smixed(:, 1), 2), xnodes(Smixed(:, 1), 3), 'g*')
     plot3(xnodes(gammat(:, 1), 1), xnodes(gammat(:, 1), 2), xnodes(gammat(:, 1), 3), 'ko')
     axis('equal')
     hold off
 
     len = 100;
     x = linspace(0.1 * dx, 0.1 * dx, len);
-    y = linspace(0.5*dy, 0.5*dy, len);
+    y = linspace(0.5 * dy, 0.5 * dy, len);
     z = linspace(0, dz, len);
     x1 = x(1);
     y1 = y(1);
@@ -102,19 +102,27 @@ for j = 20
     links = zeros(len - 1, 8);
     hold on
     plot3(rn(:, 1), rn(:, 2), rn(:, 3), 'r.')
-    plot3(X,Y,Z,'k.')
+    plot3(X, Y, Z, 'k.')
     hold off
 end
+
 doSave = true;
 
-% close all;
+close all;
+
 if doSave
     save('mesh')
 end
+
 %%
 % TODO #34 Couplers to use features in to v2.0
+% TODO #38
+% TODO #39
+% TODO #40
+addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+
 for k = 1:2
-    close all
+    %     close all
     cntr = cntr + 1;
     b = bVec(k, :);
 
@@ -150,7 +158,7 @@ for k = 1:2
 
     x = linspace(0, dx, gridSize);
     y = linspace(0, dy, gridSize);
-    b = sqrt(3) / 2;
+    b = 1; %sqrt(3) / 2;
     [X, Y] = meshgrid(x, y);
 
     if k == 1
@@ -193,7 +201,7 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, sxyN - txy, x1, y1, orientationB, 'xy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 end
 
-% %% Screw
+%% %% Screw
 b = [0 0 1];
 
 for i = 1:len - 1
@@ -210,7 +218,7 @@ sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 sigmaN = hatStressSurf(uhat2, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 syzA = squeeze(sigmaA(2, 3, :, :));
 syzN = squeeze(sigmaN(2, 3, :, :));
-[txz, tyz] = imageStressAnalyticScrew(MU, sqrt(3) / 2, NU, X, Y, x1, y1);
+[txz, tyz] = imageStressAnalyticScrew(MU, 1, NU, X, Y, x1, y1);
 plotCountourfSigmaHat(X, Y, syzA, x1, y1, 'screw', 'yz', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzN, x1, y1, 'screw', 'yz', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 plotCountourfSigmaHat(X, Y, tyz, x1, y1, 'screw', 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
@@ -228,11 +236,6 @@ plotCountourfSigmaHat(X, Y, sxzA ./ txz - 1, x1, y1, 'screw', 'xz', '$\eta$A', '
 plotCountourfSigmaHat(X, Y, sxzN ./ txz - 1, x1, y1, 'screw', 'xz', '$\eta$N', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, sxzA - txz, x1, y1, 'screw', 'xz', '$\Delta$A', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, sxzN - txz, x1, y1, 'screw', 'xz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
-
-
-
-
-
 
 % figCounter = figCounter + 1;
 % figure(figCounter)
@@ -457,7 +460,7 @@ end
 function [txz, tyz] = imageStressAnalyticScrew(mu, b, nu, x, y, a, c)
     E = (2 * (1 + nu)) * mu;
     D = E .* b ./ (4 .* pi .* (1 - nu.^2));
-    
+
     xma = x - a;
     xpa = x + a;
     ymc = y - c;
@@ -466,7 +469,7 @@ function [txz, tyz] = imageStressAnalyticScrew(mu, b, nu, x, y, a, c)
     tyz = -xpa ./ (xpa.^2 + ymc.^2);
     txz = -D .* txz;
     tyz = D .* tyz;
-    
+
 end
 
 function [txx, tyy, txy] = imageStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
