@@ -171,18 +171,18 @@ for k = 1:2
         orientationB = 'Epar';
     end
 
-    % FEM + Analytic tractions
-    plotCountourfSigmaHat(X, Y, sxxA, x1, y1, orientationB, 'xx', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, syyA, x1, y1, orientationB, 'yy', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, sxyA, x1, y1, orientationB, 'xy', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    % FEM + Numeric tractions
-    plotCountourfSigmaHat(X, Y, sxxN, x1, y1, orientationB, 'xx', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
     % Head
-    plotCountourfSigmaHat(X, Y, txx, x1, y1, orientationB, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, tyy, x1, y1, orientationB, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-    plotCountourfSigmaHat(X, Y, txy, x1, y1, orientationB, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+    [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txx, x1, y1, orientationB, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    [~, meanvalyy, stddevyy] = plotCountourfSigmaHat(X, Y, tyy, x1, y1, orientationB, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    [~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txy, x1, y1, orientationB, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    % FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Y, sxxA, x1, y1, orientationB, 'xx', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyA, x1, y1, orientationB, 'yy', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyA, x1, y1, orientationB, 'xy', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
+    % FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Y, sxxN, x1, y1, orientationB, 'xx', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
     % Rel Err FEM + Analytic tractions
     plotCountourfSigmaHat(X, Y, sxxA ./ txx - 1, x1, y1, orientationB, 'xx', '$\eta$A', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
     plotCountourfSigmaHat(X, Y, sxyA ./ tyy - 1, x1, y1, orientationB, 'yy', '$\eta$A', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
@@ -201,9 +201,8 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, sxyN - txy, x1, y1, orientationB, 'xy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 end
 
-%% %% Screw
+% %% Screw
 b = [0 0 1];
-
 for i = 1:len - 1
     links(i, :) = [i, i + 1, b, n];
 end
@@ -219,9 +218,9 @@ sigmaN = hatStressSurf(uhat2, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
 syzA = squeeze(sigmaA(2, 3, :, :));
 syzN = squeeze(sigmaN(2, 3, :, :));
 [txz, tyz] = imageStressAnalyticScrew(MU, 1, NU, X, Y, x1, y1);
-plotCountourfSigmaHat(X, Y, syzA, x1, y1, 'screw', 'yz', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-plotCountourfSigmaHat(X, Y, syzN, x1, y1, 'screw', 'yz', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-plotCountourfSigmaHat(X, Y, tyz, x1, y1, 'screw', 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+[~, meanval, stddev] = plotCountourfSigmaHat(X, Y, tyz, x1, y1, 'screw', 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+plotCountourfSigmaHat(X, Y, syzA, x1, y1, 'screw', 'yz', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanval, stddev)
+plotCountourfSigmaHat(X, Y, syzN, x1, y1, 'screw', 'yz', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanval, stddev)
 plotCountourfSigmaHat(X, Y, syzA ./ tyz - 1, x1, y1, 'screw', 'yz', '$\eta$A', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzN ./ tyz - 1, x1, y1, 'screw', 'yz', '$\eta$N', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzA - tyz, x1, y1, 'screw', 'yz', '$\Delta$A', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
@@ -229,9 +228,9 @@ plotCountourfSigmaHat(X, Y, syzN - tyz, x1, y1, 'screw', 'yz', '$\Delta$N', 'x,~
 
 sxzA = squeeze(sigmaA(1, 3, :, :));
 sxzN = squeeze(sigmaN(1, 3, :, :));
-plotCountourfSigmaHat(X, Y, sxzA, x1, y1, 'screw', 'xz', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-plotCountourfSigmaHat(X, Y, sxzN, x1, y1, 'screw', 'xz', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-plotCountourfSigmaHat(X, Y, txz, x1, y1, 'screw', 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+[~, meanval, stddev] = plotCountourfSigmaHat(X, Y, txz, x1, y1, 'screw', 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+plotCountourfSigmaHat(X, Y, sxzA, x1, y1, 'screw', 'xz', 'A', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanval, stddev)
+plotCountourfSigmaHat(X, Y, sxzN, x1, y1, 'screw', 'xz', 'N', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanval, stddev)
 plotCountourfSigmaHat(X, Y, sxzA ./ txz - 1, x1, y1, 'screw', 'xz', '$\eta$A', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, sxzN ./ txz - 1, x1, y1, 'screw', 'xz', '$\eta$N', 'x,~b', 'y,~b', 'Rel Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, sxzA - txz, x1, y1, 'screw', 'xz', '$\Delta$A', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
@@ -381,13 +380,18 @@ plotCountourfSigmaHat(X, Y, sxzN - txz, x1, y1, 'screw', 'xz', '$\Delta$N', 'x,~
 % plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
 % hold off
 
-function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orientationB, component, equation, xaxis, yaxis, units, fontSize, save)
+function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orientationB, component, equation, xaxis, yaxis, units, fontSize, save, meanval, stddev, levels)
     fig = figure();
-    contourf(X, Y, Z);
+    if ~exist('levels', 'var')
+        levels = 20;
+    end
+    contourf(X, Y, Z, levels);
     colormap(parula)
     cb = colorbar;
-    meanval = mean(Z, 'all');
-    stddev = std(Z, 0, 'all');
+    if ~exist('meanval', 'var') || ~exist('stddev', 'var')
+        meanval = mean(Z, 'all');
+        stddev = std(Z, 0, 'all');
+    end
     displace = 5 * stddev;
     limits = [meanval - displace, meanval + displace];
     caxis(limits)
