@@ -169,7 +169,8 @@ for k = 1:2
         [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
         orientationB = 'Epar';
     end
-%     % Image stresses
+    
+    % Image stresses
     symbol = '\hat{\sigma}';
     % Head
     [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txx, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
@@ -199,6 +200,26 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, sxxN - txx, x1, y1, orientationB, symbol, 'xx', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
     plotCountourfSigmaHat(X, Y, syyN - tyy, x1, y1, orientationB, symbol, 'yy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
     plotCountourfSigmaHat(X, Y, sxyN - txy, x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
+    
+    % Real stresses
+    symbol = '\tilde{\sigma}';
+    % Head
+    orientationB = strcat(orientationB, '_real');
+    [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txxFP, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    [~, meanvalyy, stddevyy] = plotCountourfSigmaHat(X, Y, tyyFP, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    [~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txyFP, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+    % FEM + Analytic Fieldpoints
+    plotCountourfSigmaHat(X, Y, sxxFP, x1, y1, orientationB, symbol, 'xx', 'FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyFP, x1, y1, orientationB, symbol, 'yy', 'FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyFP, x1, y1, orientationB, symbol, 'xy', 'FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
+    % Rel Err
+    plotCountourfSigmaHat(X, Y, sxxFP ./ txxFP - 1, x1, y1, orientationB, symbol, 'xx', '$\eta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyFP ./ syyFP - 1, x1, y1, orientationB, symbol, 'yy', '$\eta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyFP ./ sxyFP - 1, x1, y1, orientationB, symbol, 'xy', '$\eta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
+    % Abs err
+    plotCountourfSigmaHat(X, Y, sxxFP - txxFP, x1, y1, orientationB, symbol, 'xx', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyFP - syyFP, x1, y1, orientationB, symbol, 'yy', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyFP - sxyFP, x1, y1, orientationB, symbol, 'xy', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
     
     % Total stresses
     symbol = '\sigma';
@@ -238,7 +259,7 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, (syyN + syyFP) - (tyyT), x1, y1, orientationB, symbol, 'yy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 end
-
+%%
 % %% Screw
 close all
 b = [0 0 1];
@@ -299,6 +320,22 @@ plotCountourfSigmaHat(X, Y, syzA - tyz, x1, y1, orientationB, symbol, 'yz', '$\D
 % Abs err FEM + numeric
 plotCountourfSigmaHat(X, Y, sxzN - txz, x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzN - tyz, x1, y1, orientationB, symbol, 'yz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
+
+% Real stresses
+symbol = '\tilde{\sigma}';
+% Head
+orientationB = strcat(orientationB, '_real');
+[~, meanvalxz, stddevxz] = plotCountourfSigmaHat(X, Y, txzFP, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+[~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txyFP, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave);
+% FEM + Analytic tractions
+plotCountourfSigmaHat(X, Y, sxzFP, x1, y1, orientationB, symbol, 'xz', 'FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxz, stddevxz)
+plotCountourfSigmaHat(X, Y, sxyFP, x1, y1, orientationB, symbol, 'xy', 'FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
+% Rel Err
+plotCountourfSigmaHat(X, Y, sxzFP ./ txzFP - 1, x1, y1, orientationB, symbol, 'xz', '$\eta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxz, stddevxz)
+plotCountourfSigmaHat(X, Y, sxyFP ./ txyFP - 1, x1, y1, orientationB, symbol, 'xy', '$\eta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
+% Abs Err
+plotCountourfSigmaHat(X, Y, sxzFP - txzFP, x1, y1, orientationB, symbol, 'xz', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxz, stddevxz)
+plotCountourfSigmaHat(X, Y, sxyFP - txyFP, x1, y1, orientationB, symbol, 'xy', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
 
 % Total stresses
 symbol = '\sigma';
