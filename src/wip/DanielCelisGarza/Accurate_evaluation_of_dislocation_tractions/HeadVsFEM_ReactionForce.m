@@ -160,19 +160,19 @@ for k = 1:2
     b = 1; %sqrt(3) / 2;
     [X, Y] = meshgrid(x, y);
 
-     if k == 1
+    if k == 1
         [txx, tyy, txy] = imageStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
         [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
         orientationB = 'Eperp';
-        
+
         sxxAperp = sxxA;
         syyAperp = syyA;
         sxyAperp = sxyA;
-        
+
         sxxNperp = sxxN;
         syyNperp = syyN;
         sxyNperp = sxyN;
-        
+
         txxPerp = txx;
         tyyPerp = tyy;
         txyPerp = txy;
@@ -180,20 +180,20 @@ for k = 1:2
         [txx, tyy, txy] = imageStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
         [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
         orientationB = 'Epar';
-        
+
         sxxApar = sxxA;
         syyApar = syyA;
         sxyApar = sxyA;
-        
+
         sxxNpar = sxxN;
         syyNpar = syyN;
         sxyNpar = sxyN;
-        
+
         txxPar = txx;
         tyyPar = tyy;
         txyPar = txy;
     end
-    
+
     % Screw
     % Image stresses
     symbol = '\hat{\sigma}';
@@ -225,7 +225,7 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, sxxN - txx, x1, y1, orientationB, symbol, 'xx', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
     plotCountourfSigmaHat(X, Y, syyN - tyy, x1, y1, orientationB, symbol, 'yy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
     plotCountourfSigmaHat(X, Y, sxyN - txy, x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
-    
+
     % Real stresses
     symbol = '\tilde{\sigma}';
     % Head
@@ -245,7 +245,7 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, sxxFP - txxFP, x1, y1, orientationB, symbol, 'xx', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxx, stddevxx)
     plotCountourfSigmaHat(X, Y, syyFP - syyFP, x1, y1, orientationB, symbol, 'yy', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyFP - sxyFP, x1, y1, orientationB, symbol, 'xy', '$\Delta$FP', 'x,~b', 'y,~b', '$\mu$', 15, doSave, meanvalxy, stddevxy)
-    
+
     % Total stresses
     symbol = '\sigma';
     % Head
@@ -284,11 +284,13 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, (syyN + syyFP) - (tyyT), x1, y1, orientationB, symbol, 'yy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 end
+
 %%
 % %% Screw
 close all
 b = [0 0 1];
 orientationB = 'screw';
+
 for i = 1:len - 1
     links(i, :) = [i, i + 1, b, n];
 end
@@ -345,7 +347,7 @@ plotCountourfSigmaHat(X, Y, syzA - tyz, x1, y1, orientationB, symbol, 'yz', '$\D
 % Abs err FEM + numeric
 plotCountourfSigmaHat(X, Y, sxzN - txz, x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzN - tyz, x1, y1, orientationB, symbol, 'yz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
- 
+
 % Real stresses
 symbol = '\tilde{\sigma}';
 % Head
@@ -390,26 +392,26 @@ plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbo
 i = 3;
 symbol = '\hat{\sigma}';
 orientationB = 'Eperp';
-linePlot(sxxAperp(:,i), sxxNperp(:,i), txxPerp(:,i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
-linePlot(syyAperp(:,i), syyNperp(:,i), tyyPerp(:,i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
-linePlot(sxyAperp(:,i), sxyNperp(:,i), txyPerp(:,i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxxAperp(:, i), sxxNperp(:, i), txxPerp(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syyAperp(:, i), syyNperp(:, i), tyyPerp(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxyAperp(:, i), sxyNperp(:, i), txyPerp(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txxPerp, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, tyyPerp, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txyPerp, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
 i = 3;
 orientationB = 'Epar';
-linePlot(sxxApar(:,i), sxxNpar(:,i), txxPar(:,i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
-linePlot(syyApar(:,i), syyNpar(:,i), tyyPar(:,i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
-linePlot(sxyApar(:,i), sxyNpar(:,i), txyPar(:,i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxxApar(:, i), sxxNpar(:, i), txxPar(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syyApar(:, i), syyNpar(:, i), tyyPar(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxyApar(:, i), sxyNpar(:, i), txyPar(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txxPar, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, tyyPar, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txyPar, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
 i = 3;
 orientationB = 'screw';
-linePlot(sxzA(:,i), sxzN(:,i), txz(:,i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 15, doSave)
-linePlot(syzA(:,i), syzN(:,i), tyz(:,i), orientationB, symbol, 'yz', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syzA(:, i), syzN(:, i), tyz(:, i), orientationB, symbol, 'yz', 'Grid Point', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, tyz, x1, y1, orientationB, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
@@ -420,11 +422,11 @@ function fig = linePlot(analytic, numeric, head, orientationB, stress, component
     plot(numeric, '--', 'LineWidth', 2)
     plot(head, ':', 'LineWidth', 2)
     hold off
-%     title(sprintf('$%s_{%s}^{\\textrm{%s}}$', stress, component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
+    %     title(sprintf('$%s_{%s}^{\\textrm{%s}}$', stress, component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
     xlabel(sprintf('%s', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
     ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
     legend(sprintf('$%s_{%s}^{\\textrm{A}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{N}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{H}}$', stress, component), 'Interpreter', 'latex', 'FontSize', fontSize)
-    
+
     if save
         name = erase(sprintf('line_s%s%s', component, orientationB), ["\", "$"]);
         set(fig, 'Units', 'Inches');
@@ -432,21 +434,25 @@ function fig = linePlot(analytic, numeric, head, orientationB, stress, component
         set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
         print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
     end
-end
 
+end
 
 function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orientationB, stress, component, equation, xaxis, yaxis, units, fontSize, save, meanval, stddev, levels)
     fig = figure();
+
     if ~exist('levels', 'var')
         levels = 20;
     end
+
     contourf(X, Y, Z, levels);
     colormap(parula)
     cb = colorbar;
-    if ~exist('meanval', 'var') || ~exist('stddev', 'var')
+
+    if ~exist('meanval', 'var') ||~exist('stddev', 'var')
         meanval = mean(Z, 'all');
         stddev = std(Z, 0, 'all');
     end
+
     displace = 5 * stddev;
     limits = [meanval - displace, meanval + displace];
     caxis(limits)
@@ -599,18 +605,18 @@ function [txx, tyy, txy] = totalStressAnalyticEdgePerp(mu, b, nu, x, y, a, c)
     den2 = (xpa2 + ymc2).^2;
     den3 = den2 .* (xpa2 + ymc2);
 
-    txx = - ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
+    txx =- ymc .* (3 .* xma2 + ymc2) ./ den1 + ...
         ymc .* (3 .* xpa2 + ymc2) ./ den2 + ...
         4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
     txx = D .* txx;
 
-    tyy = ymc .* (xma2 - ymc2)./den1 + ...
-    -ymc .* (xpa2 - ymc2) ./ den2 + ...
+    tyy = ymc .* (xma2 - ymc2) ./ den1 + ...
+        -ymc .* (xpa2 - ymc2) ./ den2 + ...
         4 .* a .* ymc .* ((2 .* a - x) .* xpa2 + (3 .* x + 2 .* a) .* ymc2) ./ den3;
     tyy = D .* tyy;
 
-    txy = xma .* (xma2 - ymc2)./den1 + ...
-    -xpa .* (xpa2 - ymc2) ./ den2 + ...
+    txy = xma .* (xma2 - ymc2) ./ den1 + ...
+        -xpa .* (xpa2 - ymc2) ./ den2 + ...
         2 .* a .* (-xma .* xpa .* xpa2 + 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
     txy = D .* txy;
 end
@@ -687,7 +693,7 @@ function [txx, tyy, txy] = imageStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
         4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
     txy = D .* txy;
 end
- 
+
 function [txx, tyy, txy] = totalStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
     %%%
     % Stress on point (a, c) induced by edge dislocation parallel to the
@@ -707,17 +713,17 @@ function [txx, tyy, txy] = totalStressAnalyticEdgePar(mu, b, nu, x, y, a, c)
     den3 = den2 .* (xpa2 + ymc2);
 
     txx = xma .* (xma2 - ymc2) ./ den1 + ...
-    -xpa .* (xpa2 - ymc2) ./ den2 + ...
+        -xpa .* (xpa2 - ymc2) ./ den2 + ...
         2 .* a .* ((3 * x + a) .* xpa2 .* xpa - 6 .* x .* xpa .* ymc2 - ymc2 .* ymc2) ./ den3;
     txx = D .* txx;
 
-    tyy = xma .* (xma2 + 3.*ymc2) ./ den1 + ...
-    -xpa .* (xpa2 + 3 .* ymc2) ./ den2 + ...
+    tyy = xma .* (xma2 + 3 .* ymc2) ./ den1 + ...
+        -xpa .* (xpa2 + 3 .* ymc2) ./ den2 + ...
         -2 .* a .* (xma .* xpa .* xpa2 - 6 .* x .* xpa .* ymc2 + ymc2 .* ymc2) ./ den3;
     tyy = D .* tyy;
 
     txy = ymc .* (xma2 - ymc2) ./ den1 + ...
-    -ymc .* (xpa2 - ymc2) ./ den2 + ...
+        -ymc .* (xpa2 - ymc2) ./ den2 + ...
         4 .* a .* x .* ymc .* (3 .* xpa2 - ymc2) ./ den3;
     txy = D .* txy;
 end
