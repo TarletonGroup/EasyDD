@@ -27,7 +27,7 @@ dz = 1000;
 
 figCounter = 0;
 cntr = 0;
-% TODO #36
+
 for j = 20
     mx = j;
 
@@ -116,8 +116,6 @@ end
 
 %%
 % TODO #34 Couplers to use features in to v2.0
-% TODO #38
-% TODO #40
 addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
 
 for k = 1:2
