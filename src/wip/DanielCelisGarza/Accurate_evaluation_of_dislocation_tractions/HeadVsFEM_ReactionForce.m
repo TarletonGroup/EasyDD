@@ -160,16 +160,41 @@ for k = 1:2
     b = 1; %sqrt(3) / 2;
     [X, Y] = meshgrid(x, y);
 
-    if k == 1
+     if k == 1
         [txx, tyy, txy] = imageStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
         [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
         orientationB = 'Eperp';
+        
+        sxxAperp = sxxA;
+        syyAperp = syyA;
+        sxyAperp = sxyA;
+        
+        sxxNperp = sxxN;
+        syyNperp = syyN;
+        sxyNperp = sxyN;
+        
+        txxPerp = txx;
+        tyyPerp = tyy;
+        txyPerp = txy;
     else
         [txx, tyy, txy] = imageStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
         [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
         orientationB = 'Epar';
+        
+        sxxApar = sxxA;
+        syyApar = syyA;
+        sxyApar = sxyA;
+        
+        sxxNpar = sxxN;
+        syyNpar = syyN;
+        sxyNpar = sxyN;
+        
+        txxPar = txx;
+        tyyPar = tyy;
+        txyPar = txy;
     end
     
+    % Screw
     % Image stresses
     symbol = '\hat{\sigma}';
     % Head
@@ -320,7 +345,7 @@ plotCountourfSigmaHat(X, Y, syzA - tyz, x1, y1, orientationB, symbol, 'yz', '$\D
 % Abs err FEM + numeric
 plotCountourfSigmaHat(X, Y, sxzN - txz, x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
 plotCountourfSigmaHat(X, Y, syzN - tyz, x1, y1, orientationB, symbol, 'yz', '$\Delta$N', 'x,~b', 'y,~b', 'Abs Err', 15, doSave)
-
+ 
 % Real stresses
 symbol = '\tilde{\sigma}';
 % Head
@@ -361,156 +386,54 @@ plotCountourfSigmaHat(X, Y, (sxyA + sxyFP) - (txyT), x1, y1, orientationB, symbo
 % Abs Err FEM + Numeric tractions
 plotCountourfSigmaHat(X, Y, (sxzN + sxzFP) - (txzT), x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+%%
+i = 3;
+symbol = '\hat{\sigma}';
+orientationB = 'Eperp';
+linePlot(sxxAperp(:,i), sxxNperp(:,i), txxPerp(:,i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syyAperp(:,i), syyNperp(:,i), tyyPerp(:,i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxyAperp(:,i), sxyNperp(:,i), txyPerp(:,i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, txxPerp, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, tyyPerp, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, txyPerp, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
+i = 3;
+orientationB = 'Epar';
+linePlot(sxxApar(:,i), sxxNpar(:,i), txxPar(:,i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syyApar(:,i), syyNpar(:,i), tyyPar(:,i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(sxyApar(:,i), sxyNpar(:,i), txyPar(:,i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, txxPar, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, tyyPar, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, txyPar, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
+i = 3;
+orientationB = 'screw';
+linePlot(sxzA(:,i), sxzN(:,i), txz(:,i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 15, doSave)
+linePlot(syzA(:,i), syzN(:,i), tyz(:,i), orientationB, symbol, 'yz', 'Grid Point', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% plotCountourfSigmaHat(X, Y, tyz, x1, y1, orientationB, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 
+function fig = linePlot(analytic, numeric, head, orientationB, stress, component, xaxis, yaxis, fontSize, save)
+    fig = figure();
+    hold on
+    plot(analytic, 'LineWidth', 2)
+    plot(numeric, '--', 'LineWidth', 2)
+    plot(head, ':', 'LineWidth', 2)
+    hold off
+%     title(sprintf('$%s_{%s}^{\\textrm{%s}}$', stress, component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
+    xlabel(sprintf('%s', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
+    ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
+    legend(sprintf('$%s_{%s}^{\\textrm{A}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{N}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{H}}$', stress, component), 'Interpreter', 'latex', 'FontSize', fontSize)
+    
+    if save
+        name = erase(sprintf('line_s%s%s', component, orientationB), ["\", "$"]);
+        set(fig, 'Units', 'Inches');
+        pos = get(fig, 'Position');
+        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+        print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
+    end
+end
 
-
-
-
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% txx = txx; %./norm(txx);
-% meantxx = mean(txx, 'all');
-% stdtxx = std(txx, 0, 'all');
-% displace = 5 * stdtxx;
-% limits = [meantxx - displace, meantxx + displace];
-% contourf(X, Z, txx);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' sxx'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% tyy = tyy; %./norm(tyy);
-% meantzz = mean(tyy, 'all');
-% stdtzz = std(tyy, 0, 'all');
-% displace = 5 * stdtzz;
-% limits = [meantzz - displace, meantzz + displace];
-% contourf(X, Z, tyy);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' szz'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% txy = txy; %./norm(txy);
-% meantxz = mean(txy, 'all');
-% stdtxz = std(txy, 0, 'all');
-% displace = 5 * stdtxz;
-% limits = [meantxz - displace, meantxz + displace];
-% contourf(X, Z, txy);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' sxz'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% contourf(X, Z, sxxFP);
-% colormap(parula)
-% colorbar
-% title('FP FE sxx')
-% xlabel('x')
-% ylabel('z')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% contourf(X, Z, szzFP);
-% colormap(parula)
-% colorbar
-% title('FP FE szz')
-% xlabel('x')
-% ylabel('z')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% contourf(X, Z, sxzFP);
-% colormap(parula)
-% colorbar
-% title('FP FE sxz')
-% xlabel('x')
-% ylabel('z')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% txxFP = txxFP; %./norm(txx);
-% meantxx = mean(txxFP, 'all');
-% stdtxx = std(txxFP, 0, 'all');
-% displace = 5 * stdtxx;
-% limits = [meantxx - displace, meantxx + displace];
-% contourf(X, Z, txxFP);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' FP sxx'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% tzzFP = tzzFP; %./norm(tyy);
-% meantzz = mean(tzzFP, 'all');
-% stdtzz = std(tzzFP, 0, 'all');
-% displace = 5 * stdtzz;
-% limits = [meantzz - displace, meantzz + displace];
-% contourf(X, Z, tzzFP);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' FP szz'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
-%
-% figCounter = figCounter + 1;
-% figure(figCounter)
-% txzFP = txzFP; %./norm(txy);
-% meantxz = mean(txzFP, 'all');
-% stdtxz = std(txzFP, 0, 'all');
-% displace = 5 * stdtxz;
-% limits = [meantxz - displace, meantxz + displace];
-% contourf(X, Z, txzFP);
-% colormap(parula)
-% colorbar
-% caxis(limits)
-% title(strcat('b', name, ' FP sxz'))
-% xlabel('b')
-% ylabel('b')
-% hold on
-% plot(x1, y1, '.', 'color', 'black', 'MarkerSize', 10)
-% hold off
 
 function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orientationB, stress, component, equation, xaxis, yaxis, units, fontSize, save, meanval, stddev, levels)
     fig = figure();
