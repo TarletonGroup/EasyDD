@@ -88,8 +88,12 @@ for j = 20
     hold off
 
     len = 100;
-    x = linspace(0.1 * dx, 0.1 * dx, len);
-    y = linspace(0.5 * dy, 0.5 * dy, len);
+    xcoord = linspace(0, dx, j);
+    ycoord = linspace(0, dy, j);
+    xcoord = xcoord(2)/2; % middle of first element.
+    ycoord = (ycoord(floor(j/2)) + ycoord(floor(j/2) + 1))/2; % middle of the domain
+    x = linspace(xcoord, xcoord, len);
+    y = linspace(ycoord, ycoord, len);
     z = linspace(0, dz, len);
     x1 = x(1);
     y1 = y(1);
@@ -192,7 +196,7 @@ for k = 1:2
         txyPar = txy;
     end
 
-    % Screw
+    % Edge
     % Image stresses
     symbol = '\hat{\sigma}';
     % Head
@@ -283,8 +287,7 @@ for k = 1:2
     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 end
 
-%%
-% %% Screw
+% Screw
 close all
 b = [0 0 1];
 orientationB = 'screw';
@@ -386,32 +389,67 @@ plotCountourfSigmaHat(X, Y, (sxyA + sxyFP) - (txyT), x1, y1, orientationB, symbo
 % Abs Err FEM + Numeric tractions
 plotCountourfSigmaHat(X, Y, (sxzN + sxzFP) - (txzT), x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
 plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
-%%
-i = 3;
+
+% Line plots
+% Edge perp
+close all
+i = 2;
 symbol = '\hat{\sigma}';
 orientationB = 'Eperp';
 linePlot(sxxAperp(:, i), sxxNperp(:, i), txxPerp(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
 linePlot(syyAperp(:, i), syyNperp(:, i), tyyPerp(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
 linePlot(sxyAperp(:, i), sxyNperp(:, i), txyPerp(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txxPerp, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% x = linspace(xcoord, xcoord, j);
+% y = linspace(0, dy, j);
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 % plotCountourfSigmaHat(X, Y, tyyPerp, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 % plotCountourfSigmaHat(X, Y, txyPerp, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 
-i = 3;
+% Edge par
+i = 2;
 orientationB = 'Epar';
 linePlot(sxxApar(:, i), sxxNpar(:, i), txxPar(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 15, doSave)
 linePlot(syyApar(:, i), syyNpar(:, i), tyyPar(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 15, doSave)
 linePlot(sxyApar(:, i), sxyNpar(:, i), txyPar(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 15, doSave)
 % plotCountourfSigmaHat(X, Y, txxPar, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 % plotCountourfSigmaHat(X, Y, tyyPar, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 % plotCountourfSigmaHat(X, Y, txyPar, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 
-i = 3;
+% Screw
+i = 2;
 orientationB = 'screw';
 linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 15, doSave)
 linePlot(syzA(:, i), syzN(:, i), tyz(:, i), orientationB, symbol, 'yz', 'Grid Point', '$\mu$', 15, doSave)
-% plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 15, false)
+hold on
+plot(linspace(x(2), x(2), j), y, 'LineWidth', 2, 'LineStyle', '--')
+hold off
+set(gcf(), 'Units', 'Inches');
+pos = get(gcf(), 'Position');
+set(gcf(), 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % plotCountourfSigmaHat(X, Y, tyz, x1, y1, orientationB, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 15, doSave)
+% hold on
+% plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
+% hold off
 
 function fig = linePlot(analytic, numeric, head, orientationB, stress, component, xaxis, yaxis, fontSize, save)
     fig = figure();
@@ -423,7 +461,7 @@ function fig = linePlot(analytic, numeric, head, orientationB, stress, component
     %     title(sprintf('$%s_{%s}^{\\textrm{%s}}$', stress, component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
     xlabel(sprintf('%s', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
     ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
-    legend(sprintf('$%s_{%s}^{\\textrm{A}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{N}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{H}}$', stress, component), 'Interpreter', 'latex', 'FontSize', fontSize)
+    legend(sprintf('$%s_{%s}^{\\textrm{A}}$', stress, component), sprintf('$%s_{%s}^{\\textrm{N}}$', stress, component), sprintf('$%s_{%s}$', stress, component), 'Interpreter', 'latex', 'FontSize', fontSize)
 
     if save
         name = erase(sprintf('line_s%s%s', component, orientationB), ["\", "$"]);
@@ -459,7 +497,7 @@ function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orienta
     ylabel(sprintf('$%s$', yaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
     ylabel(cb, sprintf('%s', units), 'Interpreter', 'latex', 'FontSize', fontSize)
     hold on
-    plot(x0, y0, '.', 'color', 'black', 'MarkerSize', fontSize)
+    plot(x0, y0, '.', 'color', 'white', 'MarkerSize', fontSize)
     hold off
 
     if save
