@@ -90,8 +90,9 @@ for j = 20
     len = 100;
     xcoord = linspace(0, dx, j);
     ycoord = linspace(0, dy, j);
-    xcoord = xcoord(2)/2; % middle of first element.
-    ycoord = (ycoord(floor(j/2)) + ycoord(floor(j/2) + 1))/2; % middle of the domain
+    % TODO #44
+    xcoord = xcoord(2) / 2; % middle of first element.
+    ycoord = (ycoord(floor(j / 2)) + ycoord(floor(j / 2) + 1)) / 2; % middle of the domain
     x = linspace(xcoord, xcoord, len);
     y = linspace(ycoord, ycoord, len);
     z = linspace(0, dz, len);
