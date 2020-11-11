@@ -5,6 +5,7 @@
 % InvJ = prod(ds./dx);
 
 %%
+% TODO #46
 limits = [-1, 1; -1, 1; -1, 1];
 ndim = 3;
 npoints = 2;
