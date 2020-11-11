@@ -1,7 +1,7 @@
 %%% Script to compare Head's analytical solutions to those obtained via FEM using analytic and numeric tractions.
 close all
 clear all
-
+% TODO #45
 amag = 3.18e-4;
 
 CRYSTAL_STRUCTURE = 'bcc';
@@ -451,7 +451,9 @@ print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % hold on
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
 % hold off
+%%
 
+% Quarter of th
 function fig = linePlot(analytic, numeric, head, orientationB, stress, component, xaxis, yaxis, fontSize, save)
     fig = figure();
     hold on
