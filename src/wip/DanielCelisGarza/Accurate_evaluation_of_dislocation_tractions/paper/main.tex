@@ -43,6 +43,7 @@
 
 %% main text
 \section{Introduction}\label{s:intro}
+
 Coupling discrete dislocation dynamics (DDD) to the finite element method (FEM) allows micromechanical tests to be simulated \cite{Groh2009}. Virtual experiments are essential for interpreting experimental data and relating the measured mechanical response to dislocation mechanisms \cite{0965-0393-6-6-007,doi:10.1080/14786430500341250,tarleton2015discrete,YU2018}. One of the most popular methods for coupling DDD and FEM is the superposition method \cite{superposition_scheme0,superposition_scheme1,superposition_scheme2}.
 %
 \begin{figure}
@@ -405,11 +406,15 @@ After the tractions have been calculated, they are used by the FE solver to gene
     \label{f:headvstractionfem}
 \end{figure}
 
+% TODO #48
 Finally, we ran a simple simulation where the differences between methods can be readily observed.
 
-\section{Results}
+\section{Results}\label{s:results}
 
-\begin{figure}[t]
+Isolated test cases were useful in order to gain insight into the differences between the numerical and analytical approaches. When the stress field on the surface element is highly symmetric, numerical integration works well; showing good convergence with increasing number of quadrature points.
+
+\Cref{f:rel_err_perp_edge} shows that even for dislocations only one dislocation core radius ($5b$) away from the surface element, the force can be obtained, up to numerical precision, with 1000 Gauss quadrature points $Q$, for all segment lengths tested. It also shows a very peculiar issue Gauss quadrature has when computing integrals of rational functions when the Gauss points are close poles/maximal values. This undesirable behaviour is observed in the case where $Q = 11$. Where the highest weighted Gauss node is closest to the point where $1/R_{a}$ is maximal, resulting in lower accuracy when compared to $Q = 2, 10$ in \cref{f:rel_err_perp_edge} (a) and (b).
+\begin{figure}
     \centering
     \subfloat[Segment starts a single dislocation core radius away.]
     {
@@ -434,24 +439,18 @@ Finally, we ran a simple simulation where the differences between methods can be
     \label{f:rel_err_perp_edge}
 \end{figure}
 
-Isolated test cases were useful in order to gain insight into the differences between the numerical and analytical approaches. When the stress field on the surface element is highly symmetric numerical integration works well; showing good convergence with increasing number of quadrature points. \Cref{f:rel_err_perp_edge} shows that even for dislocations only one dislocation core radius ($5b$) away from the surface element, the force can be obtained, up to numerical precision, with 1000 quadrature points, for all segment lengths tested. However, as stated in \cref{s:theory}, the limitations of Gauss quadrature are also evident. \Cref{f:rel_err_perp_edge,f:rel_err_par_edge} showcase the problem with numerical integration to compute integrals of rational functions close to a pole. The comparatively large relative errors with $Q = 11$, compared to fewer quadrature points, as the dislocation nears the element face makes it hard to globally minimise the error by picking a specific number of quadrature points while maintaining a feasible computational cost.
-
-Gauss quadrature fails to capture the $1/R_a$ nature of the stress tensor, especially when a segment is close to a heavily weighted quadrature point. When the dislocation node $\mathbf{x_{1}}$ is close to the surface element (see \cref{f:gauss_quad_test}), 11 Gauss points ($Q=11$) performs worse than with $Q=2$, as shown in \cref{f:rel_err_perp_edge} (a) and (b). This is because When $Q$ is odd a Gauss point is at the element center, as shown in \Cref{f:2d_gaussian_quad}, directly in front of the dislocation segment.
-
-The limitations of Gauss quadrature become evident when the dislocation line segment is parallel to a surface element. \Cref{f:rel_err_par_edge} shows the relative errors for a parallel edge dislocation. In this configuration the forces due to a screw dislocations vanish as the stress field is antisymmetric.
-%
-\begin{figure}[t]
+The limitations of Gauss quadrature become even more evident when the dislocation line segment is parallel to a surface element. \Cref{f:rel_err_par_edge} shows the relative errors for a parallel edge dislocation.
+\begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{par_e_z.pdf}
     \caption{Log-log plot of the relative error as a function of distance from the surface element for a parallel edge dislocation (\cref{f:gauss_quad_test}b). Burgers vector, $\bm{b} = [0 1 0]$, line direction, $\bm{l} = [1 0 0]$, dislocation core and surface element parameters are the same as \cref{f:rel_err_perp_edge}. The dislocation length is fixed to $10^{6}\, b,\, x\in\left[-0.5\times10^{6},\, 0.5\times10^{6} \right]$ and bisects the surface element along the $[1 0 0]$ direction. The whole dislocation was segmented into $10^4$ pieces of length $100\, b$ to prevent the dislocation from intersecting the surface element when they were rotated to avoid the singularity. The relative error at large distances ($>10^6 b$) converges to one due to artifacting when dividing two very small double precision numbers. The absolute error always goes towards zero with increasing distance from the surface.}
     \label{f:rel_err_par_edge}
 \end{figure}
-%
-In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, which results in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$. The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$.
+In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, resulting in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$\footnote[1]{The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison as long as we are conscious of small artifacting from limited precision.}. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$. This figure backs up the earlier point regarding Gauss nodes close to maximal rational values, as $Q = 2$ performs significantly better than $Q = 10, 11, 100, 100$ at smaller distances from the surface. Generally, there is no best value of $Q$ other than very large.
 
-For a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular segment, as shown in \cref{f:rel_err_par_edge}. This is because numerical quadrature is only accurate for integrating functions that can be approximated by polynomials. Whereas the dislocation stress field \cite{Cai2006} decays as $\mathcal{O}(1/R)$. This makes Gauss quadrature unsuitable as \cref{eq:gauss_leg_ddd_fem_force} fails to accurately capture the stress, which varies rapidly across the element surface for small $R$. The relevant components of the stress tensor for a perpendicular edge segment which is not penetrating the surface are shown in \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric and the resultant forces vanish which is captured when numerically integrating with small $Q$, while $\sigma_{yz}$ does not but can be accurately integrated with sufficiently large $Q$.
+From \cref{f:rel_err_perp_edge,f:rel_err_par_edge} one might be tempted to say that for a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular one. However there is a further wrinkle in this problem: symmetry. To exemplify this we plot the relevant components of the stress tensor for the arrangement in \cref{f:gauss_quad_test}(a) we find \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric about the centre of the element. If we use Gauss quadrature on them, we sample equivalent but oppositely valued points that equally weighted, thus the sum vanishes. $\sigma_{yz}$ does not, but it can be accurately integrated with sufficiently large $Q$. If we were to move the dislocation off-centre such that the rotational anti-symmetry about the origin is broken, the errors would increase.
 
-\begin{figure}[t]
+\begin{figure}
     \centering
     \subfloat[$\sigma_{xz}$.\label{sf:xzeperp}]
     {
@@ -471,42 +470,161 @@ For a segment parallel to a surface, Gauss quadrature performs far worse than fo
     \label{f:sigma_perp_edge}
 \end{figure}
 
-It is evident that symmetry plays a role in the accuracy of numerical integration. If a stress field has the appropriate symmetry, as in \cref{f:sigma_perp_edge}, Gauss quadrature will be accurate given enough quadrature points. However, when the segment is translated off-centre, this breaks the symmetry and the symmetric weighting of the Gauss quadrature scheme fails to accurately integrate the stress fields when the segment is close to the surface. The latter case is of course much more common in a simulation than the former, so in reality the errors between analytical and numerical solutions are larger than what is led on by these contrived cases. The error convergence with higher numbers of quadrature points is consistent with the findings of \cite{Queyreau}.
+Despite these being somewhat contrived examples that illustrate the failings of Gauss quadrature, problematic scenarios are commonly to show up in simulations. They are worse with smaller core radii $a$, fewer Gauss nodes, higher dislocation densities near surfaces and more permissive mobility functions. They are fairly localised given the $\mathcal{O}(1/R)$ decay but under unfortunate cirumstances, these spikes in the image forces result in unwarranted topological changes to the dislocation structure by causing segments to move in erroneous or erratic ways. Such changes to the dislocation structure tend to have large and cascading effects as simulations advance. Which is particularly deleterious when doing simulations with higher dislocation densities and/or where a large number of dislocations are close to the surface, such as nanoindentation simulations.
 
-The isolated tractions are only part of the story however, as they are used to calculate the image forces as a result of the boundary. We therefore also compare image forces calculated from numeric ($Q = 1$) tractions and analytic traction calculations affect the image forces to see the extent to which higher accuracy tractions affect the FE part of the simulation. To do so we compare the traction + FEM calculation to analytic solutions by \citet{head1953edge}.
+As stated in \cref{s:method}, tractions are used to calculate the image stresses resulting from the boundary conditions. We therefore also compare the differences in image stresses resulting from numeric ($Q = 1$) and analytic traction calculations and how they compare to the infinite-domain, singular expressions in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}\footnote{The first term in each equation corresponds to the real stresses, we can omit these to view the image stresses.}.
+
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxAeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxAEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxNeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxNEperp.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyAeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyAEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyNeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyNEperp.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyAeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyAEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyNeperp}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyNEperp.pdf}}
+    }
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [1 0 0]$, with $a = 10~b$ with coordinates $(26.3158,~ 500)~b$, i.e. the centre of the first FE from the surface at $x=0$, and in the centre of the simulation box from top to bottom. Here $b = \lVert \bm{b} \rVert$.}
+    \label{f:head_vs_ana_vs_num_eperp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxAepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxAEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxNepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxxNEpar.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyAepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyAEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyNepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syyNEpar.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyAepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyAEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyNepar}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxyNEpar.pdf}}
+    }
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
+    \label{f:head_vs_ana_vs_num_epar}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxzscrew.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzAscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxzAscrew.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzNscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/sxzNscrew.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:szyscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syzscrew.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syzAscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syzAscrew.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syzNscrew}]
+    {
+    {\includegraphics[width=0.3\linewidth]{images/syzNscrew.pdf}}
+    }
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
+    \label{f:head_vs_ana_vs_num_screw}
+\end{figure}
 
 % TODO #28
 
-In a DDP simulation it is rare to find a dislocation segment so close to a quadrature point that the errors spike so dramatically. However, numerical integration with small $Q$ produces noticeable errors over a wide range of distances and segment lengths. Simulations usually contain a large number of dislocations which are parallel or near-parallel and close to surface elements. \Cref{f:rel_err_par_edge} shows it is not possible to accurately compute the tractions and nodal forces using Gauss quadrature even with a large number of quadrature points.
+% In a DDP simulation it is rare to find a dislocation segment so close to a quadrature point that the errors spike so dramatically. However, numerical integration with small $Q$ produces noticeable errors over a wide range of distances and segment lengths. Simulations usually contain a large number of dislocations which are parallel or near-parallel and close to surface elements. \Cref{f:rel_err_par_edge} shows it is not possible to accurately compute the tractions and nodal forces using Gauss quadrature even with a large number of quadrature points.
 
-It is worth noting that rotational perturbation required for the analytic solution to be non-singular when a dislocation segment is parallel to a surface element can introduce small erroneous force components if the rotation is too large. If the rotational perturbations were small enough and floating point arithmetic exact, these erroneous forces would cancel when averaged over two opposite rotations. We found that a maximum rotation angle of $\pm0.5^\circ$ makes these erroneous force components negligible.
+% It is worth noting that rotational perturbation required for the analytic solution to be non-singular when a dislocation segment is parallel to a surface element can introduce small erroneous force components if the rotation is too large. If the rotational perturbations were small enough and floating point arithmetic exact, these erroneous forces would cancel when averaged over two opposite rotations. We found that a maximum rotation angle of $\pm0.5^\circ$ makes these erroneous force components negligible.
 
-% TODO #23
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.7\linewidth]{images/load_disp.pdf}
-    \caption{Load-displacement curve. When the tractions are evaluated analytically the curve is less noisy compared to numerical integration. As expected the yield point remains the same in both cases.}
-    \label{f:load_disp_curve}
-\end{figure}
+% % TODO #23
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.7\linewidth]{images/load_disp.pdf}
+%     \caption{Load-displacement curve. When the tractions are evaluated analytically the curve is less noisy compared to numerical integration. As expected the yield point remains the same in both cases.}
+%     \label{f:load_disp_curve}
+% \end{figure}
 
-The purpose of the cantilever simulation showed herein is not to be have an exactly physical when it comes to dislocation structure. Our initial source sizes and structure are somewhat unphysical, i.e. square sources with segment lengths on the order of the FE mesh courseness. There are also known issues with junction formation when multiple active slip systems are used in a single simulation. However, we are investigating not only the results but also the robustness and numerical stability of a fully integrated implementation of analytical solutions to dislocation tractions. By throwing the worst case scenario at both numerical and analytic traction calculations, we ensure both numerical and analytic solutions work even when the multiscale nature of the problem causes serious floating point arithmetic errors.
+% The purpose of the cantilever simulation showed herein is not to be have an exactly physical when it comes to dislocation structure. Our initial source sizes and structure are somewhat unphysical, i.e. square sources with segment lengths on the order of the FE mesh courseness. There are also known issues with junction formation when multiple active slip systems are used in a single simulation. However, we are investigating not only the results but also the robustness and numerical stability of a fully integrated implementation of analytical solutions to dislocation tractions. By throwing the worst case scenario at both numerical and analytic traction calculations, we ensure both numerical and analytic solutions work even when the multiscale nature of the problem causes serious floating point arithmetic errors.
 
 % TODO #22 
-A full discrete dislocation plasticity simulation of a microcantilever bend test demonstrates the benefits of using the analytic solution over numerical integration. The FE nodal forces were evaluated using Gauss quadrature with a single integration point for one simulation, and analytical tractions for the other. The simulations were otherwise identical with a finite element size of $0.25\mu\textrm{m}$ and sixty initial sources equally distributed on the 12 $\{1\bar{1}0\}\langle111\rangle$ bcc slip systems randomly distributed inside the region occuping the central $70\%$ of the cantilever ensuring the simulation proceeded at an acceptable rate and avoiding dislocations from exiting the fixed end, which can lead to problems due to the necessary FEM boundary conditions. The beam was fixed at $x=0$ and displaced by $U_{z}=-0.15~\mu\textrm{m}$ at $x=L=15~\mu\textrm{m}$. The material parameters were those of bcc tungsten, $\mu = 145\,\textrm{GPa}$ and $\nu = 0.28$. The analytic solution significantly reduced the noise in the load displacement curve as shown in \cref{f:load_disp_curve}.
+% A full discrete dislocation plasticity simulation of a microcantilever bend test demonstrates the benefits of using the analytic solution over numerical integration. The FE nodal forces were evaluated using Gauss quadrature with a single integration point for one simulation, and analytical tractions for the other. The simulations were otherwise identical with a finite element size of $0.25\mu\textrm{m}$ and sixty initial sources equally distributed on the 12 $\{1\bar{1}0\}\langle111\rangle$ bcc slip systems randomly distributed inside the region occuping the central $70\%$ of the cantilever ensuring the simulation proceeded at an acceptable rate and avoiding dislocations from exiting the fixed end, which can lead to problems due to the necessary FEM boundary conditions. The beam was fixed at $x=0$ and displaced by $U_{z}=-0.15~\mu\textrm{m}$ at $x=L=15~\mu\textrm{m}$. The material parameters were those of bcc tungsten, $\mu = 145\,\textrm{GPa}$ and $\nu = 0.28$. The analytic solution significantly reduced the noise in the load displacement curve as shown in \cref{f:load_disp_curve}.
 
-The inset in \cref{f:load_disp_curve} shows the yield point remains the same, but the reaction forces diverge from each other as the simulation progresses. It should be noted that the dislocation structure was unchanged and so the change in the mechanical response is due entirely to the accuracy of the force calculation. The fluctuations are due to dislocations approaching a free surface and generating a large traction which is suddenly removed when the segment exits. These events are difficult to capture accurately when using numerical integration.
+% The inset in \cref{f:load_disp_curve} shows the yield point remains the same, but the reaction forces diverge from each other as the simulation progresses. It should be noted that the dislocation structure was unchanged and so the change in the mechanical response is due entirely to the accuracy of the force calculation. The fluctuations are due to dislocations approaching a free surface and generating a large traction which is suddenly removed when the segment exits. These events are difficult to capture accurately when using numerical integration.
 
-The dislocation structure did not change much in either case. In fact, when looking at it from the zoom level of \cref{f:dln_struc}, they both appear identical. There are however, many small differences in node position. Surprisingly, depending on the specific simulation, we have found between $10--20\%$ less dislocation segments when the analytic solution is used. Meaning the numerical solution systematically underestimates the average contribution of every single dislocation segment, with occasional massive spikes in force when a dislocation nears a gauss point. We expect these differences to get larger as simulation runtime increases. This is a fundamental and practically unavoidable problem of the numerical solution.
+% The dislocation structure did not change much in either case. In fact, when looking at it from the zoom level of \cref{f:dln_struc}, they both appear identical. There are however, many small differences in node position. Surprisingly, depending on the specific simulation, we have found between $10--20\%$ less dislocation segments when the analytic solution is used. Meaning the numerical solution systematically underestimates the average contribution of every single dislocation segment, with occasional massive spikes in force when a dislocation nears a gauss point. We expect these differences to get larger as simulation runtime increases. This is a fundamental and practically unavoidable problem of the numerical solution.
 
-% TODO #24
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=0.7\linewidth]{images/analytic_struct.pdf}
-    \caption{Final dislocation structure using analytic tractions.}
-    \label{f:dln_struc}
-\end{figure}
+% % TODO #24
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=0.7\linewidth]{images/analytic_struct.pdf}
+%     \caption{Final dislocation structure using analytic tractions.}
+%     \label{f:dln_struc}
+% \end{figure}
 
-There are a few things that determine whether the numerical solutions are good enough for a given problem. When primarily investigating larger scale features of a dislocation structure---such as larger scale investigation of dislocation forresting around inclusions---Gauss quadrature is quite suitable. However, if one is interested in investigating the finer details of a dislocation structure---such as the nuanced interactions with closly packed inclusions---the analytic method is best. Furthermore, when investigating load-displacement curves, the analytical solutions provide a much better description for a relatively small increase in computational cost \cite{Queyreau}. That being said, the cost is nowhere near rate limiting, segment-segment forces and topological changes quickly become much more expensive as they both have worse asymptotic scaling, and topological changes also quickly become memory bound. An accurate description of load-displacement curves should also implement the exact displacement boundary conditions obtained by \citet{ddd_disp}.
+% There are a few things that determine whether the numerical solutions are good enough for a given problem. When primarily investigating larger scale features of a dislocation structure---such as larger scale investigation of dislocation forresting around inclusions---Gauss quadrature is quite suitable. However, if one is interested in investigating the finer details of a dislocation structure---such as the nuanced interactions with closly packed inclusions---the analytic method is best. Furthermore, when investigating load-displacement curves, the analytical solutions provide a much better description for a relatively small increase in computational cost \cite{Queyreau}. That being said, the cost is nowhere near rate limiting, segment-segment forces and topological changes quickly become much more expensive as they both have worse asymptotic scaling, and topological changes also quickly become memory bound. An accurate description of load-displacement curves should also implement the exact displacement boundary conditions obtained by \citet{ddd_disp}.
 
 All our subsequent simulations have used analytic tractions as they run faster and yield more reasonable dislocation structures, particularly for more complex simulations.
 
