@@ -630,8 +630,10 @@ Note the sign inversion just to the right of the dislocation in \cref{sf:sxxNepa
         {\includegraphics[width=0.3\linewidth]{images/line_syzscrew.pdf}}
     }
     \caption{Line plots of the image stresses at $x = 52.6316\, b$ for the analytic image stresses, as well as those calculated with numeric and analytic tractions. The line corresponds to the first set of nodes away from the boundary at $x = 0$. (a) to (c) correspond to $\vec{b}_{\textrm{e1}}$, (d) to (f) $\vec{b}_{\textrm{e2}}$ and (g) to (h) to $\vec{b}_{\textrm{s}}$.}
-    \label{f:head_vs_ana_vs_num_eperp}
+    \label{f:line_head_vs_ana_vs_num}
 \end{figure}
+
+% Add line plot for a dislocation further away from the edge.
 % TODO #28
 
 % In a DDP simulation it is rare to find a dislocation segment so close to a quadrature point that the errors spike so dramatically. However, numerical integration with small $Q$ produces noticeable errors over a wide range of distances and segment lengths. Simulations usually contain a large number of dislocations which are parallel or near-parallel and close to surface elements. \Cref{f:rel_err_par_edge} shows it is not possible to accurately compute the tractions and nodal forces using Gauss quadrature even with a large number of quadrature points.
