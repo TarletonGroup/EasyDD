@@ -118,21 +118,21 @@ The relative simplicity of the superposition method has made it a popular choice
 
 \section{Theory}\label{s:theory}
 
-The force exerted by a dislocation ensemble on a node $a$ belong to element $e$ is given by,
+The force exerted by a dislocation ensemble on a node $a$ belonging to element $e$ is given by,
 %
 \begin{align}
-    \vec{F}^{a} = \int_{S^{e}} \left[\tilde{\bm{\sigma}}(\vec{x}) \cdot \vec{n}\right] N^{a}(\vec{x})\; \mathrm{d}S\,,
+    \vec{F}_{a} = \int_{S_{e}} \left[\tilde{\bm{\sigma}}(\vec{x}) \cdot \vec{n}\right] N_{a}(\vec{x})\; \mathrm{d}S_{e}\,,
     \label{eq:ddd_fem_force}
 \end{align}
 %
-where $\mathrm{d}S^{e}$ is the surface of element $e$ with surface area $S^{e}$ and $N^{a}$ is the finite element shape function for node $a$ which is bi-linear in this paper. In the parent element (shown in \cref{f:2d_gaussian_quad}) the shape functions are,
+where $\mathrm{d}S_{e}$ is the surface of element $e$ with surface area $S_{e}$ and $N_{a}$ is the finite element shape function for node $a$ which is bi-linear in this paper. In the parent element (shown in \cref{f:2d_gaussian_quad}) the shape functions are,
 
 \begin{align}
     \label{eq:shape_function}
-    N^{1} & = \dfrac{1}{4}(1-s_1)(1-s_2)             \\
-    N^{2} & = \dfrac{1}{4}(1+s_1)(1-s_2)\nonumber    \\
-    N^{3} & = \dfrac{1}{4}(1+s_1)(1+s_2)\nonumber    \\
-    N^{4} & = \dfrac{1}{4}(1-s_1)(1+s_2)\nonumber\,.
+    N_{1} & = \dfrac{1}{4}(1-s_1)(1-s_2)             \\
+    N_{2} & = \dfrac{1}{4}(1+s_1)(1-s_2)\nonumber    \\
+    N_{3} & = \dfrac{1}{4}(1+s_1)(1+s_2)\nonumber    \\
+    N_{4} & = \dfrac{1}{4}(1-s_1)(1+s_2)\nonumber\,.
 \end{align}
 
 Usually Gauss quadrature is used to evaluate the surface integral in \cref{eq:ddd_fem_force} numerically. The 1D Gauss quadrature is,
@@ -152,15 +152,15 @@ For rectangular surface elements we must transform from the parent element in $(
 %
 \begin{align}
     \label{eq:gauss_leg_ddd_fem_force}
-    \vec{F}^{a} \approx \sum\limits_{i=1}^{Q} w_{i} \sum\limits_{j=1}^{Q} w_{j} [\tns{\sigma}(r_{i}, s_{j})\cdot \vec{n}] N^{a}(r_{i}, s_{j}) \det(\mtx{J})\,.
+    \vec{F}_{a} \approx \sum\limits_{i=1}^{Q} w_{i} \sum\limits_{j=1}^{Q} w_{j} [\tns{\sigma}(r_{i}, s_{j})\cdot \vec{n}] N_{a}(r_{i}, s_{j}) \det(\mtx{J})\,.
 \end{align}
 %
-Where the sum is over the $Q$ quadrature points and $J_{ij}=dx_{i}/ds_{j}$ is the element Jacobian defining the transformation from $(s_1,\,s_2) \mapsto (x,\,y)$; as the real element is rectangular with surface area $S^e$, $\det(\mtx{J})=S^e/4$. \Cref{f:2d_gaussian_quad} contains examples of how the Gauss points are distributed on the surface.
+Where the sum is over the $Q$ quadrature points and $J_{ij}=dx_{i}/ds_{j}$ is the element Jacobian defining the transformation from $(s_1,\,s_2) \mapsto (x,\,y)$; as the real element is rectangular with surface area $S_e$, $\det(\mtx{J})=S_e/4$. \Cref{f:2d_gaussian_quad} contains examples of how the Gauss points are distributed on the surface.
 %
 \begin{figure}[htb]
     \centering
     \includegraphics[width=\linewidth]{2d_gaussian_quad.pdf}
-    \caption{Examples of 2D Gauss-Legendre quadrature of the parent element with $Q = 1,\, 2,\, 3,\, 4$. The point size represents the weight $w$ of the integration point. The parent elements are centred at the origin and $s_1,\, s_2 \in [-1,\,1]$ with node anticlockwise node numbering.}
+    \caption{Examples of 2D Gauss-Legendre quadrature of the parent element with $Q = 1,\, 2,\, 3,\, 4$. The point size represents the weight $w$ of the integration point. The parent elements are centred at the origin and $s_1,\, s_2 \in [-1,\,1]$. We use an anticlockwise node numbering scheme.}
     \label{f:2d_gaussian_quad}
 \end{figure}
 %        
@@ -217,7 +217,9 @@ Using partial differentiation and integration by parts, they found a series of r
 
 Although exact, the use of arctangents/hyperbolic arctangents and logarithmic functions, compounded by the large number of recurrence relations is prime territory for error propagation and numerical problems (see \cref{s:method}). This is particularly egregious when using general purpose compilers instead of high-performance or scientific computing compilers where mathematical functions are implemented more precisely. These issues must be taken into account when using analytic tractions in the form of numeric tolerances.
 
-In simulations, the tractions are manifested in the reaction forces calculated by the FE solver at FE nodes. In order to validate and compare the differences in tractions have on dislocation plasticity simulations we compare the analytic expressions for infinite dislocations in inhomogenous media by \citet{head1953edge}. The original paper has a few typos that have been replicated in other sources so we write the correct expressions for an edge dislocation parallel to a surface described by the line $x = 0$, where the dislocation coordinates are $(a,~c)$ and we are looking down the $xy$-plane where $\vec{b}$ is perpendicular to the surface in \cref{eq:imageStressAnalyticEdge1},
+In simulations, the tractions are manifested in the image stresses calculated by the FE solver at FE nodes. In order to validate and compare the practical differences between analytic and gauss quadrature methods, we use them both to calculate the reaction stresses produced by the tractions with the same FE solver and compare the results with the analytic expressions for infinite dislocations in inhomogenous media in \cite{head1953edge} for edge dislocations as well as those for screw dislocations found in \cite[p.~59,~64]{hirth1983theory}, where the traction surface is the line $x=0$, looking at the $xy$-plane in the positive $z$-direction, where the dislocation coordinates are represented by $(a,~c)$ and points in the plane described by their $(x,~y)$ coordinates.
+
+The original paper by \citet{head1953edge} has a few typos that have been replicated in other sources, so we include the complete and correct expressions. \citet{head1953edge} gives two basic cases. The first case in \cref{eq:imageStressAnalyticEdge1} corresponds to the case where $\vec{b}$ is perpendicular to the surface and positive $b$ points in the positive $x$ direction,
 % TODO #37
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticEdge1}
@@ -240,14 +242,18 @@ The case where the Burgers vector lies parallel to the surface is found in \cref
                                 & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
-Screw dislocations are markedly simpler, as only the shear components are non-zero. Their equations are the following.
+Screw dislocations are markedly simpler, as only the shear components are non-zero \cref{eq:imageStressAnalyticScrew},
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticScrew}
-        \sigma_{xz} & = -D \left(\dfrac{y - c}{(x - a)^2 + (y - c)^2} - \dfrac{y - c}{(x + a)^2 + (y - c)^2}\right) \\
-        \sigma_{yz} & = D \left(\dfrac{x - a}{(x - a)^2 + (y - c)^2} - \dfrac{x + a}{(x + a)^2 + (y - c)^2}\right)
+        \sigma_{xz} & = -D \left(\dfrac{y - c}{(x - a)^2 + (y - c)^2} - \dfrac{y - c}{(x + a)^2 + (y - c)^2}\right)   \\
+        \sigma_{yz} & = D \left(\dfrac{x - a}{(x - a)^2 + (y - c)^2} - \dfrac{x + a}{(x + a)^2 + (y - c)^2}\right)\,.
     \end{align}
 \end{subequations}
-Note the first terms of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew} all correspond to the stress field generated by the dislocation. The following terms are the corrective terms required to make the boundary conditions on the surface equal to zero.
+In every case, the constant $D$ is defined by \cref{eq:Dconstant}
+\begin{align}\label{eq:Dconstant}
+    D = \dfrac{\mu}{2\pi} \cdot \dfrac{1+\nu}{1-\nu^2} \bm{b}\,.
+\end{align}
+Note the first terms of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew} all correspond to the stress field generated by the dislocation. The following terms are the corrective terms required to make the boundary conditions on the surface equal to zero. Therefore, we can split these equations and only look at the real or corrective terms, which we do in order to visualise the effect of the different traction calculations. Furthermore \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew} are all singular at the dislocation coordinates, our simulation code uses non singular expressions found by \citet{Cai2006}, which smooth out drastic increases in stresses and avoid numerical blow up as we near the dislocation core.
 
 \section{Methodology}\label{s:method}
 Numerical integration of tractions can produces unexpected behaviour such as force hot spots (see \cref{f:err_basic_cantilever}) and sign inversions as a dislocation approaches a surface. During a large simulation, these effects are hard to spot. \citet{Queyreau} identified that for a given number of quadrature points, the error is dependent on the dislocation character but always increases rapidly as the distance between the segment and element surface decrease (see \cref{f:rel_err_perp_edge,f:rel_err_par_edge}).
@@ -266,6 +272,13 @@ Numerical integration of tractions can produces unexpected behaviour such as for
     \caption{Relative error ($\vec{F}^{\eta}$) in the nodal force obtained using numerical integration with one quadrature point $Q = 1$, and the analytic solution. The $xz$-face of a rectangular cantilever with plane normal, $\vec{n} = \left[0\,\overline{1}\,0\right]$. The dislocation is of pure edge character with $\vec{b} = [1\,0\,\overline{1}]$, and line direction, $\vec{l} = \left[\overline{1}\,2\,\overline{1}\right]/\sqrt{6}$ which pierces both $xz$-faces. The dislocation has its centre at the centroid of the cantilever. %The absolute difference cutoff was set to $10^{-9}$ to avoid post-processing artefacts arising from truncation and roundoff errors in floating point arithmetic.
     }
     \label{f:err_basic_cantilever}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{head_vs_fe_tractions_setup_diagram.pdf}
+    \caption{Dislocation parallel to a surface described by the line $x = 0$ (the $yz$-plane in 3D), where the dislocation coordinates are $(a,~c)$, looking down the $xy$-plane where the $x$-axis is horizontal and the $y$-axis vertical. (a) describes the box we used for our comparison, a  $20 \times 20 \times 20$ element cubic box with side lengths equal to $1000~ \vec{b}$ with $\vec{T} = \vec{0}$ traction boundary conditions only on the nodes occupying the $yz$-plane and $\vec{U} = \vec{0}$ displacement conditions everywhere else, and a dislocation with line direction in the positive $z$ direction. (b) is the 2D view with the dislocation coordinates $(a,~c)$, as well as the two edge Burgers vectors as described by \cite{head1953edge}, $\bm{b}_\textrm{e1}$ perpendicular to the surface and pointing in the positive $x$ direction, $\bm{b}_\textrm{e2}$ parallel to the surface and pointing in the positive $y$ direction; and the screw Burgers vector parallel to the surface and pointing in the line direction as posited in \cite{hirth1983theory}.}
+    \label{f:headvstractionfem}
 \end{figure}
 %
 Expanding the test cases reveals just how problematic numerical integration of the tractions can be when a dislocation approaches a surface. The two basic test cases, an orthogonal and parallel edge segment, are shown in \cref{f:gauss_quad_test}.
@@ -437,7 +450,7 @@ The limitations of Gauss quadrature become evident when the dislocation line seg
 %
 In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, which results in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$. The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$.
 
-For a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular segment, as shown in \cref{f:rel_err_par_edge}. This is because numerical quadrature is only accurate for integrating functions that can be approximated by polynomials. Whereas the dislocation stress field \cite{Cai2006} decays as $1/R_{a}$. This makes numerical quadrature unsuitable as \cref{eq:gauss_leg_ddd_fem_force} fails to accurately capture the stress, which varies rapidly across the element surface for small $R_a$. The relevant components of the stress tensor for a perpendicular edge segment which is not penetrating the surface are shown in \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric and the resultant forces vanish which is captured when numerically integrating with small $Q$, while $\sigma_{yz}$ does not but can be accurately integrated with sufficiently large $Q$.
+For a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular segment, as shown in \cref{f:rel_err_par_edge}. This is because numerical quadrature is only accurate for integrating functions that can be approximated by polynomials. Whereas the dislocation stress field \cite{Cai2006} decays as $\mathcal{O}(1/R)$. This makes Gauss quadrature unsuitable as \cref{eq:gauss_leg_ddd_fem_force} fails to accurately capture the stress, which varies rapidly across the element surface for small $R$. The relevant components of the stress tensor for a perpendicular edge segment which is not penetrating the surface are shown in \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric and the resultant forces vanish which is captured when numerically integrating with small $Q$, while $\sigma_{yz}$ does not but can be accurately integrated with sufficiently large $Q$.
 
 \begin{figure}[t]
     \centering
