@@ -58,37 +58,37 @@ The superposition scheme works by decomposing the problem into separate DDD and 
 \begin{align}
      & \left.
     \begin{array}{l}
-        \nabla\cdot{\bm{\tilde{\sigma}}} = 0                  \\
-        \bm{\tilde{\sigma}} = \bm{C}:\tilde{\bm{\varepsilon}} \\
-        \tilde{\bm{\varepsilon}}=\frac{1}{2}\left(\nabla\tilde{\bm{u}}+(\nabla\tilde{\bm{u}})^T\right)
+        \nabla\cdot{\vec{\tilde{\sigma}}} = 0                    \\
+        \vec{\tilde{\sigma}} = \vec{C}:\tilde{\vec{\varepsilon}} \\
+        \tilde{\vec{\varepsilon}}=\frac{1}{2}\left(\nabla\tilde{\vec{u}}+(\nabla\tilde{\vec{u}})^T\right)
     \end{array}
-    \right\}\textrm{in V}                                                \\
+    \right\}\textrm{in V}                                                   \\
     %
-     & \tilde{\bm{\sigma}}\cdot\bm{n} = \tilde{\bm{T}} \textrm{ on } S_T \\
+     & \tilde{\vec{\sigma}}\cdot\vec{n} = \tilde{\vec{T}} \textrm{ on } S_T \\
     %
      & \left.
     \begin{array}{l}
-        \tilde{\bm{u}} = \tilde{\bm{U}} \quad t>0 \\
-        \tilde{\bm{u}} = \bm{0} \quad t=0
+        \tilde{\vec{u}} = \tilde{\vec{U}} \quad t>0 \\
+        \tilde{\vec{u}} = \vec{0} \quad t=0
         \label{eq:utildebc}
     \end{array}
     \right\} \textrm{ on } S_U.
 \end{align}
 %
-As the dislocation fields do not vanish on $S$ the dislocations load the volume by generating tractions, $\tilde{\bm{T}}$, on $S_T$ and displacements, $\tilde{\bm{U}}$, on $S_U$ this additional loading deforms $V$ generating an additional ``image'' stress which the dislocations then feel. Therefore corrective ($\hat{~}$) fields must be superimposed to satisfy the desired boundary conditions. The corrective field which accounts for both the applied and image stress is obtained numerically by solving the elastic boundary value problem
+As the dislocation fields do not vanish on $S$ the dislocations load the volume by generating tractions, $\tilde{\vec{T}}$, on $S_T$ and displacements, $\tilde{\vec{U}}$, on $S_U$ this additional loading deforms $V$ generating an additional ``image'' stress which the dislocations then feel. Therefore corrective ($\hat{~}$) fields must be superimposed to satisfy the desired boundary conditions. The corrective field which accounts for both the applied and image stress is obtained numerically by solving the elastic boundary value problem
 %
 \begin{align}
      & \left.
     \begin{array}{l}
-        \nabla\cdot{\bm{\hat{\sigma}}} = 0                \\
-        \bm{\hat{\sigma}} = \bm{C}:\hat{\bm{\varepsilon}} \\
-        \hat{\bm{\varepsilon}}=\frac{1}{2}\left(\nabla\hat{\bm{u}}+(\nabla\hat{\bm{u}})^{T}\right)
+        \nabla\cdot{\vec{\hat{\sigma}}} = 0                  \\
+        \vec{\hat{\sigma}} = \vec{C}:\hat{\vec{\varepsilon}} \\
+        \hat{\vec{\varepsilon}}=\frac{1}{2}\left(\nabla\hat{\vec{u}}+(\nabla\hat{\vec{u}})^{T}\right)
     \end{array}
-    \right\}\textrm{in V}                                                                        \\
+    \right\}\textrm{in V}                                                                            \\
     %
-     & \hat{\bm{\sigma}}\cdot\bm{n} = \bm{T} - \tilde{\bm{T}} \textrm{ on } S_T\label{eq:thatbc} \\
+     & \hat{\vec{\sigma}}\cdot\vec{n} = \vec{T} - \tilde{\vec{T}} \textrm{ on } S_T\label{eq:thatbc} \\
     %
-     & \hat{\bm{u}} = \bm{U} - \tilde{\bm{U}} \textrm{ on } S_U \label{eq:uhatbc}
+     & \hat{\vec{u}} = \vec{U} - \tilde{\vec{U}} \textrm{ on } S_U \label{eq:uhatbc}
 \end{align}
 %
 once the solution to both problems are known, then their superposition solves the desired mixed boundary value problem:
@@ -96,24 +96,24 @@ once the solution to both problems are known, then their superposition solves th
 \begin{align}
      & \left.
     \begin{array}{l}
-        \nabla\cdot\bm{\sigma}=\nabla\cdot\left(\bm{\hat{\sigma}} +\bm{\tilde{\sigma}}\right) = 0                                                         \\
-        \bm{\sigma} =\bm{\hat{\sigma}}+\bm{\tilde{\sigma}}= \bm{C}:\left(\hat{\bm{\varepsilon}}+\tilde{\bm{\varepsilon}}\right)=\bm{C}:{\bm{\varepsilon}} \\
-        \bm{\varepsilon}=\hat{\bm{\varepsilon}}+\tilde{\bm{\varepsilon}}=\frac{1}{2}\left(\nabla(\hat{\bm{u}}+\tilde{\bm{u}})+\left(\nabla(\hat{\bm{u}}+\tilde{\bm{u}})\right)^T\right) =\frac{1}{2}\left(\nabla\bm{u}+(\nabla\bm{u})^{T}\right)
+        \nabla\cdot\vec{\sigma}=\nabla\cdot\left(\vec{\hat{\sigma}} +\vec{\tilde{\sigma}}\right) = 0                                                              \\
+        \vec{\sigma} =\vec{\hat{\sigma}}+\vec{\tilde{\sigma}}= \vec{C}:\left(\hat{\vec{\varepsilon}}+\tilde{\vec{\varepsilon}}\right)=\vec{C}:{\vec{\varepsilon}} \\
+        \vec{\varepsilon}=\hat{\vec{\varepsilon}}+\tilde{\vec{\varepsilon}}=\frac{1}{2}\left(\nabla(\hat{\vec{u}}+\tilde{\vec{u}})+\left(\nabla(\hat{\vec{u}}+\tilde{\vec{u}})\right)^T\right) =\frac{1}{2}\left(\nabla\vec{u}+(\nabla\vec{u})^{T}\right)
     \end{array}
-    \right\}\textrm{in V}                                 \\
+    \right\}\textrm{in V}                                    \\
     %
-     & \bm{\sigma}\cdot\bm{n} = \bm{T}  \textrm{ on } S_T \\
+     & \vec{\sigma}\cdot\vec{n} = \vec{T}  \textrm{ on } S_T \\
     %
      & \left.
     \begin{array}{l}
-        \bm{u} = \bm{U} \quad t>0 \\
-        \bm{u} = \bm{0} \quad t=0
+        \vec{u} = \vec{U} \quad t>0 \\
+        \vec{u} = \vec{0} \quad t=0
     \end{array}
     \right\} \textrm{ on } S_U
     \label{eq:ubc}
 \end{align}
 
-The method is not without problems however. As a dislocation segment moves closer to the surface, its ($\tilde{~}$) field diverges and starts causing numerical problems \cite{boundary_problems_in_dd}. This can be partially solved by using a non-singular formulation such as that proposed by \citet{Cai2006} however the gradients in the dislocation field are difficult to accurately capture when a dislocation approaches $S$. Another problem with this method is the computational cost when simulating a heterogeneous solid as it requires calculating polarisation stresses due to the difference in the elastic constants in a secondary phase \cite{superposition_scheme0,boundary_problems_in_dd,ddd_precipitate}. A modified superposition scheme \cite{ODay2004} can overcome this by dividing the problem into separate DDD/FEM problems coupled through 1 elastic FE problem. This requires accurate evaluation of $\tilde{T}$ on the domain boundaries which can only be captured with a fine FE mesh. This in turn will increase the computational cost. In order to simulate polycrystalline or composite materials using superposition requires methods to accurately evaluate both $\tilde{\bm{U}}$ and $\tilde{\bm{T}}$. The displacements can be evaluated analytically \cite{ddd_disp} and this paper investigates the evaluation of the dislocation tractions analytically.
+The method is not without problems however. As a dislocation segment moves closer to the surface, its ($\tilde{~}$) field diverges and starts causing numerical problems \cite{boundary_problems_in_dd}. This can be partially solved by using a non-singular formulation such as that proposed by \citet{Cai2006} however the gradients in the dislocation field are difficult to accurately capture when a dislocation approaches $S$. Another problem with this method is the computational cost when simulating a heterogeneous solid as it requires calculating polarisation stresses due to the difference in the elastic constants in a secondary phase \cite{superposition_scheme0,boundary_problems_in_dd,ddd_precipitate}. A modified superposition scheme \cite{ODay2004} can overcome this by dividing the problem into separate DDD/FEM problems coupled through 1 elastic FE problem. This requires accurate evaluation of $\tilde{T}$ on the domain boundaries which can only be captured with a fine FE mesh. This in turn will increase the computational cost. In order to simulate polycrystalline or composite materials using superposition requires methods to accurately evaluate both $\tilde{\vec{U}}$ and $\tilde{\vec{T}}$. The displacements can be evaluated analytically \cite{ddd_disp} and this paper investigates the evaluation of the dislocation tractions analytically.
 
 The relative simplicity of the superposition method has made it a popular choice for coupling DDD and FEM since all it requires is the evaluation of FE nodal forces and displacements on the boundary. Furthermore, analytic expressions for the stress field produced by a finite straight dislocation line segment, has allowed \citet{Queyreau} to use a non-singular formulation to obtain a closed-form solution for the tractions generated by a segment on the surface of a finite element. They used integration by parts giving rise to a number of recursion relations that can be used to construct the full solution from a small set of seed functions.
 
@@ -122,7 +122,7 @@ The relative simplicity of the superposition method has made it a popular choice
 The force exerted by a dislocation ensemble on a node $a$ belonging to element $e$ is given by,
 %
 \begin{align}
-    \vec{F}_{a} = \int_{S_{e}} \left[\tilde{\bm{\sigma}}(\vec{x}) \cdot \vec{n}\right] N_{a}(\vec{x})\; \mathrm{d}S_{e}\,,
+    \vec{F}_{a} = \int_{S_{e}} \left[\tilde{\vec{\sigma}}(\vec{x}) \cdot \vec{n}\right] N_{a}(\vec{x})\; \mathrm{d}S_{e}\,,
     \label{eq:ddd_fem_force}
 \end{align}
 %
@@ -231,7 +231,7 @@ The original paper by \citet{head1953edge} has a few typos that have been replic
                                 & \left. + 2 a \dfrac{6 x (x + a) (y - c)^2 - (x - a) (x + a)^3 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
-The case where the $\bm{b}$ lies parallel to the surface and positive $b$ means it points in the positive $y$ direction, is found in \cref{eq:imageStressAnalyticEdge2},
+The case where the $\vec{b}$ lies parallel to the surface and positive $b$ means it points in the positive $y$ direction, is found in \cref{eq:imageStressAnalyticEdge2},
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticEdge2}
         \sigma_{xx} = D         & \left\{ (x - a) \dfrac{(x - a)^2 - (y - c)^2}{[(x - a)^2 + (y - c)^2]^2} -(x + a) \dfrac{(x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^2} \right.     \\\nonumber
@@ -242,7 +242,7 @@ The case where the $\bm{b}$ lies parallel to the surface and positive $b$ means 
                                 & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
-Screw dislocations are markedly simpler, as only the shear components are non-zero. Here $\bm{b} = \bm{l}$ and therefore positive $b$ means it points in the positive $z$ direction (away from the observer) \cref{eq:imageStressAnalyticScrew},
+Screw dislocations are markedly simpler, as only the shear components are non-zero. Here $\vec{b} = \vec{l}$ and therefore positive $b$ means it points in the positive $z$ direction (away from the observer) \cref{eq:imageStressAnalyticScrew},
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticScrew}
         \sigma_{xz} & = -D \left(\dfrac{y - c}{(x - a)^2 + (y - c)^2} - \dfrac{y - c}{(x + a)^2 + (y - c)^2}\right)   \\
@@ -402,7 +402,7 @@ After the tractions have been calculated, they are used by the FE solver to gene
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{head_vs_fe_tractions_setup_diagram.pdf}
-    \caption{Dislocation parallel to a surface described by the line $x = 0$ (the $yz$-plane in 3D), where the dislocation coordinates are $(a,~c)$, looking down the $xy$-plane where the $x$-axis is horizontal and the $y$-axis vertical. (a) describes the box we used for our comparison, a  $20 \times 20 \times 20$ element cubic box with side lengths equal to $1000~ \vec{b}$ with $\vec{T} = \vec{0}$ traction boundary conditions only on the nodes occupying the $yz$-plane and $\vec{U} = \vec{0}$ displacement conditions everywhere else, and a dislocation with line direction in the positive $z$ direction. (b) is the 2D view with the dislocation coordinates $(a,~c)$, as well as the two edge Burgers vectors as described by \cite{head1953edge}, $\bm{b}_\textrm{e1}$ perpendicular to the surface and pointing in the positive $x$ direction, $\bm{b}_\textrm{e2}$ parallel to the surface and pointing in the positive $y$ direction; and the screw Burgers vector parallel to the surface and pointing in the line direction as posited in \cite{hirth1983theory}.}
+    \caption{Dislocation parallel to a surface described by the line $x = 0$ (the $yz$-plane in 3D), where the dislocation coordinates are $(a,~c)$, looking down the $xy$-plane where the $x$-axis is horizontal and the $y$-axis vertical. (a) describes the box we used for our comparison, a  $20 \times 20 \times 20$ element cubic box with side lengths equal to $1000~ \lVert \vec{b} \rVert$ with $\vec{T} = \vec{0}$ traction boundary conditions only on the nodes occupying the $yz$-plane and $\vec{U} = \vec{0}$ displacement conditions everywhere else, and a dislocation with line direction in the positive $z$ direction. (b) is the 2D view with the dislocation coordinates $(a,~c)$, as well as the two edge Burgers vectors as described by \cite{head1953edge}, $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ and the screw Burgers vector $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ as posited in \cite{hirth1983theory}.}
     \label{f:headvstractionfem}
 \end{figure}
 
@@ -443,7 +443,7 @@ The limitations of Gauss quadrature become even more evident when the dislocatio
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{par_e_z.pdf}
-    \caption{Log-log plot of the relative error as a function of distance from the surface element for a parallel edge dislocation (\cref{f:gauss_quad_test}b). Burgers vector, $\bm{b} = [0 1 0]$, line direction, $\bm{l} = [1 0 0]$, dislocation core and surface element parameters are the same as \cref{f:rel_err_perp_edge}. The dislocation length is fixed to $10^{6}\, b,\, x\in\left[-0.5\times10^{6},\, 0.5\times10^{6} \right]$ and bisects the surface element along the $[1 0 0]$ direction. The whole dislocation was segmented into $10^4$ pieces of length $100\, b$ to prevent the dislocation from intersecting the surface element when they were rotated to avoid the singularity. The relative error at large distances ($>10^6 b$) converges to one due to artifacting when dividing two very small double precision numbers. The absolute error always goes towards zero with increasing distance from the surface.}
+    \caption{Log-log plot of the relative error as a function of distance from the surface element for a parallel edge dislocation (\cref{f:gauss_quad_test}b). Burgers vector, $\vec{b} = [0 1 0]$, line direction, $\vec{l} = [1 0 0]$, dislocation core and surface element parameters are the same as \cref{f:rel_err_perp_edge}. The dislocation length is fixed to $10^{6}\, b,\, x\in\left[-0.5\times10^{6},\, 0.5\times10^{6} \right]$ and bisects the surface element along the $[1 0 0]$ direction. The whole dislocation was segmented into $10^4$ pieces of length $100\, b$ to prevent the dislocation from intersecting the surface element when they were rotated to avoid the singularity. The relative error at large distances ($>10^6 b$) converges to one due to artifacting when dividing two very small double precision numbers. The absolute error always goes towards zero with increasing distance from the surface.}
     \label{f:rel_err_par_edge}
 \end{figure}
 In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, resulting in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$\footnote[1]{The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison as long as we are conscious of small artifacting from limited precision.}. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$. This figure backs up the earlier point regarding Gauss nodes close to maximal rational values, as $Q = 2$ performs significantly better than $Q = 10, 11, 100, 100$ at smaller distances from the surface. Generally, there is no best value of $Q$ other than very large.
@@ -476,87 +476,88 @@ As stated in \cref{s:method}, tractions are used to calculate the image stresses
 
 \begin{figure}
     \centering
-    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxeperp}]
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxAeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxAEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxAEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxNeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxxNeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxNEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxNEperp.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyeperp}]
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:syyeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyAeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syyAeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyAEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyAEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyNeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syyNeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyNEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyNEperp.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyeperp}]
+    \subfloat[$\hat{\sigma}_{xy}$.\label{sf:sxyeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyAeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$.\label{sf:sxyAeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyAEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyAEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyNeperp}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$.\label{sf:sxyNeperp}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyNEperp.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyNEperp.pdf}}
     }
-    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [1 0 0]$, with $a = 10~b$ with coordinates $(26.3158,~ 500)~b$, i.e. the centre of the first FE from the surface at $x=0$, and in the centre of the simulation box from top to bottom. Here $b = \lVert \bm{b} \rVert$.}
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [1 0 0]$, with $a = 10~b$ with coordinates $(26.3158,~ 500)~b$, i.e. the centre of the first FE from the surface at $x=0$, and in the centre of the simulation box from top to bottom. Here $b = \lVert \vec{b} \rVert \equiv 1$.}
     \label{f:head_vs_ana_vs_num_eperp}
 \end{figure}
 
+Note the sign inversion just to the right of the dislocation in \cref{sf:sxxNepar} compared to \cref{sf:sxxepar,sf:sxxAepar}. Stresses like those can lead to dislocations being repelled by surfaces and make the dislocation topology more complex than it should, potentially leading to slowdown or gridlock later in the simulation.
 \begin{figure}
     \centering
-    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxepar}]
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxAepar}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxAEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxAEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxxNepar}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxxNepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxxNEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxxNEpar.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyepar}]
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:syyepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyAepar}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syyAepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyAEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyAEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syyNepar}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syyNepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syyNEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syyNEpar.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyepar}]
+    \subfloat[$\hat{\sigma}_{xy}$.\label{sf:sxyepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyAepar}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$.\label{sf:sxyAepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyAEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyAEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxyNepar}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$.\label{sf:sxyNepar}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxyNEpar.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxyNEpar.pdf}}
     }
     \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
     \label{f:head_vs_ana_vs_num_epar}
@@ -564,35 +565,74 @@ As stated in \cref{s:method}, tractions are used to calculate the image stresses
 
 \begin{figure}
     \centering
-    \subfloat[$\hat{\sigma}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzscrew}]
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxzscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxzscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxzscrew.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzAscrew}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxzAscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxzAscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxzAscrew.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$, $\bm{b}_{\textrm{e1}}$.\label{sf:sxzNscrew}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxzNscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/sxzNscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/sxzNscrew.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:szyscrew}]
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:szyscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syzscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syzscrew.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syzAscrew}]
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syzAscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syzAscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syzAscrew.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$, $\bm{b}_{\textrm{e1}}$.\label{sf:syzNscrew}]
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syzNscrew}]
     {
-    {\includegraphics[width=0.3\linewidth]{images/syzNscrew.pdf}}
+        {\includegraphics[width=0.3\linewidth]{images/syzNscrew.pdf}}
     }
-    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 0 1]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
     \label{f:head_vs_ana_vs_num_screw}
 \end{figure}
 
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:line_sxxperp}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:line_syyeperp}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_syyEperp.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:line_sxyeperp}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxyEperp.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_sxxepar}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:line_syyepar}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_syyEpar.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:line_sxyepar}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxyEpar.pdf}}
+    }
+
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_sxzscrew}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxzscrew.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:line_syzscrew}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_syzscrew.pdf}}
+    }
+    \caption{Line plots of the image stresses at $x = 52.6316\, b$ for the analytic image stresses, as well as those calculated with numeric and analytic tractions. The line corresponds to the first set of nodes away from the boundary at $x = 0$. (a) to (c) correspond to $\vec{b}_{\textrm{e1}}$, (d) to (f) $\vec{b}_{\textrm{e2}}$ and (g) to (h) to $\vec{b}_{\textrm{s}}$.}
+    \label{f:head_vs_ana_vs_num_eperp}
+\end{figure}
 % TODO #28
 
 % In a DDP simulation it is rare to find a dislocation segment so close to a quadrature point that the errors spike so dramatically. However, numerical integration with small $Q$ produces noticeable errors over a wide range of distances and segment lengths. Simulations usually contain a large number of dislocations which are parallel or near-parallel and close to surface elements. \Cref{f:rel_err_par_edge} shows it is not possible to accurately compute the tractions and nodal forces using Gauss quadrature even with a large number of quadrature points.
