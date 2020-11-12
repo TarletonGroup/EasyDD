@@ -1,4 +1,3 @@
-
 \documentclass[11pt]{iopart}
 \usepackage{graphicx}
 \usepackage{subfig}
@@ -398,7 +397,7 @@ The following algorithm illustrates how the total force on each node is obtained
 \end{algorithm}
 Our implementation does not strictly follow \cref{a:tot_force} because we memoise a generalised version of $\vec{L}$ upon simulation initialisation instead of finding one at every iteration, reducing computational time but requiring us to account for nodes without traction boundary conditions. Our indexing also starts at 1, but zero indexing makes the algorithm easier to follow.
 
-After the tractions have been calculated, they are used by the FE solver to generate the corresponding image stresses. \Cref{f:headvstractionfem} shows the system we used to compare the image stresses calculated by our FE solver using numeric tractions v.s. analytic tractions v.s. infinite-domain, singular image stresses found in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}.
+After the tractions have been calculated, they are used by the FE solver to generate the corresponding image stresses. \Cref{f:headvstractionfem} shows the system we used to compare the image stresses calculated by our FE solver using numeric tractions v.s. analytic tractions v.s. infinite-domain, singular image stresses found in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}. We use three test cases, two edge dislocations and one screw, all of which have line direction $\vec{l} = [0\, 0\, 1]$ with Burgers vectors $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ \cite{head1953edge}, and $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ \cite{hirth1983theory}.
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{head_vs_fe_tractions_setup_diagram.pdf}
