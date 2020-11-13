@@ -149,31 +149,24 @@ is the weighting of the Gauss point $s_{i}$ which is the $i\textsuperscript{th}$
 The method is very accurate for functions that can be approximated by polynomials, but unsuitable for functions with singularities and near singularities \cite{gauss_leg, gauss_leg_sing}. We use a non-singular formulation for the forces \cite{Cai2006}, but the singularity is avoided by adding a small cut off radius to account for the dislocation core. However if the integration point falls close to or within the dislocation core, numerical integration can still generate large errors.
 
 For rectangular surface elements we must transform from the parent element in $(s_1,\,s_2)$ in \cref{eq:gauss_leg} to the real element coordinate system $(x,y,z)$ shown in \cref{f:force_lin_rect}. Evaluating \cref{eq:ddd_fem_force} in the parent element and mapping to the real element gives the force on node $a$,
-%
 \begin{align}
     \label{eq:gauss_leg_ddd_fem_force}
     \vec{F}_{a} \approx \sum\limits_{i=1}^{Q} w_{i} \sum\limits_{j=1}^{Q} w_{j} [\tns{\sigma}(r_{i}, s_{j})\cdot \vec{n}] N_{a}(r_{i}, s_{j}) \det(\mtx{J})\,.
 \end{align}
-%
 Where the sum is over the $Q$ quadrature points and $J_{ij}=dx_{i}/ds_{j}$ is the element Jacobian defining the transformation from $(s_1,\,s_2) \mapsto (x,\,y)$; as the real element is rectangular with surface area $S_e$, $\det(\mtx{J})=S_e/4$. \Cref{f:2d_gaussian_quad} contains examples of how the Gauss points are distributed on the surface.
-%
-\begin{figure}[htb]
+\begin{figure}
     \centering
     \includegraphics[width=\linewidth]{2d_gaussian_quad.pdf}
     \caption{Examples of 2D Gauss-Legendre quadrature of the parent element with $Q = 1,\, 2,\, 3,\, 4$. The point size represents the weight $w$ of the integration point. The parent elements are centred at the origin and $s_1,\, s_2 \in [-1,\,1]$. We use an anticlockwise node numbering scheme.}
     \label{f:2d_gaussian_quad}
 \end{figure}
-%        
-\begin{figure}[htb]
+\begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{images/force_calc_linear_rectangle.pdf}
     \caption{Diagram of the parametric line integrals solved by \citet{Queyreau} to find the forces on linear rectangular surface elements.}
     \label{f:force_lin_rect}
 \end{figure}
-%
-
 \Cref{eq:ddd_fem_force} is actually a triple vector integral. It involves integrating over the surface element and along the dislocation line segment, as shown in \cref{f:force_lin_rect}. Using the isotropic Burgers vector distribution proposed in \cite{Cai2006}, the dyadic form of the stress tensor produced by a straight finite dislocation segment bounded by nodes at $\mathbf{x_1}$ and $\mathbf{x_2}$ is \cite{Queyreau},
-%
 \begin{align}
     \label{eq:stress}
     \tns{\sigma}(\vec{x}) = &
@@ -185,7 +178,7 @@ Where the sum is over the $Q$ quadrature points and $J_{ij}=dx_{i}/ds_{j}$ is th
     %
                             & + \dfrac{\mu}{4\pi(1-\nu)} \int\limits_{\mathbf{x_1}}^{\mathbf{x_2}} \dfrac{3}{R_{a}^{5}} \left[ \left(\vec{R} \times \vec{b}\right) \cdot \mathrm{d}\vec{x'} \right]\vec{R}\otimes\vec{R}\nonumber,
 \end{align}
-where
+where,
 \begin{align}
     \vec{R}            & = \vec{x} - \vec{x'} = y \vec{l} + r \vec{p} + s \vec{q} \\
     %
@@ -193,9 +186,7 @@ where
     %
     \mathrm{d}\vec{x'} & = -\mathrm{d} y \vec{l}
 \end{align}
-%
-The vectors $\vec{p}$ and $\vec{q}$ are aligned with the edges of the rectangular finite element, $\vec{n} = \vec{p} \times \vec{q}$ is the element surface normal (pointing away from the dislocation), and $\vec{l}$ is parallel to the dislocation line segment as shown in \cref{f:force_lin_rect}. Then (provided $\vec{l}$ is not parallel to $\vec{p}$ or $\vec{q}$) $\vec{R}$ can be expressed in terms of $(\vec{l},~\vec{p},~\vec{q})$ with coefficients
-%
+The vectors $\vec{p}$ and $\vec{q}$ are aligned with the edges of the rectangular finite element, $\vec{n} = \vec{p} \times \vec{q}$ is the element surface normal (pointing away from the dislocation), and $\vec{l}$ is parallel to the dislocation line segment as shown in \cref{f:force_lin_rect}. Then (provided $\vec{l}$ is not parallel to $\vec{p}$ or $\vec{q}$) $\vec{R}$ can be expressed in terms of $(\vec{l},~\vec{p},~\vec{q})$ with coefficients,
 \begin{align}
     y = \dfrac{\vec{R}\cdot \vec{n}}{\vec{l}\cdot \vec{n}} \label{eq:problem},\quad
     %
@@ -203,16 +194,15 @@ The vectors $\vec{p}$ and $\vec{q}$ are aligned with the edges of the rectangula
     %
     s = \dfrac{\vec{R}\cdot (\vec{p} \times \vec{l})}{\vec{q}\cdot (\vec{p} \times \vec{l})}\,.
 \end{align}
-%
+
 Substituting \cref{eq:stress} and \cref{eq:shape_function} into \cref{eq:ddd_fem_force} yields four long and messy equations (one for each FE node) that were elegantly solved by \citet{Queyreau} by utilising the fact that the triple integrals all had the form,
-%
 \begin{align}
     H_{ijkl}        & = \int\limits_{r_{1}}^{r_{2}}\int\limits_{s_{1}}^{s_{2}}\int\limits_{y_{1}}^{y_{2}} \dfrac{r^i s^j y^k}{R_{a}^{m}}\label{eq:triple_int} \\
     \textrm{when }m & = 5 \textrm{ then } i,\, j \in [0,\,3],~k \in [0,\,2]\nonumber                                                                          \\
     \textrm{when }m & = 3 \textrm{ then } i,\, j \in [0,\,2],~k \in [0,\,1]\nonumber                                                                          \\
     \textrm{when }m & = 1 \textrm{ then } i = j = k = 0\nonumber.
 \end{align}
-%
+
 Using partial differentiation and integration by parts, they found a series of recurrence relations that lead to double and single integrals with a similar form to equation (\cref{eq:triple_int}). Together they are used to construct a full solution. The recurrence relations stop working when $i = j = k = 0 \textrm{ and } m = 1,\, 3$. At which point, direct integration of the resulting single and double integrals (the last triple integrals all cancel out in the global calculation) yields six seed functions that are used as the starting point for the recurrence relations. Three of them are logarithms and three either arctangents or---if a discriminant is negative---hyperbolic arctangents. The details of the procedure can be found in \cite{Queyreau}.
 
 Although exact, the use of arctangents/hyperbolic arctangents and logarithmic functions, compounded by the large number of recurrence relations is prime territory for error propagation and numerical problems (see \cref{s:method}). This is particularly egregious when using general purpose compilers instead of high-performance or scientific computing compilers where mathematical functions are implemented more precisely. These issues must be taken into account when using analytic tractions in the form of numeric tolerances.
@@ -230,6 +220,7 @@ The original paper by \citet{head1953edge} has a few typos that have been replic
                                 & \left. + 2 a \dfrac{6 x (x + a) (y - c)^2 - (x - a) (x + a)^3 - (y - c)^4}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
+
 The case where the $\vec{b}$ lies parallel to the surface and positive $b$ means it points in the positive $y$ direction, is found in \cref{eq:imageStressAnalyticEdge2},
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticEdge2}
@@ -241,6 +232,7 @@ The case where the $\vec{b}$ lies parallel to the surface and positive $b$ means
                                 & \left. + 4 a x \dfrac{3 (x + a)^2 - (y - c)^2}{[(x + a)^2 + (y - c)^2]^3}\right\}\,.
     \end{align}
 \end{subequations}
+
 Screw dislocations are markedly simpler, as only the shear components are non-zero. Here $\vec{b} = \vec{l}$ and therefore positive $b$ means it points in the positive $z$ direction (away from the observer) \cref{eq:imageStressAnalyticScrew},
 \begin{subequations}
     \begin{align}\label{eq:imageStressAnalyticScrew}
@@ -248,6 +240,7 @@ Screw dislocations are markedly simpler, as only the shear components are non-ze
         \sigma_{yz} & = D \left(\dfrac{x - a}{(x - a)^2 + (y - c)^2} - \dfrac{x + a}{(x + a)^2 + (y - c)^2}\right)\,.
     \end{align}
 \end{subequations}
+
 In every case, the constant $D$ is defined by \cref{eq:Dconstant}
 \begin{align}\label{eq:Dconstant}
     D = \dfrac{\mu}{2\pi} \cdot \dfrac{1+\nu}{1-\nu^2} \cdot b\,.
@@ -285,7 +278,7 @@ The symmetry of the simple test cases can also influence how solution is as the 
 \end{figure}
 
 \citet{Queyreau} found the analytic solution is approximately 10 times more computationally expensive than its numerical counterpart for 1 quadrature point. The implementation of the analytic solution is also much more involved. One issue is the calculation of the $y$-coordinate in the local coordinate frame as shown in \cref{f:force_lin_rect} and \cref{eq:problem}, if $\vec{l} \perp \vec{n}$, we get a singularity. As mentioned in \cite{Queyreau}, an easy fix is to rotate the line segment about its midpoint around the $\vec{l} \times \vec{n}$ axis and use the mean values either side as the true result. An example of what this looks like in terms of forces can be seen in \cref{f:rotate} (we removed the singularity to keep the graph smooth).
-\begin{figure}[htb]
+\begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{ftot_rotation_lin_rect.pdf}
     \caption{Example of the components of the total force on a surface element (the force summed over all four FE nodes) as a dislocation segment parallel to the surface element ($\theta = 0$) is rotated about its midpoint around the axis defined by $\vec{l}\times\vec{n}$. The force is smooth but not necessarily antisymmetric about the neighbourhood of $\theta=0$.}
@@ -327,7 +320,7 @@ Furthermore, the chirality and self-consistency of the  FE nodes must be account
 %
 The total force on a given node must include the force contributions from every element in which said node appears, see \cref{f:shared_node}.
 %
-\begin{figure}[htb]
+\begin{figure}
     \centering
     \includegraphics[width=\linewidth]{images/lrse_thread_map.pdf}
     \caption{FE nodes are shared by either 4 element faces or 3 if it is a corner node. The total force on a given node is the summation of the force contributions from each element it belongs to.}
@@ -377,7 +370,7 @@ The specifics of the mapping depend on the global FE node numbering. Using \cref
 \end{subequations}
 Where $\vec{x_{e,n}}$ is a $3\times1$ column vector corresponding to the $x,~y,~z$ dislocation induced forces on node $n$ on the surface element $e$. There are four of these per rectangular surface element, where a given node, $n$, can appear in multiple surface elements (e.g. node 5 in \cref{f:shared_node} is shared by all 4 surface elements), all of which independently contribute to the total force on said node. $\vec{x_n}$ is a $3\times1$ column vector corresponding to the total $x,~y,~z$ dislocation induced forces on node $n$. These are used to shorten the definition of \cref{eq:force_imp} and are not explicitly defined in the implementation, rather they give the force matrices $\mtx{F_{e}}$ and $\vec{\tilde{F}}$ a specific row order. $\mtx{N_{L}}$ is crucial for the correct implementation of this analytical solution in traditional FE codes. It is the $E\times4$ matrix corresponding to the global label of each node in a given surface element. Each row of the matrix represents a surface element and each column represents a node in the surface element. We cannot na\"ively add the columns together as that would give the total force acting on the element as a whole, not each FE node individually. We chose to arrange the columns in accordance to \cref{f:force_lin_rect} as it makes it easier to implement the solution, but the only thing that matters is that the basis vectors $\vec{n},\,\vec{p},\,\vec{q}$ are calculated appropriately. $\vec{\gamma}$ is the vector with the FE node labels, which makes mapping force to node possible. $\mtx{F_{e}}$ is the $3E \times 4$ matrix where the forces acting on each of the four nodes (column) in a particular surface element (each element corresponds to three consecutive rows because there are three dimensions) are stored. $\vec{\tilde{F}}$ is the $3N\times1$ column vector where the total forces on each node are stored (each node has three rows because there are three dimensions). This is easily generalisable to $E$ elements and $N$ nodes.
 
-The following algorithm illustrates how the total force on each node is obtained. The resulting force vector is later used in \cref{eq:thatbc} as $\tilde{\vec{T}} \equiv \tilde{\vec{F}}$.
+The following algorithm illustrates how the total force on each node is obtained.
 \begin{algorithm}
     \caption{Assuming $ \vec{\tilde{F}} $ is arranged the same way as $ \vec{\gamma} $ and indexing starts at 0.}
     \begin{algorithmic}[1]
@@ -397,13 +390,14 @@ The following algorithm illustrates how the total force on each node is obtained
 \end{algorithm}
 Our implementation does not strictly follow \cref{a:tot_force} because we memoise a generalised version of $\vec{L}$ upon simulation initialisation instead of finding one at every iteration, reducing computational time but requiring us to account for nodes without traction boundary conditions. Our indexing also starts at 1, but zero indexing makes the algorithm easier to follow.
 
-After the tractions have been calculated, they are used by the FE solver to generate the corresponding image stresses. \Cref{f:headvstractionfem} shows the system we used to compare the image stresses calculated by our FE solver using numeric tractions v.s. analytic tractions v.s. infinite-domain, singular image stresses found in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}. We use three test cases, two edge dislocations and one screw, all of which have line direction $\vec{l} = [0\, 0\, 1]$ with Burgers vectors $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ \cite{head1953edge}, and $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ \cite{hirth1983theory}.
+The resulting force vector is later used in \cref{eq:thatbc} as $\tilde{\vec{T}} \equiv \tilde{\vec{F}}$. \Cref{f:headvstractionfem} shows the simple system we used to compare the image stresses calculated by our FE solver using numeric tractions v.s. analytic tractions v.s. infinite-domain, singular image stresses found in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}. We use three test cases, two edge dislocations and one screw, all of which have line direction $\vec{l} = [0\, 0\, 1]$ with Burgers vectors $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ \cite{head1953edge}, and $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ \cite{hirth1983theory}.
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{head_vs_fe_tractions_setup_diagram.pdf}
-    \caption{Dislocation parallel to a surface described by the line $x = 0$ (the $yz$-plane in 3D), where the dislocation coordinates are $(a,~c)$, looking down the $xy$-plane where the $x$-axis is horizontal and the $y$-axis vertical. (a) describes the box we used for our comparison, a  $20 \times 20 \times 20$ element cubic box with side lengths equal to $1000~ \lVert \vec{b} \rVert$ with $\vec{T} = \vec{0}$ traction boundary conditions only on the nodes occupying the $yz$-plane and $\vec{U} = \vec{0}$ displacement conditions everywhere else, and a dislocation with line direction in the positive $z$ direction. (b) is the 2D view with the dislocation coordinates $(a,~c)$, as well as the two edge Burgers vectors as described by \cite{head1953edge}, $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ and the screw Burgers vector $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ as posited in \cite{hirth1983theory}.}
+    \caption{Dislocation parallel to a surface described by the line $x = 0$ (the $yz$-plane in 3D), where the dislocation coordinates are $(a,~c)$, looking down the $xy$-plane where the $x$-axis is horizontal and the $y$-axis vertical. (a) describes the box we used for our comparison, a  $20 \times 20 \times 20$ element cubic box with side lengths equal to $1000\, \lVert \vec{b} \rVert$ with $\vec{T} = \vec{0}$ traction boundary conditions only on the nodes occupying the $yz$-plane and $\vec{U} = \vec{0}$ displacement conditions everywhere else, and a dislocation with line direction in the positive $z$ direction. (b) is the 2D view with the dislocation coordinates $(a,~c)$, as well as the two edge Burgers vectors as described by \cite{head1953edge}, $\vec{b}_\textrm{e1} \equiv \vec{b} = [1\, 0\, 0]$, $\vec{b}_\textrm{e2} \equiv \vec{b} = [0\, 1\, 0]$ and the screw Burgers vector $\vec{b}_\textrm{s} \equiv \vec{b} = \vec{l} = [0\, 0\, 1] $ as posited in \cite{hirth1983theory}.}
     \label{f:headvstractionfem}
 \end{figure}
+The slices we took for our contour plots in \cref{s:results} taken from the midpoint of the $z$-axis to ensure minimal interferance from the $xy$-plane boundaries at $z=0,\, 1000\,b$.
 
 % TODO #48
 Finally, we ran a simple simulation where the differences between methods can be readily observed.
@@ -412,7 +406,7 @@ Finally, we ran a simple simulation where the differences between methods can be
 
 Isolated test cases were useful in order to gain insight into the differences between the numerical and analytical approaches. When the stress field on the surface element is highly symmetric, numerical integration works well; showing good convergence with increasing number of quadrature points.
 
-\Cref{f:rel_err_perp_edge} shows that even for dislocations only one dislocation core radius ($5b$) away from the surface element, the force can be obtained, up to numerical precision, with 1000 Gauss quadrature points $Q$, for all segment lengths tested. It also shows a very peculiar issue Gauss quadrature has when computing integrals of rational functions when the Gauss points are close poles/maximal values. This undesirable behaviour is observed in the case where $Q = 11$. Where the highest weighted Gauss node is closest to the point where $1/R_{a}$ is maximal, resulting in lower accuracy when compared to $Q = 2, 10$ in \cref{f:rel_err_perp_edge} (a) and (b).
+\Cref{f:rel_err_perp_edge} shows that even for dislocations only one dislocation core radius ($5\, b$) away from the surface element, the force can be obtained, up to numerical precision, with 1000 Gauss quadrature points $Q$, for all segment lengths tested. It also shows a very peculiar issue Gauss quadrature has when computing integrals of rational functions when the Gauss points are close poles/maximal values. This undesirable behaviour is observed in the case where $Q = 11$. Where the highest weighted Gauss node is closest to the point where $1/R_{a}$ is maximal, resulting in lower accuracy when compared to $Q = 2, 10$ in \cref{f:rel_err_perp_edge} (a) and (b).
 \begin{figure}
     \centering
     \subfloat[Segment starts a single dislocation core radius away.]
@@ -448,7 +442,6 @@ The limitations of Gauss quadrature become even more evident when the dislocatio
 In \cref{f:rel_err_par_edge}, we observe the relative errors decrease and then converge to $\sim 1$ as the distance grows larger. The convergence to $\sim 1$ is an artifact arising from the fact that the forces on the surface element get asymptotically closer to zero with increasing distance from the surface element, resulting in the division of two increasingly similar, small, non-zero numbers, resulting in $\sim 1$ when done with limited precision. Given infinite precision, it is not unreasonable to assume the relative error would converge to $\sim10^{-3},~ \sim10^{-4}$\footnote[1]{The absolute error \textit{always} decreases as the distance from the surface element increases, but absolute errors are not as useful tools of comparison as long as we are conscious of small artifacting from limited precision.}. However, when the segment is close to the surface, the relative errors are large ($\gg1$) unless using a large number of quadrature points, for example \cref{f:gauss_quad_test}(a) shows that $Q\geq100$ are required when the distance $x^1_z = 15b$. This figure backs up the earlier point regarding Gauss nodes close to maximal rational values, as $Q = 2$ performs significantly better than $Q = 10, 11, 100, 100$ at smaller distances from the surface. Generally, there is no best value of $Q$ other than very large.
 
 From \cref{f:rel_err_perp_edge,f:rel_err_par_edge} one might be tempted to say that for a segment parallel to a surface, Gauss quadrature performs far worse than for a perpendicular one. However there is a further wrinkle in this problem: symmetry. To exemplify this we plot the relevant components of the stress tensor for the arrangement in \cref{f:gauss_quad_test}(a) we find \cref{f:sigma_perp_edge}. The $\sigma_{xz}$ and $\sigma_{zz}$ components are antisymmetric about the centre of the element. If we use Gauss quadrature on them, we sample equivalent but oppositely valued points that equally weighted, thus the sum vanishes. $\sigma_{yz}$ does not, but it can be accurately integrated with sufficiently large $Q$. If we were to move the dislocation off-centre such that the rotational anti-symmetry about the origin is broken, the errors would increase.
-
 \begin{figure}
     \centering
     \subfloat[$\sigma_{xz}$.\label{sf:xzeperp}]
@@ -469,169 +462,179 @@ From \cref{f:rel_err_perp_edge,f:rel_err_par_edge} one might be tempted to say t
     \label{f:sigma_perp_edge}
 \end{figure}
 
-Despite these being somewhat contrived examples that illustrate the failings of Gauss quadrature, problematic scenarios are commonly to show up in simulations. They are worse with smaller core radii $a$, fewer Gauss nodes, higher dislocation densities near surfaces and more permissive mobility functions. They are fairly localised given the $\mathcal{O}(1/R)$ decay but under unfortunate cirumstances, these spikes in the image forces result in unwarranted topological changes to the dislocation structure by causing segments to move in erroneous or erratic ways. Such changes to the dislocation structure tend to have large and cascading effects as simulations advance. Which is particularly deleterious when doing simulations with higher dislocation densities and/or where a large number of dislocations are close to the surface, such as nanoindentation simulations.
+Despite these being artificially ideal examples that illustrate the failings of Gauss quadrature, other problematic scenarios commonly to show up in simulations. The problems tend to worsen with smaller core radii $a$, fewer Gauss nodes, higher dislocation densities near surfaces and more permissive mobility functions. Despite the highly localised nature of these large errors, the $\mathcal{O}(1/R)$ decay rate and chaotic nature of dislocation dynamics, means they often result in unwarranted topological changes. Such changes to the dislocation structure tend to have large and cascading effects as simulations advance. Which is particularly deleterious when doing simulations with higher dislocation densities and/or where a large number of dislocations are close to the surface, such as nanoindentation simulations.
 
-As stated in \cref{s:method}, tractions are used to calculate the image stresses resulting from the boundary conditions. We therefore also compare the differences in image stresses resulting from numeric ($Q = 1$) and analytic traction calculations and how they compare to the infinite-domain, singular expressions in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}\footnote{The first term in each equation corresponds to the real stresses, we can omit these to view the image stresses.}.
+As stated in \cref{s:method}, tractions are used to calculate the image stresses resulting from the boundary conditions. We therefore compare the differences in image stresses resulting from numeric ($Q = 1$) and analytic traction calculations of both our implementations and how they compare to the infinite-domain, singular expressions in \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2,eq:imageStressAnalyticScrew}\footnote{Since the first term in each equation corresponds to the real stresses, we omit them to view the image stresses.}. The stress field comparisons for all three cases are found in \cref{f:head_vs_ana_vs_num_eperp,f:head_vs_ana_vs_num_epar,f:head_vs_ana_vs_num_screw}, where the dislocation is denoted by a white dot.
 
+\Cref{f:head_vs_ana_vs_num_eperp} shows the stress fields corresponding to analytic expressions for image stress components, $\hat{\sigma}_{ij}$ in \cref{eq:imageStressAnalyticEdge1} where no superscript denotes the infinite-domain singular expressions, a $\textrm{A}$ superscript are the stresses derived from analytic tractions and $\textrm{N}$ for those coming from numeric ones. The setup corresponds to the one described in \cref{f:headvstractionfem} where $\vec{b} = \vec{b}_{\textrm{e1}}$. It is clear edge effects play a role in the generated stresses. All three components have notable differences from the infinite-domain solutions resulting from the finite constraints. Regardless, the overall shape of the isolines is similar in all three solutions for corresponding stress components, particularly $\hat{\sigma}_{yy}$. The lobes of $\hat{\sigma}_{xx}$ for analytic and numeric tractions are deformed by the displacement boundary conditions on all surfaces other than $x = 0\, b$, where tractions are calculated. The effect is most dramatic when looking near the top and bottom of the domain, where the final isolines flare towards the traction surface. The shear stresses $\hat{\sigma}_{xy}$ are also somewhat different, with similar flaring. However, as they radiate in the $x$-direction, the deviations away from the infinite-domain solutions flare away from the $x = 1000\, b$ surface. That said, all stress fields calculated from analytic and numeric tractions look fairly similar for $\vec{b} = \vec{b}_{\textrm{e1}}$.
 \begin{figure}
     \centering
     \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxAEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxxNeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxNEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEperp.pdf}}
     }
 
     \subfloat[$\hat{\sigma}_{yy}$.\label{sf:syyeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syyAeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyAEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyAEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syyNeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyNEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyNEperp.pdf}}
     }
 
     \subfloat[$\hat{\sigma}_{xy}$.\label{sf:sxyeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$.\label{sf:sxyAeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyAEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyAEperp.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$.\label{sf:sxyNeperp}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyNEperp.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyNEperp.pdf}}
     }
     \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [1 0 0]$, with $a = 10~b$ with coordinates $(26.3158,~ 500)~b$, i.e. the centre of the first FE from the surface at $x=0$, and in the centre of the simulation box from top to bottom. Here $b = \lVert \vec{b} \rVert \equiv 1$.}
     \label{f:head_vs_ana_vs_num_eperp}
 \end{figure}
 
-Note the sign inversion just to the right of the dislocation in \cref{sf:sxxNepar} compared to \cref{sf:sxxepar,sf:sxxAepar}. Stresses like those can lead to dislocations being repelled by surfaces and make the dislocation topology more complex than it should, potentially leading to slowdown or gridlock later in the simulation.
+Things get markedly more interesting when looking at $\vec{b} = \vec{b}_{\textrm{e2}}$ in \cref{f:head_vs_ana_vs_num_epar}. Of particular note is $\hat{\sigma}_{xx}$, where a comparison between \cref{sf:sxxepar,sf:sxxAepar} and \cref{sf:sxxNepar} reveals one of the major issues with numeric tractions. If we look at the neighbourhood of the dislocation, we will find a sign inversion as well as a drastically different isosurface shape, where the isolines are not merely deformed, they are fundamentally different when calculated with numeric tractions. Stresses like those can lead to dislocations problems, particularly if it just so happens that the sign inversion also comes with an increased force magnitude, something that is possible judging from \cref{f:rel_err_par_edge,f:rel_err_par_edge}. Specifically, there is a region in the positive $x$-direction away from the dislocation where $\hat{\sigma}_{xx}$ is tensile rather than compressive. It is as absurd as a ship inverts the Archimidean principle. The other two stress fields $\hat{\sigma}_{yy}$, $\hat{\sigma}_{xy}$ follow similar trends to what we have already observed, where the isolines get squashed and flair towards the traction free surface.
 \begin{figure}
     \centering
     \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxAEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxxNepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxxNEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEpar.pdf}}
     }
 
     \subfloat[$\hat{\sigma}_{yy}$.\label{sf:syyepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syyAepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyAEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyAEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syyNepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syyNEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syyNEpar.pdf}}
     }
 
     \subfloat[$\hat{\sigma}_{xy}$.\label{sf:sxyepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{xy}$.\label{sf:sxyAepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyAEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyAEpar.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{xy}$.\label{sf:sxyNepar}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxyNEpar.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxyNEpar.pdf}}
     }
     \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
     \label{f:head_vs_ana_vs_num_epar}
 \end{figure}
 
+Perhaps the most evident deformation resulting from the displacement boundaries can be seen when $\vec{b} = \vec{b}_{\textrm{s}}$ in \cref{f:head_vs_ana_vs_num_screw}, where the lobes of the isolines are highly deformed when compared to the infinite-domain solutions. The familiar lobes look very different, but both analytic and numeric tractions yield fairly similar fields.
 \begin{figure}
     \centering
     \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxzscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxzscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxzscrew.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxzAscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxzAscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxzAscrew.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxzNscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/sxzNscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxzNscrew.pdf}}
     }
 
     \subfloat[$\hat{\sigma}_{yy}$.\label{sf:szyscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syzscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syzscrew.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:syzAscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syzAscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syzAscrew.pdf}}
     }~
     \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:syzNscrew}]
     {
-        {\includegraphics[width=0.3\linewidth]{images/syzNscrew.pdf}}
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syzNscrew.pdf}}
     }
     \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 0 1]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
     \label{f:head_vs_ana_vs_num_screw}
 \end{figure}
 
+From \cref{f:head_vs_ana_vs_num_eperp,f:head_vs_ana_vs_num_epar,f:head_vs_ana_vs_num_screw} it seems
+like both analytic and numeric tractions are both appropriate in most cases. At least at these scales, there is only one instance where numeric tractions yield very incorrect results. Although these can have significant consequences later in a simulation's runtime, and particularly in simulations where dislocations regularly come into close contact with surfaces.
+
+It is also worth looking at the stress fields with a finer lens. \Cref{f:line_head_vs_ana_vs_num} shows line plots through the first set of nodes away from the traction surface, i.e. through the line $x = 52.6316\, b$. \Cref{sf:line_sxxperp,sf:line_syyeperp,sf:line_sxyeperp} correspond to to $\vec{b} = \vec{b}_{\textrm{e1}}$, \cref{sf:line_sxxepar,sf:line_syyepar,sf:line_sxyepar} $\vec{b} = \vec{b}_{\textrm{e2}}$ and \cref{sf:line_sxzscrew,sf:line_syzscrew} to $\vec{b} = \vec{b}_{\textrm{s}}$. Here the singular nature of the infinite-domain solutions is evidenced by the sharp spikes in the stresses. In general, the non-singular formulation smoothes out the stress line plots. However, there are a few instances where the numeric tractions lead to larger spikes than even the infinite-domain solutions. Again, the general shape of the line plots is the same but the tendancy for numerical tractions to spike under specific circumstances is evident in every case.
 \begin{figure}
     \centering
     \subfloat[$\hat{\sigma}_{xx}$.\label{sf:line_sxxperp}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_sxxEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:line_syyeperp}]
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_syyeperp}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_syyEperp.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:line_sxyeperp}]
+    \subfloat[$\hat{\sigma}_{xy}$.\label{sf:line_sxyeperp}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_sxyEperp.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_sxxepar}]
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:line_sxxepar}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_sxxEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:line_syyepar}]
+    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_syyepar}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_syyEpar.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:line_sxyepar}]
+    \subfloat[$\hat{\sigma}_{xy}$.\label{sf:line_sxyepar}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_sxyEpar.pdf}}
     }
 
-    \subfloat[$\hat{\sigma}_{yy}$.\label{sf:line_sxzscrew}]
+    \subfloat[$\hat{\sigma}_{xz}$.\label{sf:line_sxzscrew}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_sxzscrew.pdf}}
     }~
-    \subfloat[$\hat{\sigma}^\textrm{A}_{yy}$.\label{sf:line_syzscrew}]
+    \subfloat[$\hat{\sigma}_{yz}$.\label{sf:line_syzscrew}]
     {
         {\includegraphics[width=0.3\linewidth]{images/line_syzscrew.pdf}}
     }
-    \caption{Line plots of the image stresses at $x = 52.6316\, b$ for the analytic image stresses, as well as those calculated with numeric and analytic tractions. The line corresponds to the first set of nodes away from the boundary at $x = 0$. (a) to (c) correspond to $\vec{b}_{\textrm{e1}}$, (d) to (f) $\vec{b}_{\textrm{e2}}$ and (g) to (h) to $\vec{b}_{\textrm{s}}$.}
+    \caption{Line plots of the image stresses at $x = 52.6316\, b$ for the analytic image stresses, as well as those calculated with numeric and analytic tractions. The line corresponds to the first set of nodes away from the boundary at $x = 0\, b$. (a) to (c) correspond to $\vec{b} = \vec{b}_{\textrm{e1}}$, (d) to (f) $\vec{b} = \vec{b}_{\textrm{e2}}$ and (g) to (h) to $\vec{b} = \vec{b}_{\textrm{s}}$.}
     \label{f:line_head_vs_ana_vs_num}
 \end{figure}
+
+For completeness, we also show a few examples of line plots and stress fields as dislocations move further away from the traction surface. As it can be observed, both analytic and numeric tractions converge to similar shapes to each other, which is to be expected.
+
+This does not mean numeric tractions are useless, in fact, they mostly work quite well. However, the impact their inherent numerical instability can be quite large. For us, analytic tractions despite being approximately an order of magnitude slower than numerically calculated tractions with $Q = 1$ \cite{Queyreau} (our tests agree with their findings), yield more stable and ultimately faster simulations. Even simple simulations are typically faster when using analytic tractions over numeric ones. The margin grows the more complex the simulation and the further each simulation gets. It's all down to better behaved segments at or near surfaces. As such, we cannot recommend using numeric tractions when analytic ones are available. The losses in computational speed that result from moving from one to the other are more than made up for by the fewer topological operations, fewer generated segments, and more accurate velocities. All of which result in fewer calculations of segment-segment interactions, fewer collisions, larger timesteps and ultimately cleaner simulations that run into fewer snags along the way.
 
 % Add line plot for a dislocation further away from the edge.
 % TODO #28

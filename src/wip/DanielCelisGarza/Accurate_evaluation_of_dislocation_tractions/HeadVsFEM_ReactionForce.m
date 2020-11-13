@@ -196,7 +196,7 @@ for k = 1:2
         tyyPar = tyy;
         txyPar = txy;
     end
-
+    
     % Edge
     % Image stresses
     symbol = '\hat{\sigma}';
@@ -286,7 +286,10 @@ for k = 1:2
 %     plotCountourfSigmaHat(X, Y, (sxxN + sxxFP) - (txxT), x1, y1, orientationB, symbol, 'xx', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 %     plotCountourfSigmaHat(X, Y, (syyN + syyFP) - (tyyT), x1, y1, orientationB, symbol, 'yy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 %     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+
 end
+
+%%
 
 % Screw
 close all
@@ -445,7 +448,7 @@ plot(linspace(x(2), x(2), j), y, 'LineWidth', 2, 'LineStyle', '--')
 hold off
 set(gcf(), 'Units', 'Inches');
 pos = get(gcf(), 'Position');
-set(gcf(), 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+set(gcf(), 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3)+pos(3)*0.1, pos(4)])
 print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % plotCountourfSigmaHat(X, Y, tyz, x1, y1, orientationB, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 % hold on
@@ -478,7 +481,7 @@ function fig = linePlot(analytic, numeric, head, orientationB, stress, component
         name = erase(sprintf('line_s%s%s', component, orientationB), ["\", "$"]);
         set(fig, 'Units', 'Inches');
         pos = get(fig, 'Position');
-        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3)+pos(3)*0.1, pos(4)])
         print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
     end
 
@@ -523,7 +526,7 @@ function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orienta
         name = erase(sprintf('s%s%s%s', component, equation, orientationB), ["\", "$"]);
         set(fig, 'Units', 'Inches');
         pos = get(fig, 'Position');
-        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3), pos(4)])
+        set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3)+pos(3)*0.1, pos(4)])
         print(fig, sprintf('./paper/images/%s.pdf', name), '-dpdf', '-r0')
     end
 
