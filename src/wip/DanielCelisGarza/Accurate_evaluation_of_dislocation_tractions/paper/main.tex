@@ -632,9 +632,94 @@ It is also worth looking at the stress fields with a finer lens. \Cref{f:line_he
     \label{f:line_head_vs_ana_vs_num}
 \end{figure}
 
-For completeness, we also show a few examples of line plots and stress fields as dislocations move further away from the traction surface. As it can be observed, both analytic and numeric tractions converge to similar shapes to each other, which is to be expected.
+We also show examples of contour \cref{f:line_head_vs_ana_vs_num_epar2to11} and line plots \cref{f:line_head_vs_ana_vs_num_epar2to11} of the image and total stress fields as an edge dislocation with $\vec{b} = \vec{b}_{\textrm{e2}}$ moves from $26.3158\, b$ (centre of the first element) to $500\, b$ (centre of the 10th element). The line plots are taken from the closest set of nodes in the positive $x$-direction i.e. at $x = 52.6316\, 526.3158\, b$.
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxepar2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEpar2.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAepar2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEpar2.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{yy}$.\label{sf:sxxNepar2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEpar2.pdf}}
+    }
 
-This does not mean numeric tractions are useless, in fact, they mostly work quite well. However, the impact their inherent numerical instability can be quite large. For us, analytic tractions despite being approximately an order of magnitude slower than numerically calculated tractions with $Q = 1$ \cite{Queyreau} (our tests agree with their findings), yield more stable and ultimately faster simulations. Even simple simulations are typically faster when using analytic tractions over numeric ones. The margin grows the more complex the simulation and the further each simulation gets. It's all down to better behaved segments at or near surfaces. As such, we cannot recommend using numeric tractions when analytic ones are available. The losses in computational speed that result from moving from one to the other are more than made up for by the fewer topological operations, fewer generated segments, and more accurate velocities. All of which result in fewer calculations of segment-segment interactions, fewer collisions, larger timesteps and ultimately cleaner simulations that run into fewer snags along the way.
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:sxxepar11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEpar11.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{A}_{xx}$.\label{sf:sxxAepar11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEpar11.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}^\textrm{N}_{xx}$.\label{sf:sxxNepar11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEpar11.pdf}}
+    }
+
+    \subfloat[$\sigma_{xx}$.\label{sf:sxxepartot2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEparTot2.pdf}}
+    }~
+    \subfloat[$\sigma^\textrm{A}_{x}$.\label{sf:sxxAepartot2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEparTot2.pdf}}
+    }~
+    \subfloat[$\sigma^\textrm{N}_{xx}$.\label{sf:sxxNepartot2}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEparTot2.pdf}}
+    }
+
+    \subfloat[$\sigma_{xx}$.\label{sf:sxxepartot11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxEparTot11.pdf}}
+    }~
+    \subfloat[$\sigma^\textrm{A}_{xx}$.\label{sf:sxxAepartot11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxAEparTot11.pdf}}
+    }~
+    \subfloat[$\sigma^\textrm{N}_{xx}$.\label{sf:sxxNepartot11}]
+    {
+        {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEparTot11.pdf}}
+    }
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. (a) to (c) and (g) to (i) at $(26.3158\,, 500)\, b$; (d) to (f) and (j) to (l) at $(500\,, 500)\, b$. (a) to (g) image stresses; (g) to (l) total stresses.}
+    \label{f:head_vs_ana_vs_num_epar2to11}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:line_sxxepar2}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEpar2.pdf}}
+    }~
+    \subfloat[$\hat{\sigma}_{xx}$.\label{sf:line_syyepar11}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEpar11.pdf}}
+    }
+
+    \subfloat[$\sigma_{xx}$.\label{sf:line_sxxeparTot2}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEparTot2.pdf}}
+    }~
+    \subfloat[$\sigma_{xx}$.\label{sf:line_sxxeparTot11}]
+    {
+        {\includegraphics[width=0.3\linewidth]{images/line_sxxEparTot11.pdf}}
+    }
+
+    \caption{Line plots corresponding to \cref{f:head_vs_ana_vs_num_epar2to11}. (a) and (c) are of image stresses; (b) and (d) are of total stresses. (a) and (b) are of a dislocation at $(26.3158,\, 500)\, b$, taken along the line $x = 52.6316\, b$. (b) and (d) are of a dislocation at $(500,\, 500)\, b$ taken along the line $x = 526.3158\, b$.}
+    \label{f:line_head_vs_ana_vs_num_epar2to11}
+\end{figure}
+From the line plots, it can be observed that both analytic and numeric tractions converge to similar shapes to each other, which is to be expected. However it also becomes clear that the infinite-domain solution is not totally accurate for image stresses in finite domains due to edge effects. However, the glaring issue is that total stresses for each solution are significantly different as dislocations near the surface. The instability of Gauss quadrature when integrating rational functions tends to produce values that are outside the range of the infinite-domain solution, as well as being less smooth than the two other solutions.
+
+As expected, all solutions converge as the distance from the dislocation to surface increases because the magnitude of the real stresses increases in relation to that of the image stresses\footnote{The image stress components of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2} are reflections about the line $x=0$ plus a corrective term that decays faster than the reflection term. In \cref{eq:imageStressAnalyticScrew}, the image term is a reflection about the line $x=0$. Therefore in both cases, as the dislocation moves away from the surface, the real stresses get relatively larger.}.
+
+In order to show the effects numerical tractions have on simulations, we ran a very simple cantilever bending simulation where the only difference was the traction calculation method. A very simple yet illustrative qualitative example is to produce a scatter plot of the numerically calculated tractions vs analytically calculated tractions at any time during the simulation. To obviate the problem even more, it helps making the axes proportional. What is observed in practically every case, is a positive correlation (though as we have seen in \cref{sf:sxxepar,sf:sxxAepar,sf:sxxNepar}, numerical tractions can produce sign inversions under specific conditions), but the axis that represents the numerically calculated tractions will be visually larger, as numeric tractions produce more extreme values. Statistically speaking, the closer the $R$-value is to 1 and the closer a linear fit is to $y=x$, the more accurate numerical tractions are for any given moment in a simulation. We have yet to find a single example where this happens. Furthermore, the chaotic nature of dislocation dynamics means that slight deviations will yield noticeably different results for the same starting conditions.
+
+This does not mean numeric tractions are useless, in fact, thethiny mostly work quite well. However, the impact their inherent numerical instability can be quite large. For us, analytic tractions despite being approximately an order of magnitude slower than numerically calculated tractions with $Q = 1$ \cite{Queyreau} (our tests agree with their findings), yield more stable and ultimately faster simulations. Even simple simulations are typically faster when using analytic tractions over numeric ones. The margin grows the more complex the simulation and the further each simulation gets. It's all down to better behaved segments at or near surfaces. As such, we cannot recommend using numeric tractions when analytic ones are available. The losses in computational speed that result from moving from one to the other are more than made up for by the fewer topological operations, fewer generated segments, and more accurate velocities. All of which result in fewer calculations of segment-segment interactions, fewer collisions, larger timesteps and ultimately cleaner simulations that run into fewer snags along the way.
 
 % Add line plot for a dislocation further away from the edge.
 % TODO #28

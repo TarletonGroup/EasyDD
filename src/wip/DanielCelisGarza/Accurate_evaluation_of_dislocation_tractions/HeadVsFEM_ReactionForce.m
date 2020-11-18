@@ -525,7 +525,7 @@ for node = [2, 5, 11, 18]
     
     [txx, tyy, txy] = imageStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
     [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
-    orientationB = 'EparQuarter';
+    orientationB = sprintf('Epar%d', node);
     
     sxxApar = sxxA;
     syyApar = syyA;
@@ -555,7 +555,6 @@ for node = [2, 5, 11, 18]
     plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
     
-    orientationB = sprintf('Epar%d', node);
     linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
     linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
     linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
@@ -565,6 +564,7 @@ for node = [2, 5, 11, 18]
     % Total stresses
     symbol = '\sigma';
     % Head
+    orientationB = sprintf('EparTot%d', node);
     [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txx+sxxFP, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
     [~, meanvalyy, stddevyy] = plotCountourfSigmaHat(X, Y, tyy+syyFP, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
     [~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txy+sxyFP, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
@@ -577,7 +577,130 @@ for node = [2, 5, 11, 18]
     plotCountourfSigmaHat(X, Y, syyN+syyFP, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN+sxyFP, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
     
+    linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+end
+%%
+%%
+addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+
+for node = [2, 5, 11, 18]
+    close all
+    len = 100;
+    xcoord = linspace(0, dx, j);
+    ycoord = linspace(0, dy, j);
+    % TODO #44
+    xcoord = (xcoord(node-1) + xcoord(node)) / 2; % middle of first element.
+    ycoord = (ycoord(floor(j / 2)) + ycoord(floor(j / 2) + 1)) / 2; % middle of the domain
+    x = linspace(xcoord, xcoord, len);
+    y = linspace(ycoord, ycoord, len);
+    z = linspace(0, dz, len);
+    x1 = x(1);
+    y1 = y(1);
+    t = [0 0 1];
+    n = [1 0 0];
+    rn = zeros(len, 3);
+    rn(:, 1) = x;
+    rn(:, 2) = y;
+    rn(:, 3) = z;
+    links = zeros(len - 1, 8);
+    hold on
+    plot3(rn(:, 1), rn(:, 2), rn(:, 3), 'r.')
+    plot3(X, Y, Z, 'k.')
+    hold off
+    
+    b = t;
+    
+    for i = 1:len - 1
+        links(i, :) = [i, i + 1, b, n];
+    end
+    
+    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+        0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
+        gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
+        f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
+    
+    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
+        gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
+    
+    sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
+    sxxA = squeeze(sigmaA(1, 1, :, :));
+    syyA = squeeze(sigmaA(2, 2, :, :));
+    sxyA = squeeze(sigmaA(1, 2, :, :));
+    sigmaN = hatStressSurf(uhat2, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
+    sxxN = squeeze(sigmaN(1, 1, :, :));
+    syyN = squeeze(sigmaN(2, 2, :, :));
+    sxyN = squeeze(sigmaN(1, 2, :, :));
+    
+    segments = constructsegmentlist(rn, links, doSave);
+    p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
+    p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
+    
+    sigmaFP = FieldPointStressSurf(X, Y, Z, p1, p2, b, a, MU, NU);
+    sxxFP = squeeze(sigmaFP(1, 1, :, :));
+    syyFP = squeeze(sigmaFP(2, 2, :, :));
+    sxyFP = squeeze(sigmaFP(1, 2, :, :));
+    
+    x = linspace(0, dx, gridSize);
+    y = linspace(0, dy, gridSize);
+    b = 1; %sqrt(3) / 2;
+    [X, Y] = meshgrid(x, y);
+    
+    [txx, tyy, txy] = imageStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
+    [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
     orientationB = sprintf('Epar%d', node);
+    
+    sxxApar = sxxA;
+    syyApar = syyA;
+    sxyApar = sxyA;
+    
+    sxxNpar = sxxN;
+    syyNpar = syyN;
+    sxyNpar = sxyN;
+    
+    txxPar = txx;
+    tyyPar = tyy;
+    txyPar = txy;
+    
+    % Edge
+    % Image stresses
+    symbol = '\hat{\sigma}';
+    % Head
+    [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txx, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    [~, meanvalyy, stddevyy] = plotCountourfSigmaHat(X, Y, tyy, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    [~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txy, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    % FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Y, sxxA, x1, y1, orientationB, symbol, 'xx', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyA, x1, y1, orientationB, symbol, 'yy', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyA, x1, y1, orientationB, symbol, 'xy', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
+    % FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Y, sxxN, x1, y1, orientationB, symbol, 'xx', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
+    
+    linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+    
+    
+    % Edge
+    % Total stresses
+    symbol = '\sigma';
+    % Head
+    orientationB = sprintf('EparTot%d', node);
+    [~, meanvalxx, stddevxx] = plotCountourfSigmaHat(X, Y, txx+sxxFP, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    [~, meanvalyy, stddevyy] = plotCountourfSigmaHat(X, Y, tyy+syyFP, x1, y1, orientationB, symbol, 'yy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    [~, meanvalxy, stddevxy] = plotCountourfSigmaHat(X, Y, txy+sxyFP, x1, y1, orientationB, symbol, 'xy', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave);
+    % FEM + Analytic tractions
+    plotCountourfSigmaHat(X, Y, sxxA+sxxFP, x1, y1, orientationB, symbol, 'xx', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyA+syyFP, x1, y1, orientationB, symbol, 'yy', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyA+sxyFP, x1, y1, orientationB, symbol, 'xy', 'A', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
+    % FEM + Numeric tractions
+    plotCountourfSigmaHat(X, Y, sxxN+sxxFP, x1, y1, orientationB, symbol, 'xx', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxx, stddevxx)
+    plotCountourfSigmaHat(X, Y, syyN+syyFP, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
+    plotCountourfSigmaHat(X, Y, sxyN+sxyFP, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
+    
     linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
     linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
     linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
