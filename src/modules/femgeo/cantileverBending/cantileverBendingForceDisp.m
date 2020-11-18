@@ -8,6 +8,6 @@ function [Fsim, Usim, t] = cantileverBendingForceDisp(Fsim, f_bar, f_hat, f_tild
     Usim(curstep + 1) = u_out;
     t(curstep + 1) = simTime;
 
-    fprintf('fend = %d, Ubar = %d, simTime = %d\n', f_out, u_out, simTime);
+    fprintf('f_out = %d, u_out = %d, simTime = %d\n', f_out, u_out, simTime);
 
 end

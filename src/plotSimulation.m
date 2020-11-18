@@ -1,12 +1,12 @@
-function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep)
-
+function plotSimulation(rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, BCstore, simscale, curstep)
+    
     if (mod(curstep, plotFreq) == 0)
         figure(1)
         plotnodes(rn, links, plim, vertices);
         view(viewangle);
         drawnow
-
-        feval(plotForceDisp, Usim, Fsim, amag, mumag, curstep);
+        
+        feval(plotForceDisp, BCstore, simscale, curstep);
         pause(0.01);
     end
 

@@ -3,13 +3,16 @@ function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gam
     kg, w, h, d, mx, my, mz)
 
     fprintf('Cantilever bending boundary conditions: reformatting K\n');
-
+    
     K = kg;
-    bcwt = mean(diag(kg)); %=trace(K)/length(K)
-    bcwt = full(bcwt);
-
+    
+    % Weighing factor to retain conditioning of kg:
+    bcwt = mean(diag(kg)); % = trace(K)/length(K)
+    bcwt = full(bcwt); % Sparse matrix --> full matrix
+    
     % define empty sets (not used but allows same code as for bending)
     % priority for inclusion of shared nodes is in order below
+    
     %S = [node #, nodal Area, outward normal]
     Smixed = zeros(my + 1, 5); % top right edge (u3=U) first priority
 

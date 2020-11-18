@@ -2,7 +2,7 @@ function CUDA_flag = compileCode(CUDA_flag)
     %=========================================================================%
     % Compile MEX and MEXCUDA files.
     %
-    % Compiles files if they have not been compiled of if they were compiled
+    % Compiles files if they have not been compiled or if they were compiled
     % over 30 days ago.
     %
     % Daniel Celis Garza, Aug 2020

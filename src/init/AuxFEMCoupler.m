@@ -1,7 +1,7 @@
 function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,...
         f_tilda, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0,...
          u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes,...
-          nc, gammat, gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme)
+          nc, gamma, a_trac, CUDA_flag, n_threads, para_scheme)
     %=========================================================================%
     % Sets up auxiliary data structures for analytic traction calculations.
     %
@@ -14,7 +14,7 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     % mx, my, mz := number of nodes in x, y, z dimension.
     % xnodes := coordinates and labels of FE nodes
     % nc := FE node connectivity matrix
-    % gammat, gammau, gammaMixed := traction, displacement, mixed boundary
+    % gamma := traction, displacement, mixed boundary
     %   conditions.
     % a_trac := flag for analytic tractions.
     % CUDA_flag := flag in case CUDA codes required. If true compile, else do
@@ -40,7 +40,14 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     %   2 parallelises over surface elements
     % gamma_disp := nodes with displacement boundary conditions
     %=========================================================================%
-
+    
+    %% Extract BCs
+    gammat = gamma.t;
+    gammau = gamma.u;
+    gammaMixed = gamma.Mixed;
+    
+    %% Initialise parameters
+    
     f = zeros(3 * mno, 1);
     f_hat = zeros(3 * mno, 1);
     gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
@@ -49,7 +56,9 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     u_tilda_0 = zeros(3 * mno, 1);
     u_tilda = zeros(3 * mno, 1);
     gamma_dln = [gammat; gammaMixed];
-
+    
+    %%
+    
     if (~exist('CUDA_flag', 'var'))
         CUDA_flag = false;
     end

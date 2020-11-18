@@ -13,14 +13,17 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
     %rn(:,1:3)
 
     %nodal driving force
-    fseg = segforcevec(MU, NU, a, Ec, rn, links, 0, vertices, ...
+    linkid = 0;
+    fseg = segforcevec(MU, NU, a, Ec, rn, links, linkid, vertices, ...
         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
     %mobility function
-    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, [], [], Bcoeff);
-    % fixed nodes (flag==7) are not allowed to move.
-    % flag == 6, are only allowed to move on the surface they live at.
-    % flag == 67, are virtual nodes that are not allowed to move.
+    nodelist = []; conlist = []; % Default node and connectivity lists
+    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, ...
+        nodelist, conlist, ...
+        Bcoeff);
+    
+    % Perform integration
     for p = 1:size(vn, 1)
 
         % Virtual and fixed nodes have zero velocity

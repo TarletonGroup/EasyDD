@@ -52,28 +52,6 @@ if ~exist('loading', 'var')
     fprintf('Providing default value for loading = %s.', loading)
 end
 
-if ~exist('vertices', 'var')
-    vertices = [0, 0, 0; ...
-                dx, 0, 0; ...
-                0, dy, 0; ...
-                dx, dy, 0; ...
-                0, 0, dz; ...
-                dx, 0, dz; ...
-                0, dy, dz; ...
-                dx, dy, dz];
-    fprintf('Providing default value for vertices.\n')
-end
-
-if ~exist('faces', 'var')
-    faces = [1, 3, 4, 2; % Faces of cuboid as defined by vertices
-        5, 6, 8, 7;
-        2, 4, 8, 6;
-        1, 5, 7, 3;
-        1, 2, 6, 5;
-        3, 7, 8, 4];
-    fprintf('Providing default value for faces.\n')
-end
-
 if ~exist('MU', 'var')
     MU = 1;
     fprintf('Providing default value for MU = %f.\n', MU)
@@ -89,12 +67,12 @@ if ~exist('mobility', 'var')
     fprintf('Providing default value for mobility = %s.\n', mobility)
 end
 
-if ~exist('Bcoeff', 'var')
-    Bcoeff = struct('screw', 10, 'edge', 1, 'climb', 1e10, 'line', 1e-4);
-    fprintf('Providing default value for Bcoeff.screw = %f.\n', Bcoeff.screw)
-    fprintf('Providing default value for Bcoeff.edge = %f.\n', Bcoeff.edge)
-    fprintf('Providing default value for Bcoeff.climb = %f.\n', Bcoeff.climb)
-    fprintf('Providing default value for Bcoeff.line = %f.\n', Bcoeff.line)
+if ~exist('mobstruct', 'var')
+    mobstruct = struct('screw', 10, 'edge', 1, 'climb', 1e10, 'line', 1e-4);
+    fprintf('Providing default value for mobstruct.screw = %f.\n', mobstruct.screw)
+    fprintf('Providing default value for mobstruct.edge = %f.\n', mobstruct.edge)
+    fprintf('Providing default value for mobstruct.climb = %f.\n', mobstruct.climb)
+    fprintf('Providing default value for mobstruct.line = %f.\n', mobstruct.line)
 end
 
 if ~exist('maxconnections', 'var')
@@ -209,7 +187,7 @@ end
 
 if ~exist('simName', 'var')
     simName = date;
-    fprintf('Providing default value for saveFreq = %s.\n', simName)
+    fprintf('Providing default value for simName = %s.\n', simName)
 end
 
 if ~exist('saveFreq', 'var')
@@ -279,7 +257,7 @@ end
 
 if ~exist('Usim', 'var')
     Usim = zeros(1e6, 1);
-    fprintf('Initialising Usim as 1e6 zeros.\n')
+    fprintf('Initialisting Usim as 1e6 zeros.\n')
 end
 
 if ~exist('t', 'var')
