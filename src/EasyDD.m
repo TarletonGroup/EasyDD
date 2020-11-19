@@ -99,9 +99,11 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
+close all
+save(sprintf('../output/parms_%s_%d', simName, curstep));
 
 fprintf('Initialisation complete.\n');
-
+%%
 while simTime < totalSimTime
 
     % DDD+FEM coupling
@@ -111,6 +113,16 @@ while simTime < totalSimTime
         f_dot, u_tilda_0, u, u_hat, u_tilda, loading, a_trac, gamma_dln, x3x6, 4, ...
         n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
         n_threads, para_scheme, para_tol);
+    
+%     [f_bar2, f_hat2, f_tilda2, u_bar2, u_hat2, u_tilda2, r_hat2] = FEM_DDD_Superposition(...
+%         rn, links, a, MU, NU, xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
+%         freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, ...
+%         f_dot, u_tilda_0, u, u_hat, u_tilda, loading, ~a_trac, gamma_dln, x3x6, 4, ...
+%         n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
+%         n_threads, para_scheme, para_tol);
+%     
+%     scatter(f_hat,f_hat2)
+%     axis equal
 
     [Fsim, Usim, t] = feval(processForceDisp, Fsim, f_bar, f_hat, f_tilda, Usim, u_bar, u_hat, u_tilda, ...
         r_hat, gammaMixed, fixedDofs, freeDofs, curstep, simTime);
@@ -154,11 +166,15 @@ while simTime < totalSimTime
 
     [curstep, simTime] = updateTime(curstep, simTime, dt);
 
-    saveSimulation(simName, curstep, saveFreq)
+    if mod(curstep, saveFreq) == 0
+        close all;
+        save(sprintf('../output/%s_%d', simName, curstep),'-regexp','^(?!(K|kg|L|U)$).');
+    end
 
     if ~any(rn(:, 4) == 0)
         fprintf('No more real segments, ending simulation.\n')
-        saveSimulation(simName, curstep, 1)
+        save(sprintf('../output/%s_%d', simName, curstep),'-regexp','^(?!(K|kg|L|U)$).');
+%         saveSimulation(simName, curstep, 1)
         return;
     end
 

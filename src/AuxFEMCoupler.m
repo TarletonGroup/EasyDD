@@ -43,12 +43,18 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
 
     f = zeros(3 * mno, 1);
     f_hat = zeros(3 * mno, 1);
-    gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
+    if isempty(gammaMixed)
+        gamma_disp = gammau(:, 1);
+        gamma_dln = gammat;
+    else
+        gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
+        gamma_dln = [gammat; gammaMixed];
+    end
     u = zeros(3 * mno, 1);
     u_hat = zeros(3 * mno, 1);
     u_tilda_0 = zeros(3 * mno, 1);
     u_tilda = zeros(3 * mno, 1);
-    gamma_dln = [gammat; gammaMixed];
+    
 
     if (~exist('CUDA_flag', 'var'))
         CUDA_flag = false;
