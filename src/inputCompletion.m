@@ -44,6 +44,10 @@ end
 
 if ~exist('mx', 'var')
     mx = 20;
+    my = round(mx * dy / dx); % # elements in y direction
+    my = max(my, 1);
+    mz = round(mx * dz / dx); % elements in z direction
+    mz = max(mz, 1);
     fprintf('Providing default value for mx = %f.\n', mx)
 end
 

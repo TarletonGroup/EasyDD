@@ -172,3 +172,8 @@ links = [1 2 b1 n1;
 % Bscrew = 10;
 % mobility = 'mobbcc_bb1b';
 % a_trac = 1;
+
+my = round(mx * dy / dx); % # elements in y direction
+my = max(my, 1);
+mz = round(mx * dz / dx); % elements in z direction
+mz = max(mz, 1);

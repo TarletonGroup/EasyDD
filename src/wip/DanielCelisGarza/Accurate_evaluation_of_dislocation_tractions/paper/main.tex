@@ -584,7 +584,7 @@ Perhaps the most evident deformation resulting from the displacement boundaries 
     {
         {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/syzNscrew.pdf}}
     }
-    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 0 1]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
+    \caption{Image stresses for a screw dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 0 1]$. The rest is the same as \cref{f:head_vs_ana_vs_num_eperp}.}
     \label{f:head_vs_ana_vs_num_screw}
 \end{figure}
 
@@ -686,7 +686,7 @@ We also show examples of contour \cref{f:line_head_vs_ana_vs_num_epar2to11} and 
     {
         {\includegraphics[trim={0.5cm 0cm 0cm 0cm},clip,width=0.3\linewidth]{images/sxxNEparTot11.pdf}}
     }
-    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. (a) to (c) and (g) to (i) at $(26.3158\,, 500)\, b$; (d) to (f) and (j) to (l) at $(500\,, 500)\, b$. (a) to (g) image stresses; (g) to (l) total stresses.}
+    \caption{Image stresses for an edge dislocation with $\vec{l} = [0 0 1]$, $\vec{b} = [0 1 0]$. (a) to (c) and (g) to (i) at $(26.3158,\, 500)\, b$; (d) to (f) and (j) to (l) at $(500,\, 500)\, b$. (a) to (g) image stresses; (g) to (l) total stresses.}
     \label{f:head_vs_ana_vs_num_epar2to11}
 \end{figure}
 
@@ -715,7 +715,7 @@ We also show examples of contour \cref{f:line_head_vs_ana_vs_num_epar2to11} and 
 \end{figure}
 From the line plots, it can be observed that both analytic and numeric tractions converge to similar shapes to each other, which is to be expected. However it also becomes clear that the infinite-domain solution is not totally accurate for image stresses in finite domains due to edge effects. However, the glaring issue is that total stresses for each solution are significantly different as dislocations near the surface. The instability of Gauss quadrature when integrating rational functions tends to produce values that are outside the range of the infinite-domain solution, as well as being less smooth than the two other solutions.
 
-As expected, all solutions converge as the distance from the dislocation to surface increases because the magnitude of the real stresses increases in relation to that of the image stresses\footnote{The image stress components of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2} are reflections about the line $x=0$ plus a corrective term that decays faster than the reflection term. In \cref{eq:imageStressAnalyticScrew}, the image term is a reflection about the line $x=0$. Therefore in both cases, as the dislocation moves away from the surface, the real stresses get relatively larger.}.
+As expected, all solutions converge as the distance from the dislocation to surface increases because the magnitude of the real stresses increases in relation to that of the image stresses\footnote{The image stress components of \cref{eq:imageStressAnalyticEdge1,eq:imageStressAnalyticEdge2} are reflections about the line $x=0$ plus a corrective term that decays faster than the reflection term. In \cref{eq:imageStressAnalyticScrew}, the image term is a reflection about the line $x=0$. Therefore in both cases, as the dislocation moves away from the surface, the real stresses get relatively larger when compared to the image ones.}.
 
 In order to show the effects numerical tractions have on simulations, we ran a very simple simulation where the only difference was the traction calculation method. A very simple yet illustrative qualitative example is to produce a scatter plot of the numerically calculated tractions vs analytically calculated ones at any time during any simulation. To obviate the problem even more, it helps making the axes proportional. What is observed in practically every case, is a positive correlation (though as we have seen in \cref{sf:sxxepar,sf:sxxAepar,sf:sxxNepar}, numerical tractions can produce sign inversions under specific conditions), but the axis that represents the numerically calculated tractions will be visually larger, as numeric tractions produce more extreme values. Statistically speaking, the closer the $R$-value is to 1 and the closer a linear fit is to $y=x$, the more accurate numerical tractions are for any given moment in a simulation. We have yet to find a single example where this happens. Furthermore, the chaotic nature of dislocation dynamics means that slight deviations will yield noticeably different results for the same starting conditions.
 

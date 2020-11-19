@@ -1,4 +1,4 @@
-function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finiteElement3D(dx, dy, dz, mx, mu, nu)
+function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, mx, my, mz, mel] = finiteElement3D(dx, dy, dz, mx, my, mz, mu, nu)
     %=========================================================================%
     % E Tarleton edmund.tarleton@materials.ox.ac.uk
     % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2)
@@ -42,13 +42,7 @@ function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finite
     % loading = 1;
 
     w = dx / mx; % elements width
-
-    my = round(mx * dy / dx); % # elements in y direction
-    my = max(my, 1);
     h = dy / my; % element height
-
-    mz = round(mx * dz / dx); % elements in z direction
-    mz = max(mz, 1);
     d = dz / mz; % element depth
 
     mel = mx * my * mz;
