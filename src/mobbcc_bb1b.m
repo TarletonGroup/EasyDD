@@ -1,5 +1,15 @@
 function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
     % TODO #49
+    % a = [1; 1; 0];
+    % b = [1; 0; 0];
+    % v = cross(a, b);
+    % s = norm(v);
+    % c = dot(a, b);
+    % V = [0 -v(3) v(2);
+    %     v(3) 0 -v(1);
+    %     -v(2) v(1) 0];
+    % R = eye(3) + V + (V^2) * (1 - c) / s^2;
+    % R is the rotation matrix such that R a = b
     %mobility law function (model: BCC0)
     Bscrew = Bcoeff.screw;
     Bedge = Bcoeff.edge;
