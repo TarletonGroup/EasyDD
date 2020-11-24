@@ -8,7 +8,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
     % V = [0 -v(3) v(2);
     %     v(3) 0 -v(1);
     %     -v(2) v(1) 0];
-    % R = eye(3) + V + (V^2) * (1 - c) / s^2;
+    % R = eye(3) + V + (V^2) * 1 / (1+c);
     % R is the rotation matrix such that R a = b
     %mobility law function (model: BCC0)
     Bscrew = Bcoeff.screw;
