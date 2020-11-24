@@ -1,4 +1,5 @@
 function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
+    % TODO #49
     %mobility law function (model: BCC0)
     Bscrew = Bcoeff.screw;
     Bedge = Bcoeff.edge;
