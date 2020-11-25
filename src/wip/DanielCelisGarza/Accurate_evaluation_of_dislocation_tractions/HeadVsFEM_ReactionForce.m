@@ -111,7 +111,7 @@ for j = 20
     hold off
 end
 
-doSave = true;
+doSave = false;
 
 close all;
 

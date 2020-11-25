@@ -234,14 +234,13 @@ if any(dNds ~= ns)
     pause
 end
 
-% TODO #50 mel are all identical, could be 1.
-J = zeros(3, 3, mel, 8); % 3Dx3D, mel elements, 8 quad pts/element
+J = zeros(3, 3, 1, 8); % 3Dx3D, mel elements, 8 quad pts/element
 invJ = zeros(3, 3); % inv(J)
-detJ = zeros(mel, 8); % det(J) at mel elements, 9 quad points/element
-nx = zeros(mel, 8, 8, 3); % derivative of shape functions w.r.t global x,y
-B = zeros(6, 24, mel, 8); % (# strain components, # dof/element, # elements, int pts/element)
+detJ = zeros(1, 8); % det(J) at mel elements, 9 quad points/element
+nx = zeros(1, 8, 8, 3); % derivative of shape functions w.r.t global x,y
+B = zeros(6, 24, 1, 8); % (# strain components, # dof/element, # elements, int pts/element)
 
-for p = 1:mel% all elements
+for p = 1:1% all elements
 
     for q = 1:8% integration points per element
 
@@ -301,9 +300,9 @@ for p = 1:mel% all elements
 end
 
 disp('local K...');
-ke = zeros(24, 24, mel); %local stiffness matrix
+ke = zeros(24, 24, 1); %local stiffness matrix
 
-for p = 1:mel%all elements
+for p = 1:1%all elements
 
     for q = 1:8% int points per element
         ke(:, :, p) = ke(:, :, p) + B(:, :, p, q)' * D * B(:, :, p, q) * detJ(p, q);
@@ -311,7 +310,7 @@ for p = 1:mel%all elements
 
 end
 
-clear B;
+% clear B;
 % ensure ke is symmetric eg remove any very small entries due to numerical
 % error.
 disp('global K...');
@@ -371,7 +370,7 @@ for p = 1:mel
             ntriplets = ntriplets + 1;
             I(ntriplets) = dof(i);
             J(ntriplets) = dof(j);
-            X(ntriplets) = ke(dofLocal(i), dofLocal(j), p);
+            X(ntriplets) = ke(dofLocal(i), dofLocal(j), 1);
         end
 
     end
@@ -592,6 +591,7 @@ else
     pause
 end
 
+% TODO #54 delete rows that correspond to the free degrees of fredom. Using problem sheet.
 for m = 1:length(fixedDofs)
     i = fixedDofs(m);
     K(:, i) = 0;
