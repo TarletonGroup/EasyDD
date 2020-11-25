@@ -1,5 +1,5 @@
 function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparation, rn, ...
-        links, connectivity, linksinconnect, fseg, mobility, MU, NU, a, Ec, mindist, ...
+        links, connectivity, linksinconnect, fseg, mobility, rotMatrix, MU, NU, a, Ec, mindist, ...
         vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
 
     if ~doseparation
@@ -85,7 +85,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparati
                 clist(1, 2:1 + connectivity(i, 1)) = linspace(1, connectivity(i, 1), connectivity(i, 1));
                 clist(2, 2:1 + connectivity(lastnode, 1)) = linspace(1, connectivity(lastnode, 1), connectivity(lastnode, 1));
                 % do an evaluataion to find out what the splitting direction is
-                [vntmp, ~] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
+                [vntmp, ~] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff, rotMatrix);
                 vd1 = vntmp(1, :) * vntmp(1, :)';
                 vd2 = vntmp(2, :) * vntmp(2, :)';
                 rn([i lastnode], 4:6) = vntmp;
@@ -135,7 +135,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparati
                 end
 
                 % evaluate the power dissipated by this splitting configuration
-                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff);
+                [vntmp, fntmp] = feval(mobility, fseg, rn, links, connectivity, nodelist, clist, Bcoeff, rotMatrix);
                 vdiff = vntmp(2, :) - vntmp(1, :);
 
                 if vdiff * dir' > eps
@@ -217,14 +217,14 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparati
                     linkid = connectivity(i, 2 * k);
                     othernode = links(linkid, 3 - connectivity(i, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
+                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff, rotMatrix);
                 end
 
                 for k = 1:connectivity(lastnode, 1)
                     linkid = connectivity(lastnode, 2 * k);
                     othernode = links(linkid, 3 - connectivity(lastnode, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
-                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff);
+                    [rn(othernode, 4:6), ~] = feval(mobility, fseg, rn, links, connectivity, othernode, clist, Bcoeff, rotMatrix);
                 end
 
                 [lrn, lrn2] = size(rn);

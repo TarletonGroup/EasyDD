@@ -21,6 +21,7 @@
 % Pressure: Pa
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+close all
 clear all
 %% SOURCE GENERATION PARAMETERS
 amag = 3.18e-4;
@@ -81,6 +82,9 @@ b1 = [-1 -1 -1] / 2;
 b2 = [-1 1 1] / 2;
 n1 = [-1 0 1] / sqrt(2);
 n2 = [1 0 1] / sqrt(2);
+% a = 5*norm(b1); % Default value of a has num tractions freak out, a = 5*||b|| is even worse.
+a = 10*norm(b1);
+a_trac = 0;
 
 links = [1 2 b1 n1;
     2 3 b1 n1;
@@ -99,6 +103,9 @@ links = [1 2 b1 n1;
     15 16 b2 n2;
     16 9 b2 n2];
 
+plotFreq = 5;
+saveFreq = 1e9;
+u_dot = dx / 160E6;
 %create mirror of prismatic loops (outside boundary)
 % rn_mirror = [rn(:,1)+dx , rn(:,2) , rn(:,3)+dx , zeros(length(rn(:,1)),1)+67];
 % links_mirror = links;

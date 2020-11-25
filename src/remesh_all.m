@@ -11,7 +11,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rn, links, ...
-        connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, ...
+        connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, rotMatrix, ...
         doremesh, dovirtmesh, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, P, fn, CUDA_flag, Bcoeff)
 
     if dovirtmesh
@@ -29,7 +29,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh
     if doremesh
         [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh(rnnew, linksnew, ...
             connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, ...
-            Ec, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
+            Ec, mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
     end
 
 end

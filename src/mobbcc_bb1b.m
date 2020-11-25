@@ -1,19 +1,18 @@
-function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
+function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff, rotMatrix)
     % TODO #49
-    % a = [1; 1; 0];
-    % b = [1; 0; 0];
-    % v = cross(a, b);
-    % s = norm(v);
-    % c = dot(a, b);
-    % V = [0 -v(3) v(2);
-    %     v(3) 0 -v(1);
-    %     -v(2) v(1) 0];
-    % R = eye(3) + V + (V^2) * 1 / (1+c);
-    % R is the rotation matrix such that R a = b
     %mobility law function (model: BCC0)
     Bscrew = Bcoeff.screw;
     Bedge = Bcoeff.edge;
     Beclimb = Bcoeff.climb;
+    rotateCoords = false;
+    if ~isempty(rotMatrix)
+        rotateCoords = true;
+        rn(:, 1:3) = rn(:, 1:3) * rotMatrix;
+        fseg(:, 1:3) = fseg(:, 1:3) * rotMatrix;
+        fseg(:, 3:6) = fseg(:, 3:6) * rotMatrix;
+        links(:, 3:5) = links(:, 3:5) * rotMatrix;
+        links(:, 6:8) = links(:, 6:8) * rotMatrix;
+    end
 
     %numerical tolerance
     tol = 1e-7;
@@ -212,6 +211,11 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
 
         if any(isnan(vn))
             fprintf('YDFUS, see line 157 of mobbcc_bb1b\n');
+        end
+
+        if rotateCoords
+            vn = vn * rotMatrix';
+            fn = fn * rotMatrix';
         end
 
     end

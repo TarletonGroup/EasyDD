@@ -266,6 +266,11 @@ if ~exist('u_dot', 'var')
     fprintf('Providing default value for u_dot = %f.\n', u_dot)
 end
 
+if ~exist('u_bar', 'var')
+    u_bar = 0;
+    fprintf('Providing default value for u_bar = %f.\n', u_bar)
+end
+
 if ~exist('f_dot', 'var')
     f_dot = dx / 160E6;
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
@@ -294,4 +299,9 @@ end
 if ~exist('dt', 'var')
     dt = dt0;
     fprintf('Providing default value for dt = %f.\n', dt)
+end
+
+if ~exist('rotMatrix', 'var')
+    rotMatrix = [];
+    fprintf('Using standard coordinates, x = [1 0 0], y = [0 1 0], z = [0 0 1]\n')
 end

@@ -29,8 +29,15 @@ mx = 10;
 my = 10;
 mz = 10;
 
-b = [1 1 -1] / sqrt(3);
+% b = [1 1 -1] / sqrt(3);
+% n = [1 0 1] / sqrt(2);
+
+b = [1 1 0] / sqrt(2);
 n = [1 0 1] / sqrt(2);
+
+% rotMatrix = findRotationMatrixAtoB([1; -1; 0], [0; 1; 0]) * findRotationMatrixAtoB([1; 1; 0], [0; 0; 1]);
+% b = b * rotMatrix';
+% n = n * rotMatrix';
 
 centre = [dx / 2 dy / 2 dz / 2];
 edgeVec = cross(n, b) * lmean;
@@ -56,9 +63,9 @@ rn(6, 1:3) = r6;
 rn(7, 1:3) = r7;
 rn(8, 1:3) = r8;
 
-rn(:,1) = rn(:,1) + dx/5;
-rn(:,2) = rn(:,2) + dy/15;
-rn(:,3) = rn(:,3) + dz/5;
+% rn(:,1) = rn(:,1) + dx/5;
+% rn(:,2) = rn(:,2) + dy/15;
+% rn(:,3) = rn(:,3) + dz/5;
 
 links = [
     1 2 b n;
