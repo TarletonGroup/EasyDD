@@ -234,6 +234,7 @@ if any(dNds ~= ns)
     pause
 end
 
+% TODO #50 mel are all identical, could be 1.
 J = zeros(3, 3, mel, 8); % 3Dx3D, mel elements, 8 quad pts/element
 invJ = zeros(3, 3); % inv(J)
 detJ = zeros(mel, 8); % det(J) at mel elements, 9 quad points/element
