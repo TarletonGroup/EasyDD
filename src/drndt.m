@@ -17,7 +17,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
     %mobility function
-    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, [], [], Bcoeff, rotMatrix);
+    [vn, fn] = mobility(fseg, rn, links, connectivity, [], [], Bcoeff, rotMatrix);
     % fixed nodes (flag==7) are not allowed to move.
     % flag == 6, are only allowed to move on the surface they live at.
     % flag == 67, are virtual nodes that are not allowed to move.

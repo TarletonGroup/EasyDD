@@ -1,7 +1,7 @@
 function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,...
         f_tilda, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0,...
          u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes,...
-          nc, gammat, gammau, gammaMixed, a_trac, CUDA_flag, n_threads, para_scheme)
+          nc, gammat, gammau, gammaMixed, calculateTractions, CUDA_flag, n_threads, para_scheme)
     %=========================================================================%
     % Sets up auxiliary data structures for analytic traction calculations.
     %
@@ -16,7 +16,7 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     % nc := FE node connectivity matrix
     % gammat, gammau, gammaMixed := traction, displacement, mixed boundary
     %   conditions.
-    % a_trac := flag for analytic tractions.
+    % calculateTractions := method for traction calculation.
     % CUDA_flag := flag in case CUDA codes required. If true compile, else do
     %   not compile.
     %-------------------------------------------------------------------------%
@@ -78,11 +78,7 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
         para_scheme = 0;
     end %if
 
-    if (~exist('a_trac', 'var'))
-        a_trac = false;
-    end
-
-    if a_trac == false
+    if isequal(calculateTractions, @calculateNumericTractions)
         para_tol = 0;
         x3x6 = 0;
         n_se = 0;

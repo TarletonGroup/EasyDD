@@ -1,6 +1,6 @@
 % gamma = [gammat;gammaMixed]; ndis = 1; xdis=dx/2,ydis=dy/2,zdis=dz/2;
 
-function f_tilda = traction(gamma, segments, xnodes, a, MU, NU, f_tilda)
+function f_tilda = numeric_traction(gamma, segments, xnodes, a, MU, NU, f_tilda)
 
     % find traction on boundary due to dislocations
     %

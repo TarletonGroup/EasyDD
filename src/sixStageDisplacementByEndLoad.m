@@ -1,10 +1,10 @@
 function [sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, u_hat, u_tilda] = sixStageDisplacementByEndLoad(...
         sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, f_bar, f_hat, f_tilda, u_bar, ...
-        u_hat, u_tilda, r_hat, simTime, totalSimTime, curstep, loadingFunctionArgStruct)
+        u_hat, u_tilda, r_hat, simTime, totalSimTime, curstep, calculateLoadingFunctionArgs)
 
-    u_dot_0 = loadingFunctionArgStruct.u_dot_0;
-    u_bar_crit = loadingFunctionArgStruct.u_bar_crit;
-    scaleFactor = loadingFunctionArgStruct.scaleFactor;
+    u_dot_0 = calculateLoadingFunctionArgs.u_dot_0;
+    u_bar_crit = calculateLoadingFunctionArgs.u_bar_crit;
+    scaleFactor = calculateLoadingFunctionArgs.scaleFactor;
 
     if u_bar < u_bar_crit(1)
         u_dot = u_dot_0;

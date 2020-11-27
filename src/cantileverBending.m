@@ -178,8 +178,8 @@ function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gam
     L = U';
     toc;
 
-    processForceDisp = 'cantileverBendingForceDisp';
-    plotForceDisp = 'cantileverBendingPlot';
+    processForceDisp = @cantileverBendingForceDisp;
+    plotForceDisp = @cantileverBendingPlot;
 
     fprintf('finished FEM\n')
 

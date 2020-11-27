@@ -94,7 +94,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshco
                                 for k = 1:2
                                     nodelist = linksnew(linkm, k);
                                     clist = [connectivitynew(nodelist, 1) linspace(1, connectivitynew(nodelist, 1), connectivitynew(nodelist, 1))];
-                                    [rnnew(nodelist, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, nodelist, clist, Bcoeff, rotMatrix);
+                                    [rnnew(nodelist, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, nodelist, clist, Bcoeff, rotMatrix);
                                 end
 
                             end
@@ -170,11 +170,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
                     clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                    [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
+                    [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                 end
 
                 clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
+                [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
             end
 
             if (((area2 > areamax2) && (r1 >= lmin2) && (link1_nodenoti <= lrn)) || (r1 > lmax))
@@ -191,11 +191,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                     fsegnew(linkid, :) = segforcevec(MU, NU, a, Ec, rnnew(:, [1 2 3 lrn2]), linksnew, linkid, vertices, ...
                         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                     clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                    [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
+                    [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                 end
 
                 clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
+                [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
             end
 
         elseif (connectivitynew(i, 1) > 2) && (rnnew(i, lrn2) == 0)
@@ -220,11 +220,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                         fsegnew(linkid, :) = segforcevec(MU, NU, a, Ec, rnnew(:, [1 2 3 lrn2]), linksnew, linkid, vertices, ...
                             uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                         clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                        [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
+                        [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                     end
 
                     clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                    [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
+                    [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
                 end
 
             end
