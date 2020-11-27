@@ -174,7 +174,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
                         else
                             mdir = cross(ndir, linedir);
                             cosdev2 = cosdev * cosdev;
-                            cosratio = 1 - 4/3 * cosdev2;
+                            cosratio = max(1 - 4 * cosdev2, 0); % In case of numerical instability in cosdev2 calculation.
                             sinratio = 1 - cosratio;
                             Bglide = 1 / sqrt((1 / Beclimb^2) * sinratio + (1 / Bscrew^2) * cosratio);
                             Btotal = Btotal + mag .* ((0.5 * L) .* ((Bglide) .* (mdir' * mdir) + (Beclimb) .* (ndir' * ndir) + (Bedge) .* (linedir' * linedir)));
