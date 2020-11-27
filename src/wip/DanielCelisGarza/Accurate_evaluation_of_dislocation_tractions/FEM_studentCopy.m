@@ -10,6 +10,7 @@
 % /|---------------------------------------------------|
 
 clear all
+close all
 % input parameters
 dx = 30; % x dimension
 dy = 6;  % y dimension
@@ -188,16 +189,24 @@ end
 f=zeros(mno*2,1);
 u = zeros(mno*2,1);
 % bending
-Ftotal = -0.1;
-f((mx+1)*2) = Ftotal; % 
+% Ftotal = -0.1;
+% f((mx+1)*2) = Ftotal; % 
+
+Utotal = -0.1780;
+u((mx+1)*2) = Utotal; % 
 
 allDofs = [1:2*mno]';
 Sleft = find(x(:,1) == 0); % set of nodes on left edge
-fixedDofs = [2*Sleft-1;2*Sleft]; % degrees of freedom where u is specified
+fixedDofs = [2*Sleft-1;2*Sleft;(mx+1)*2]; % degrees of freedom where u is specified
 freeDofs = setdiff(allDofs,fixedDofs);
 
+f = f - K*u;
+% rf = K(:,fixedDofs)*u(fixedDofs);
+% f = f - rf;
 u(freeDofs) = K(freeDofs,freeDofs)\f(freeDofs); % Solve system of equations for nodal values
 
+rf = K*u;
+rf(2*(mx+1))
 %% postprocessing: plotting of deformed mesh
 scaleFactor = 10
 xnew(:,1) = x(:,1) + scaleFactor*u([1:mno]*2-1);
@@ -240,3 +249,7 @@ end
 
 hold off
 
+%%
+% 1a) nodal displacements at node mx+1: [ux; uy] = u((mx+1)*2-1: (mx+1)*2)
+% 1b) comment out line 191-192
+% 1c)Utotal = -0.1780; u((mx+1)*2) = Utotal; fixedDofs = [2*Sleft-1;2*Sleft;(mx+1)*2];

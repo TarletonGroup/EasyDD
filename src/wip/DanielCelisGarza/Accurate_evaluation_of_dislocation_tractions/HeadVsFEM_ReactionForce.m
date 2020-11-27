@@ -28,7 +28,7 @@ dz = 1000;
 figCounter = 0;
 cntr = 0;
 
-for j = 20
+for j = 10
     mx = j;
 
     gridSize = mx;
@@ -111,7 +111,7 @@ for j = 20
     hold off
 end
 
-doSave = false;
+doSave = true;
 
 close all;
 

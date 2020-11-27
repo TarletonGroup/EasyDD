@@ -592,6 +592,10 @@ else
 end
 
 % TODO #54 delete rows that correspond to the free degrees of fredom. Using problem sheet.
+K2 = K;
+K2(fixedDofs,:) = 0;
+K2(:, fixedDofs) = 0;
+K2(fixedDofs, fixedDofs) = bcwt;
 for m = 1:length(fixedDofs)
     i = fixedDofs(m);
     K(:, i) = 0;

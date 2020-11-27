@@ -83,7 +83,7 @@ b2 = [-1 1 1] / 2;
 n1 = [-1 0 1] / sqrt(2);
 n2 = [1 0 1] / sqrt(2);
 % a = 5*norm(b1); % Default value of a has num tractions freak out, a = 5*||b|| is even worse.
-a = 10*norm(b1);
+a = 10 * norm(b1);
 a_trac = 0;
 
 links = [1 2 b1 n1;
@@ -106,6 +106,11 @@ links = [1 2 b1 n1;
 plotFreq = 5;
 saveFreq = 1e9;
 u_dot = dx / 160E6;
+
+% loadingFunction = 'sixStageDisplacementByEndLoad';
+loadingFunction = 'constantLoading';
+loadingFunctionArgStruct = struct('u_dot_0', u_dot, ...
+    'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
 %create mirror of prismatic loops (outside boundary)
 % rn_mirror = [rn(:,1)+dx , rn(:,2) , rn(:,3)+dx , zeros(length(rn(:,1)),1)+67];
 % links_mirror = links;

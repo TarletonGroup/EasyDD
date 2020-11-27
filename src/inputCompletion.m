@@ -56,6 +56,11 @@ if ~exist('loading', 'var')
     fprintf('Providing default value for loading = %s.', loading)
 end
 
+if ~exist('loadingFunction', 'var')
+    loadingFunction = 'constant';
+    fprintf('Providing default value for loadingFunction = %s.', loadingFunction)
+end
+
 if ~exist('vertices', 'var')
     vertices = [0, 0, 0; ...
                 dx, 0, 0; ...
@@ -274,6 +279,41 @@ end
 if ~exist('f_dot', 'var')
     f_dot = dx / 160E6;
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
+end
+
+if ~exist('f_bar', 'var')
+    f_bar = 0;
+    fprintf('Providing default value for f_bar = %s.', f_bar)
+end
+
+if ~exist('f_hat', 'var')
+    f_hat = 0;
+    fprintf('Providing default value for f_hat = %s.', f_hat)
+end
+
+if ~exist('f_tilda', 'var')
+    f_tilda = 0;
+    fprintf('Providing default value for f_tilda = %s.', f_tilda)
+end
+
+if ~exist('u_hat', 'var')
+    u_hat = 0;
+    fprintf('Providing default value for u_hat = %s.', u_hat)
+end
+
+if ~exist('u_tilda', 'var')
+    u_tilda = 0;
+    fprintf('Providing default value for u_tilda = %s.', u_tilda)
+end
+
+if ~exist('r_hat', 'var')
+    r_hat = 0;
+    fprintf('Providing default value for r_hat = %s.', r_hat)
+end
+
+if ~exist('loadingFunctionArgStruct', 'var')
+    loadingFunctionArgStruct = 0;
+    fprintf('Providing default value for loadingFunctionArgStruct = %s.', loadingFunctionArgStruct)
 end
 
 if ~exist('simType', 'var')

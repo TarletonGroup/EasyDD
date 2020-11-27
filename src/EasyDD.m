@@ -105,19 +105,13 @@ save(sprintf('../output/parms_%s_%d', simName, curstep));
 fprintf('Initialisation complete.\n');
 %%
 while simTime < totalSimTime
-%     if u_bar < 75
-%         u_dot = dx / 160E6;
-%     elseif 75 < u_bar && u_bar < 115
-%         u_dot = dx / 160E6 / 2;
-%     elseif 115 < u_bar && u_bar < 125
-%         u_dot = dx / 160E6 / 5;
-%     elseif 125 < u_bar && u_bar < 145
-%         u_dot = dx / 160E6 / 10;
-%     elseif 145 < u_bar && u_bar < 165
-%         u_dot = dx / 160E6 / 25;
-%     else
-%         u_dot = dx / 160E6 / 50;
-%     end
+
+    % Loading function.
+    [sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, u_hat, u_tilda] = feval(...
+        loadingFunction, sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, f_bar, ...
+        f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat, simTime, totalSimTime, ...
+        curstep, loadingFunctionArgStruct);
+
     % DDD+FEM coupling
     [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superposition(...
         rn, links, a, MU, NU, xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
