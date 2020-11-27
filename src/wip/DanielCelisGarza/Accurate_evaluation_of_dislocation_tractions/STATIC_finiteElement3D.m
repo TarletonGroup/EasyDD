@@ -1,7 +1,7 @@
 % clear all
 % mx=1,dx=6,dy=1,dz=1,mu=1,nu=.3,loading=1;
 
-function [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
+function [xnodes, mno, nc, n, D, kg, K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, ...
         Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
         w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, mu, nu, loading)
 
@@ -624,10 +624,15 @@ hold off
 % toc;
 
 disp('Cholesky Factorization of K...'); %should be symmetric!
+% Special algorithm for sparse matrices
+% [R, flag, P] = chol(S)
+% R'*R = P'*S*P -> P*R'*R*P' = S
 tic;
-U = chol(K);
+[U, ~, P_u] = chol(K);
 L = U';
+P_l = P_u';
 toc;
+
 
 % if max(abs(diag( U\(L\K) )))-1 > 1000*eps
 %     disp('Error in inverse K')

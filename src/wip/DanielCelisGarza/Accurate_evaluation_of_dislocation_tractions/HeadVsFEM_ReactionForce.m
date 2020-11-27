@@ -27,7 +27,7 @@ dz = 1000;
 
 figCounter = 0;
 cntr = 0;
-
+addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
 for j = 40
     mx = j;
 
@@ -51,7 +51,7 @@ for j = 40
                 dx, dy, dz];
 
     plim = 12 / amag; %12microns
-    [xnodes, mno, nc, n, D, kg, K, L, U, Sleft, Sright, Stop, Sbot, ...
+    [xnodes, mno, nc, n, D, kg, K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, ...
             Sfront, Sback, Smixed, gammat, gammau, gammaMixed, fixedDofs, freeDofs, ...
             w, h, d, my, mz, mel] = STATIC_finiteElement3D(dx, dy, dz, mx, MU, NU, loading);
 
@@ -132,12 +132,12 @@ for k = 1:2
         links(i, :) = [i, i + 1, b, n];
     end
 
-    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, P_l, P_u,...
         0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
 
-    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, P_l, P_u,...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
 
     sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);

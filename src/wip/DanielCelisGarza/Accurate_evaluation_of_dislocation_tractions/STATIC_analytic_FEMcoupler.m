@@ -1,4 +1,4 @@
-function [uhat, fend, Ubar, f_dln] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+function [uhat, fend, Ubar, f_dln] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, P_l, P_u,...
         gamma_disp, gammat, gamma_mixed, fixedDofs, freeDofs, dx, t, ...
         gamma_dln, x3x6, n_nodes, n_nodes_t, n_se, idxi, ...
         f_dln_node, f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, eps)
@@ -76,7 +76,7 @@ function [uhat, fend, Ubar, f_dln] = STATIC_analytic_FEMcoupler(rn, links, a, MU
 
     % f(gamma_disp) = bcwt*uhat(gamma_disp);
     % f(fixedDofs) = bcwt*uhat(fixedDofs);
-    uhat = U \ (L \ f); %using LU decomposition
+    uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
 
     rhat = kg * uhat;
 

@@ -1,4 +1,4 @@
-function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, MU, NU, xnodes, mno, kg, L, U, ...
+function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, MU, NU, xnodes, mno, kg, L, U, P_l, P_u,...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, t)
 
     %Coupling of FEM and DDD
@@ -62,7 +62,7 @@ function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, M
     gamma = gammat;
 
     %ftilda = zeros(3*mno,1);
-    ftilda = traction(gamma, segments, xnodes, a, MU, NU, ftilda);
+    ftilda = numeric_traction(gamma, segments, xnodes, a, MU, NU, ftilda);
 
     %%
     %ftilda=zeros(3*mno,1); %ET uncomment later!
@@ -76,7 +76,7 @@ function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, M
     bcwt = full(bcwt);
 
     % f(fixedDofs) = bcwt*uhat(fixedDofs);
-    uhat = U \ (L \ f); %using LU decomposition
+    uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
     % uhat2=K\f;
 
     rhat = kg * uhat; % reaction force

@@ -38,7 +38,7 @@ dx = 30 / amag; %10micron
 dy = 5 / amag; %2micron
 dz = 5 / amag; %2micron
 
-mx = 40; % number of elements along beam length
+mx = 20; % number of elements along beam length
 % loading = @displacementControl;
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...

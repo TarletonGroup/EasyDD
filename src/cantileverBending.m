@@ -1,4 +1,4 @@
-function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
+function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
     gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = cantileverBending(...
     kg, w, h, d, mx, my, mz)
 
@@ -173,11 +173,15 @@ function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gam
     end
 
     fprintf('Cholesky Factorization of K...\n'); %should be symmetric!
+    % Special algorithm for sparse matrices
+    % [R, flag, P] = chol(S)
+    % R'*R = P'*S*P -> P*R'*R*P' = S
     tic;
-    U = chol(K);
+    [U, ~, P_u] = chol(K);
     L = U';
+    P_l = P_u';
     toc;
-
+    
     processForceDisp = @cantileverBendingForceDisp;
     plotForceDisp = @cantileverBendingPlot;
 
