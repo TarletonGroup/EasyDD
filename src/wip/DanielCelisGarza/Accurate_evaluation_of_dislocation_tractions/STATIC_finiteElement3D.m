@@ -591,17 +591,12 @@ else
     pause
 end
 
-% TODO #54 delete rows that correspond to the free degrees of fredom. Using problem sheet.
-K2 = K;
-K2(fixedDofs,:) = 0;
-K2(:, fixedDofs) = 0;
-K2(fixedDofs, fixedDofs) = bcwt;
-for m = 1:length(fixedDofs)
-    i = fixedDofs(m);
-    K(:, i) = 0;
-    K(i, :) = 0;
-    K(i, i) = bcwt;
-end
+K(:, fixedDofs) = 0;
+K(fixedDofs, :) = 0;
+idx = logical(speye(size(K)));
+diagonal = K(idx);
+diagonal(fixedDofs) = bcwt;
+K(idx) = diagonal;
 
 if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
     disp('error')
