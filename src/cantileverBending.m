@@ -172,15 +172,23 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
         pause
     end
 
-    fprintf('Cholesky Factorization of K...\n'); %should be symmetric!
-    % Special algorithm for sparse matrices
-    % [R, flag, P] = chol(S)
-    % R'*R = P'*S*P -> P*R'*R*P' = S
-    tic;
-    [U, ~, P_u] = chol(K);
-    L = U';
-    P_l = P_u';
-    toc;
+    try
+        fprintf('Cholesky Factorization of K...\n'); %should be symmetric!
+        % Special algorithm for sparse matrices
+        % [R, flag, P] = chol(S)
+        % R'*R = P'*S*P -> P*R'*R*P' = S
+        tic;
+            [U, ~, P_u] = chol(K);
+            L = U';
+            P_l = P_u';
+        toc
+    catch
+        sprintf('Ran out of memory in cholesky factorisation, use explicit K.\n')
+        U = [];
+        L = [];
+        P_u = [];
+        P_l = [];
+    end
     
     processForceDisp = @cantileverBendingForceDisp;
     plotForceDisp = @cantileverBendingPlot;

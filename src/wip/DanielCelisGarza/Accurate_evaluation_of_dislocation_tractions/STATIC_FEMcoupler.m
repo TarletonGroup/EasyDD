@@ -76,7 +76,12 @@ function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, M
     bcwt = full(bcwt);
 
     % f(fixedDofs) = bcwt*uhat(fixedDofs);
-    uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
+    if isempty(U)
+        uhat = K \ f;
+    else
+        uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
+    end
+    
     % uhat2=K\f;
 
     rhat = kg * uhat; % reaction force

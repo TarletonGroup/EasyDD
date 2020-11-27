@@ -627,12 +627,19 @@ disp('Cholesky Factorization of K...'); %should be symmetric!
 % Special algorithm for sparse matrices
 % [R, flag, P] = chol(S)
 % R'*R = P'*S*P -> P*R'*R*P' = S
-tic;
-[U, ~, P_u] = chol(K);
-L = U';
-P_l = P_u';
-toc;
-
+try
+    tic;
+    [U, ~, P_u] = chol(K);
+    L = U';
+    P_l = P_u';
+    toc;
+catch
+    sprintf('Ran out of memory in cholesky factorisation, use explicit K.\n')
+    U = [];
+    L = [];
+    P_u = [];
+    P_l = [];
+end
 
 % if max(abs(diag( U\(L\K) )))-1 > 1000*eps
 %     disp('Error in inverse K')
