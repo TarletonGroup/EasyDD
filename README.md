@@ -38,3 +38,21 @@ dislocation-dislocation interactions O(N^2).
 - vn: (:,3) array of nodal velocities (vx, vy, vz)
 - fn: (:,3) array of nodal forces (fx, fy, fz)
 - links: (:,8) array of links (idx1, idx2, bx, by, bz, nx, ny, nz)
+
+## TODO
+
+- Make vertices and faces an argument, if they are not defined by the input provide a default.
+- In remesh_surf, make it so dislocations do not leave the domain via the fixed end depending on the simulation type.
+
+### Known issues and improvement wish list
+
+- Memory model is highly inefficient. There is a lot of naive dynamic resizing of arrays.
+- Some matrices variables change in their number of columns are hard to track/debug (rn, connectivity).
+- Some variables hang around unused.
+- Collision, Separation and Remeshing can be antagonistic at higher dislocation densities and may end up repeating processes until the simulation progresses enough.
+- FEM boundary conditions need reworking so they can be passed in as inputs rather than soft-coded into the FEM mesh builder.
+- There is no sanity check on input parameters.
+- Some performance-critical functions have no Matlab equivalent so a C/C++ compiler is strictly required.
+- There are potential opportunities for further parallelisation in collision, separation and integration processes.
+- Better modularisation would help increase the usability of the code.
+- Slip system in links(:, 6:8) may be inaccurate for some dislocations.
