@@ -1,7 +1,33 @@
-function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparation, rn, ...
-        links, connectivity, linksinconnect, fseg, mobility, MU, NU, a, Ec, mindist, ...
-        vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+function [rn, links, connectivity, linksinconnect, fseg] = separation(...
+    rn, links, connectivity, linksinconnect, fseg, ...
+    u_hat, ...
+    matpara, mods, flags, FEM, Bcoeff)
+    %% Extraction
+    
+    % matpara:
+    a = matpara.a;
+    MU = matpara.MU;
+    NU = matpara.NU;
+    Ec = matpara.Ec;
+    mindist = matpara.mindist;
+    
+    % mods:
+    mobility = mods.mobility;
 
+    % flags:
+    CUDA_flag = flags.CUDA_flag;
+    doseparation = flags.doseparation;
+
+    % FEM:
+    vertices = FEM.vertices;
+    nc = FEM.nc;
+    xnodes = FEM.xnodes;
+    D = FEM.D;
+    mx = FEM.mx; mz = FEM.mz;
+    w = FEM.w; h = FEM.h; d = FEM.d;
+    
+    %% Function
+    
     if ~doseparation
         return
     end
@@ -124,14 +150,14 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparati
                 for k = 1:connectivity(i, 1)
                     linkid1 = connectivity(i, 2 * k);
                     fseg(linkid1, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid1, vertices, ...
-                        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
+                        u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                 end
 
                 % calculate the segment forces connected to the new node
                 for k = 1:connectivity(lastnode, 1)
                     linkid2 = connectivity(lastnode, 2 * k);
                     fseg(linkid2, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid2, vertices, ...
-                        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
+                        u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                 end
 
                 % evaluate the power dissipated by this splitting configuration

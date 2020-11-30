@@ -1,7 +1,22 @@
 %===============================================================%
-% Ensure we have all input variables.
-% Daniel Celis Garza, Aug 2020
+% Daniel Celis Garza & Daniel Hortelano Roig (29/11/2020)
+
+% Ensure we have all input variables. Also organises essential
+% input data into structures.
 %===============================================================%
+
+%% Verify input variables
+
+if ~exist('MU', 'var')
+    MU = 1;
+    fprintf('Providing default value for MU = %f.\n', MU)
+end
+
+if ~exist('NU', 'var')
+    NU = 0.305;
+    fprintf('Providing default value for NU = %f.\n', NU)
+end
+
 if ~exist('amag', 'var')
     amag = 3.18e-4;
     fprintf('Providing default value for amag = %f.\n', amag)
@@ -10,21 +25,6 @@ end
 if ~exist('mumag', 'var')
     mumag = 1.6e5; % MPa only for plotting.
     fprintf('Providing default value for mumag = %f.\n', mumag)
-end
-
-if ~exist('CRYSTAL_STRUCTURE', 'var')
-    CRYSTAL_STRUCTURE = 'bcc';
-    fprintf('Providing default value for CRYSTAL_STRUCTURE = %s.\n', CRYSTAL_STRUCTURE)
-end
-
-if ~exist('NUM_SOURCES', 'var')
-    NUM_SOURCES = 1;
-    fprintf('Providing default value for NUM_SOURCES = %f.\n', NUM_SOURCES)
-end
-
-if ~exist('DIST_SOURCE', 'var')
-    DIST_SOURCE = 0.5 / amag;
-    fprintf('Providing default value for DIST_SOURCE = %f.\n', DIST_SOURCE)
 end
 
 if ~exist('dx', 'var')
@@ -47,54 +47,12 @@ if ~exist('mx', 'var')
     fprintf('Providing default value for mx = %f.\n', mx)
 end
 
-if ~exist('loading', 'var')
-    loading = 'displacementControl';
-    fprintf('Providing default value for loading = %s.', loading)
-end
-
-if ~exist('vertices', 'var')
-    vertices = [0, 0, 0; ...
-                dx, 0, 0; ...
-                0, dy, 0; ...
-                dx, dy, 0; ...
-                0, 0, dz; ...
-                dx, 0, dz; ...
-                0, dy, dz; ...
-                dx, dy, dz];
-    fprintf('Providing default value for vertices.\n')
-end
-
-if ~exist('faces', 'var')
-    faces = [1, 3, 4, 2; % Faces of cuboid as defined by vertices
-        5, 6, 8, 7;
-        2, 4, 8, 6;
-        1, 5, 7, 3;
-        1, 2, 6, 5;
-        3, 7, 8, 4];
-    fprintf('Providing default value for faces.\n')
-end
-
-if ~exist('MU', 'var')
-    MU = 1;
-    fprintf('Providing default value for MU = %f.\n', MU)
-end
-
-if ~exist('NU', 'var')
-    NU = 0.305;
-    fprintf('Providing default value for NU = %f.\n', NU)
-end
-
-if ~exist('mobility', 'var')
-    mobility = 'mobbcc_bb1b';
-    fprintf('Providing default value for mobility = %s.\n', mobility)
-end
-
 if ~exist('Bcoeff', 'var')
-    Bcoeff = struct('screw', 10, 'edge', 1, 'climb', 1e10, 'line', 1e-4);
-    fprintf('Providing default value for Bcoeff.screw = %f.\n', Bcoeff.screw)
-    fprintf('Providing default value for Bcoeff.edge = %f.\n', Bcoeff.edge)
-    fprintf('Providing default value for Bcoeff.climb = %f.\n', Bcoeff.climb)
-    fprintf('Providing default value for Bcoeff.line = %f.\n', Bcoeff.line)
+    mobstruct = struct('screw', 10, 'edge', 1, 'climb', 1e10, 'line', 1e-4);
+    fprintf('Providing default value for Bcoeff.screw = %f.\n', mobstruct.screw)
+    fprintf('Providing default value for Bcoeff.edge = %f.\n', mobstruct.edge)
+    fprintf('Providing default value for Bcoeff.climb = %f.\n', mobstruct.climb)
+    fprintf('Providing default value for Bcoeff.line = %f.\n', mobstruct.line)
 end
 
 if ~exist('maxconnections', 'var')
@@ -122,6 +80,21 @@ if ~exist('areamax', 'var')
     fprintf('Providing default value for areamax = %f.\n', areamax)
 end
 
+if ~exist('CUDA_flag', 'var')
+    CUDA_flag = false;
+    fprintf('Providing default value for CUDA_flag = %d.\n', CUDA_flag)
+end
+
+if ~exist('a_trac', 'var')
+    a_trac = true;
+    fprintf('Providing default value for a_trac = %d.\n', a_trac)
+end
+
+if ~exist('calculateR_hat', 'var')
+    calculateR_hat = 1;
+    fprintf('Providing default value for calculateR_hat = %d.\n', calculateR_hat)
+end
+
 if ~exist('doremesh', 'var')
     doremesh = 1; %flat set to 0 or 1 that turns the remesh functions off or on
     fprintf('Providing default value for doremesh = %d.\n', doremesh)
@@ -147,6 +120,11 @@ if ~exist('dt0', 'var')
     fprintf('Providing default value for dt0 = %f.\n', dt0)
 end
 
+if ~exist('dt', 'var')
+    dt = dt0;
+    fprintf('Providing default value for dt = %f.\n', dt)
+end
+
 if ~exist('simTime', 'var')
     simTime = 0;
     fprintf('Providing default value for simTime = %f.\n', simTime)
@@ -160,16 +138,6 @@ end
 if ~exist('curstep', 'var')
     curstep = 0;
     fprintf('Providing default value for curstep = %d.\n', curstep)
-end
-
-if ~exist('simTime', 'var')
-    simTime = 0;
-    fprintf('Providing default value for simTime = %f.\n', simTime)
-end
-
-if ~exist('integrator', 'var')
-    integrator = 'int_trapezoid';
-    fprintf('Providing default value for integrator = %s.\n', integrator)
 end
 
 if ~exist('a', 'var')
@@ -197,6 +165,11 @@ if ~exist('rmax', 'var')
     fprintf('Providing default value for rmax = %f.\n', rmax)
 end
 
+if ~exist('mindist', 'var')
+    mindist = 2 * rann;
+    fprintf('Providing default value for rmax = %f.\n', rmax)
+end
+
 if ~exist('printfreq', 'var')
     printfreq = 100;
     fprintf('Providing default value for printfreq = %d.\n', printfreq)
@@ -208,8 +181,8 @@ if ~exist('plotFreq', 'var')
 end
 
 if ~exist('simName', 'var')
-    simName = date;
-    fprintf('Providing default value for saveFreq = %s.\n', simName)
+    simName = append(date,'_',char(timeofday(datetime)));
+    fprintf('Providing default value for simName = %s.\n', simName)
 end
 
 if ~exist('saveFreq', 'var')
@@ -217,24 +190,9 @@ if ~exist('saveFreq', 'var')
     fprintf('Providing default value for saveFreq = %d.\n', saveFreq)
 end
 
-if ~exist('plim', 'var')
-    plim = max([dx, dy, dz]) / amag;
-    fprintf('Providing default value for plim = %f.\n', plim)
-end
-
 if ~exist('viewangle', 'var')
     viewangle = [-35, 15];
     fprintf('Providing default value for viewangle = [%f, %f].\n', viewangle(1), viewangle(2))
-end
-
-if ~exist('a_trac', 'var')
-    a_trac = true;
-    fprintf('Providing default value for a_trac = %d.\n', a_trac)
-end
-
-if ~exist('CUDA_flag', 'var')
-    CUDA_flag = false;
-    fprintf('Providing default value for CUDA_flag = %d.\n', CUDA_flag)
 end
 
 if ~exist('n_threads', 'var')
@@ -247,16 +205,6 @@ if ~exist('para_scheme', 'var')
     fprintf('Providing default value for para_scheme = %d.\n', para_scheme)
 end
 
-if ~exist('sign_u_dot', 'var')
-    sign_u_dot = -1;
-    fprintf('Providing default value for sign_u_dot= %d.\n', sign_u_dot)
-end
-
-if ~exist('sign_f_dot', 'var')
-    sign_f_dot = -1;
-    fprintf('Providing default value for sign_f_dot= %d.\n', sign_f_dot)
-end
-
 if ~exist('u_dot', 'var')
     u_dot = dx / 160E6;
     fprintf('Providing default value for u_dot = %f.\n', u_dot)
@@ -267,27 +215,82 @@ if ~exist('f_dot', 'var')
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
 end
 
-if ~exist('simType', 'var')
-    simType = 'cantileverBending';
-    fprintf('Providing default value for simType = %s.\n', simType)
+if ~exist('integrator', 'var')
+    integrator = 'int_trapezoid';
+    fprintf('Providing default value for integrator = %s.\n', integrator)
 end
 
-if ~exist('Fsim', 'var')
-    Fsim = zeros(1e6, 1);
-    fprintf('Initialising Fsim as 1e6 zeros.\n')
+if ~exist('mobility', 'var')
+    mobility = 'mobbcc_bb1b';
+    fprintf('Providing default value for mobility = %s.\n', mobility)
 end
 
-if ~exist('Usim', 'var')
-    Usim = zeros(1e6, 1);
-    fprintf('Initialising Usim as 1e6 zeros.\n')
+if ~exist('prescribeDofs', 'var')
+    prescribeDofs = 'cantilever_bending';
+    fprintf('Providing default value for prescribeDofs = %s.\n', prescribeDofs)
 end
 
-if ~exist('t', 'var')
-    t = zeros(1e6, 1);
-    fprintf('Initialising t as 1e6 zeros.\n')
+if ~exist('boundaryConditions', 'var')
+    boundaryConditions = 'deformation_control';
+    fprintf('Providing default value for boundaryConditions = %s.\n', boundaryConditions)
 end
 
-if ~exist('dt', 'var')
-    dt = dt0;
-    fprintf('Providing default value for dt = %f.\n', dt)
+if ~exist('storeBC', 'var')
+    storeBC = 'force_displacement_0';
+    fprintf('Providing default value for storeBC = %s.\n', storeBC)
 end
+
+%% Initialise structures for storage
+
+mods = struct; % Stores function handles of selected modules
+flags = struct; % Stores binary flags
+FEM = struct; % Stores FEM variables
+tract = struct; % Stores traction data
+diffBC = struct; % Stores derivatives of BCs
+saveBC = struct; % Stores boundary conditions at each time-step
+matpara = struct; % Stores simulation and material parameters
+
+%% Store input variables in structures
+
+% mods
+mods.integrator = integrator;
+mods.mobility = mobility;
+mods.prescribeDofs = prescribeDofs;
+mods.boundaryConditions = boundaryConditions;
+mods.storeBC = storeBC;
+
+% flags
+flags.CUDA_flag = CUDA_flag;
+flags.a_trac = a_trac;
+flags.calculateR_hat = calculateR_hat;
+flags.doremesh = doremesh;
+flags.docollision = docollision;
+flags.doseparation = doseparation;
+flags.dovirtmesh = dovirtmesh;
+
+% FEM
+FEM.dx = dx; FEM.dy = dy; FEM.dz = dz;
+FEM.mx = mx;
+
+% tracts
+tract.n_threads = n_threads;
+tract.para_scheme = para_scheme;
+
+% diffBC
+diffBC.u_dot = u_dot;
+diffBC.f_dot = f_dot;
+
+% matpara
+matpara.MU = MU;
+matpara.NU = NU;
+matpara.a = a;
+matpara.Ec = Ec;
+matpara.rann = rann;
+matpara.rntol = rntol;
+matpara.rmax = rmax;
+matpara.mindist = mindist;
+matpara.lmax = lmax;
+matpara.lmin = lmin;
+matpara.areamax = areamax;
+matpara.areamin = areamin;
+matpara.mindist = mindist;

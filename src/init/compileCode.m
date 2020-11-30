@@ -1,8 +1,8 @@
-function CUDA_flag = compileCode(CUDA_flag)
+function [flags] = compileCode(flags)
     %=========================================================================%
     % Compile MEX and MEXCUDA files.
     %
-    % Compiles files if they have not been compiled of if they were compiled
+    % Compiles files if they have not been compiled or if they were compiled
     % over 30 days ago.
     %
     % Daniel Celis Garza, Aug 2020
@@ -20,7 +20,12 @@ function CUDA_flag = compileCode(CUDA_flag)
     %-------------------------------------------------------------------------%
     % If any new C or CUDA files are added to EasyDD, place them here.
     %=========================================================================%
-
+    
+    %% Extraction
+    
+    % flags:
+    CUDA_flag = flags.CUDA_flag;
+    
     %% Preamble
     if ~exist('CUDA_flag', 'var')
         CUDA_flag = false;
@@ -97,5 +102,9 @@ function CUDA_flag = compileCode(CUDA_flag)
         end
 
     end
-
+    
+    %% Storage
+    
+    flags.CUDA_flag = CUDA_flag; % Update CUDA_flag
+    
 end

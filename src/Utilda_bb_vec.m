@@ -1,5 +1,4 @@
-function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gnl, NU, xnodes, dx, ...
-        dy, dz, mx, my, mz)
+function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gamma, FEM, NU)
     %=========================================================================%
     % Calculates displacements from dislocations.
     % Bruce Bromage, bruce.bromage@materials.ox.ac.uk
@@ -10,9 +9,24 @@ function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gnl, NU, xnodes, dx, ...
     % Modelling and Simulation in Materials Science and Engineering, Volume 26,
     % Number 8
     %=========================================================================%
-
+    
+    %% Extraction
+    
+    % gamma:
+    g_dispidx = gamma.disp(:,1);
+    
+    % FEM:
+    xnodes = FEM.xnodes;
+    dx = FEM.dx; dy = FEM.dy; dz = FEM.dz;
+    mx = FEM.mx; my = FEM.my; mz = FEM.mz;
+    vertices = FEM.vertices;
+    faces = FEM.faces;
+    normals = FEM.normals;
+    
+    %% Calculation
+    
     C = [dx / mx, dy / my, dz / mz];
-    nodenum = size(gnl, 1); % Number of FE nodes
+    nodenum = size(g_dispidx, 1); % Number of FE nodes
     segnum = size(links, 1); % Number of dislocation segments
     Utilda = zeros(nodenum, 3); % Preallocate the displacement
     Utilda = Utilda';
@@ -20,28 +34,8 @@ function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gnl, NU, xnodes, dx, ...
     nodepoints = zeros(nodenum, 3);
 
     for j = 1:nodenum
-        nodepoints(j, :) = xnodes((gnl(j)), 1:3);
+        nodepoints(j, :) = xnodes((g_dispidx(j)), 1:3);
     end
-
-    vertices = [0, 0, 0; % Vertices of cuboid
-            dx, 0, 0;
-            dx, dy, 0;
-            dx, dy, dz;
-            dx, 0, dz;
-            0, 0, dz;
-            0, dy, dz;
-            0, dy, 0];
-
-    faces = [1, 2, 3, 8; % Faces of cuboid as defined by vertices
-        1, 2, 5, 6;
-        1, 6, 7, 8;
-        2, 3, 4, 5;
-        3, 4, 7, 8;
-        4, 5, 6, 7];
-
-    normals = [1, 0, 0; % Normalised surface normal vectors for all faces
-            0, 1, 0;
-            0, 0, 1];
 
     % Preallocate for connections to surface nodes
     surfnodecons = zeros(size(rn, 1), 1);

@@ -1,7 +1,34 @@
 function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = collision(...
-        rn, links, connectivity, linksinconnect, fseg, mindist, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, ~, lmin, CUDA_flag, Bcoeff)
-    %floop to know wich loop has to be run
+        rn, links, connectivity, linksinconnect, fseg, ...
+        uhat, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, ~, ...
+        matpara, mods, flags, FEM, Bcoeff)
+    %% Extraction
+    
+    % matpara:
+    mindist = matpara.mindist;
+    lmin = matpara.lmin;
+    a = matpara.a;
+    MU = matpara.MU;
+    NU = matpara.NU;
+    Ec = matpara.Ec;
+    
+    % mods:
+    mobility = mods.mobility;
+    
+    % flags:
+    CUDA_flag = flags.CUDA_flag;
+    
+    % FEM:
+    vertices = FEM.vertices;
+    nc = FEM.nc;
+    xnodes = FEM.xnodes;
+    D = FEM.D;
+    mx = FEM.mx; mz = FEM.mz;
+    w = FEM.w; h = FEM.h; d = FEM.d;
+    
+    %% Function
+    
+    % floop to know which loop has to be run
 
     colliding_segments = 1;
     mindist2 = mindist * mindist;

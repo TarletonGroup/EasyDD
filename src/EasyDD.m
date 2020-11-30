@@ -1,64 +1,20 @@
 %=========================================================================%
-% EasyDD.m v2.0
-%
-% 3D Discrete Dislocation Plasticity. Is currently capable of simulating
-% nanoindentation, micropillar compression and cantilever bending.
-% Mixed-language model C, CUDA and Matlab so requires at least a C/C++
-% compatible compiler, CUDA computation is optional. Explicitly calculates
-% dislocation-dislocation interactions O(N^2).
-%
-%-------------------------------------------------------------------------%
-%
-% Data structure:
-% rn: (:,4) array of nodal positions (x, y, z, label)
-% vn: (:,3) array of nodal velocities (vx, vy, vz)
-% fn: (:,3) array of nodal forces (fx, fy, fz)
-% links: (:,8) array of links (idx1, idx2, bx, by, bz, nx, ny, nz)
-%
-%-------------------------------------------------------------------------%
-%
-% Compatibility:
-% As long as Matlab and a compatible C/C++ and/or CUDA compiler are
-% supported, the code will be compatible.
-%
-%-------------------------------------------------------------------------%
-%
-% Known issues and Improvement wish list:
-% * Memory model is highly inefficient. There is a lot of naive dynamic
-%   resizing of arrays.
-% * Some matrices variables change in their number of columns are are hard
-%   to track/debug (rn, connectivity).
-% * Some variables hang around unused.
-% * Collision, Separation and Remeshing can be antagonistic at higher
-%   dislocation densities and may end up repeating processes until the
-%   simulation progresses enough.
-% * FEM boundary conditions need reworking so they can be passed in as
-%   inputs rather than soft-coded into the FEM mesh builder.
-% * There is no sanity check on input parameters.
-% * Some performance-critical functions have no Matlab equivalent so a
-%   C/C++ compiler is strictly required.
-% * There are potential opportunities for further parallelisation in
-%   collision, separation and integration processes.
-% * Better modularisation would help increase the usability of the code.
-% * Slip system in links(:, 6:8) may be inaccurate for some dislocations.
-%
+% Developed by Oxford Materials (as of 11/11/2020)
+
+% Main EasyDD script.
 %=========================================================================%
 
 %% Initialisation
-% Fengxian's input reader.
+
+% Add relative paths.
+[mainpath] = addPaths('../', ... % Main path
+    'src/modules/','src/init/','output/'); % Selected paths
 
 % Check for missing variables.
-% TODO: #10 make vertices and faces an argument, if they are not defined by the
-% input provide a default.
-% TODO: #11 in remesh_surf, make it so dislocations do not leave the domain via
-% the fixed end depending on the simulation type.
-
-% [fList, pList] = matlab.codetools.requiredFilesAndProducts('EasyDD.m');
-% fList(:)
 run inputCompletion.m
 
 % Compile mex files.
-CUDA_flag = compileCode(CUDA_flag);
+[flags] = compileCode(flags);
 
 % Cleanup input structures.
 [rn, links] = cleanupnodes(rn, links);
@@ -69,100 +25,118 @@ CUDA_flag = compileCode(CUDA_flag);
 % Check input consistency.
 consistencycheck(rn, links, connectivity, linksinconnect);
 
-% Construct stiffeness matrix K and pre-compute L,U decompositions.
-[vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = ...
-    finiteElement3D(dx, dy, dz, mx, MU, NU);
+% Construct stiffness matrix kg.
+[FEM] = finiteElement3DCuboid(FEM, MU, NU);
 
-[K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, ...
-        gammau, gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = ...
-    feval(simType, kg, w, h, d, mx, my, mz);
+% Define domain surface sets S.
+[S] = surfaceCuboid(FEM);
 
-plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
+% Prescribe boundary conditions on degrees of freedom.
+[gamma, dofs] = feval(mods.prescribeDofs, S);
+
+% Reformat stiffness matrix into K and pre-compute L,U decompositions.
+[decompK] = reformatStiffnessMatrix(FEM, dofs);
+
+fprintf('Finished FEM.\n')
+
+% Plot initial surfaces.
+plotFEMDomain(S, FEM)
+
+% Initialise solution data as zeros or empty containers.
+[u, u_hat, u_tilda, u_tilda_0, f, f_hat, fseg] = ...
+    initialiseSolutions(FEM);
 
 % Construct data structures needed for analytic tractions.
-[f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se, f_tilda, ...
-        idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0, ...
-        u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, ...
-    xnodes, nc, gammat, gammau, gammaMixed, a_trac, CUDA_flag, ...
-    n_threads, para_scheme);
+[f_tilda, tract] = ...
+    AuxFEMCoupler(FEM, gamma, tract, flags);
 
 % Use Delaunay triangulation to create surface mesh, used for visualisation
 % dislocation remeshing algorithm.
-[TriangleCentroids, TriangleNormals, tri, Xb] = ...
-    MeshSurfaceTriangulation(xnodes, Stop, Sbot, Sfront, Sback, Sleft, ...
-    Sright, gammaMixed);
+[surfmesh] = ...
+    MeshSurfaceTriangulation(S, FEM);
 
-%Remesh considering surfaces in case input file incorrect.
-[rn, links, connectivity, linksinconnect] = remesh_surf(rn, links, ...
-    connectivity, linksinconnect, vertices, TriangleCentroids, ...
-    TriangleNormals);
+% Remesh considering surfaces in case input file is incorrect.
+[rn, links, connectivity, linksinconnect, ~] = remesh_surf(...
+    rn, links, connectivity, linksinconnect, fseg, ...
+    FEM, surfmesh);
 
-u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
-    dy, dz, mx, my, mz, u_tilda_0);
+% Compute initial dislocation displacement field.
+u_tilda_0 = calculateUtilda(rn, links, gamma, FEM, NU, u_tilda_0);
 
 fprintf('Initialisation complete.\n');
 
+%% Simulation
 while simTime < totalSimTime
 
-    % DDD+FEM coupling
-    [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superposition(...
-        rn, links, a, MU, NU, xnodes, kg, L, U, gamma_disp, gammaMixed, fixedDofs, ...
-        freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, ...
-        f_dot, u_tilda_0, u, u_hat, u_tilda, loading, a_trac, gamma_dln, x3x6, 4, ...
-        n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
-        n_threads, para_scheme, para_tol);
+    % Perform DDD+FEM coupling.
+    [u, u_hat, u_tilda, f, f_hat, f_tilda, r_hat] = FEM_DDD_Superposition(...
+        rn, links, ...
+        simTime, ...
+        u, u_hat, u_tilda, u_tilda_0, ...
+        f, f_hat, f_tilda, ...
+        matpara, mods, flags, decompK, FEM, gamma, dofs, tract, diffBC);
+    
+    % Integrate equation of motion.
+    [rnnew, vn, dt, fn, fseg] = feval(mods.integrator, ...
+        rn, links, connectivity, ...
+        u_hat, dt, dt0, ...
+        matpara, mods, flags, FEM, Bcoeff);
 
-    [Fsim, Usim, t] = feval(processForceDisp, Fsim, f_bar, f_hat, f_tilda, Usim, u_bar, u_hat, u_tilda, ...
-        r_hat, gammaMixed, fixedDofs, freeDofs, curstep, simTime);
-
-    %integrating equation of motion
-    [rnnew, vn, dt, fn, fseg] = feval(integrator, rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
-        rmax, rntol, mobility, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag);
-
-    % plastic strain and plastic spin calculations
-    [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, (2 * plim)^3);
-
-    plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep);
+    % Calculate plastic strain and plastic spin.
+    [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, FEM);
+    
+    % Print and store relevant BCs for plotting.
+    [saveBC] = feval(mods.storeBC, ...
+        u, u_hat, u_tilda, f, f_hat, f_tilda, r_hat, ...
+        curstep, simTime, ...
+        saveBC, gamma, dofs);
+    
+    % Plot simulation.
+    plotSimulation(rn, links, plotFreq, viewangle, curstep, ...
+        FEM, saveBC);
 
     [planeindex] = outofplanecheck(rn, links);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = updateMatricesForward(rnnew, vn, links, ...
-        connectivity, linksinconnect, fseg);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = updateMatricesForward(...
+        rnnew, vn, links, connectivity, linksinconnect, fseg);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remeshPreCollision(rnnew, linksnew, ...
-        connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
-        mobility, doremesh, dovirtmesh, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, ...
-        TriangleCentroids, TriangleNormals, CUDA_flag, Bcoeff);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remeshPreCollision(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+        u_hat, ...
+        matpara, mods, flags, surfmesh, FEM, Bcoeff);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideNodesAndSegments(docollision, ...
-        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
-        u_hat, nc, xnodes, D, mx, mz, w, h, d, lmin, CUDA_flag, Bcoeff, curstep);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideNodesAndSegments(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+        u_hat, curstep, ...
+        matpara, mods, flags, FEM, Bcoeff);
 
-    rnnew = fixBlockadingNodes(rnnew);
+    rnnew = fixBlockadingNodes(rnnew, connectivitynew);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
-        separation(doseparation, rnnew, linksnew, connectivitynew, linksinconnectnew, ...
-        fsegnew, mobility, MU, NU, a, Ec, 2 * rann, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = separation(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+        u_hat, ...
+        matpara, mods, flags, FEM, Bcoeff);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
-        connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
-        mobility, doremesh, 0, vertices, u_hat, nc, xnodes, D, mx, mz, w, h, d, TriangleCentroids, ...
-        TriangleNormals, CUDA_flag, Bcoeff);
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_final(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+        u_hat, ...
+        matpara, mods, flags, FEM, Bcoeff);
 
-    [rn, vn, links, connectivity, linksinconnect, fseg] = updateMatricesBackward(rnnew, ...
-        linksnew, connectivitynew, linksinconnectnew, fsegnew);
+    [rn, vn, links, connectivity, linksinconnect, fseg] = updateMatricesBackward(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew);
 
     [curstep, simTime] = updateTime(curstep, simTime, dt);
 
     saveSimulation(simName, curstep, saveFreq)
-
+    
+    % Check that there exists nodes in the domain.
     if ~any(rn(:, 4) == 0)
-        fprintf('No more real segments, ending simulation.\n')
+        fprintf('No more real segments. Ending simulation.\n')
         saveSimulation(simName, curstep, 1)
         return;
     end
 
 end
 
-fprintf('Simulation completed.\n')
+fprintf('Simulation complete.\n')
 saveSimulation(simName, curstep, 1)

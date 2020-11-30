@@ -1,14 +1,50 @@
-function [rn, links, connectivity, linksinconnect, fseg] = remesh(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
-    % first coarsen the parts of the mesh than can be coarsened
-    % then refine the parts of the mesh that need it
-    % meshcoarsen is done first because it relies on positions of nodes that were introduced at the end of the previous time step
-    % do not change the order of these two subroutines
+function [rn, links, connectivity, linksinconnect, fseg] = remesh(...
+    rn, links, connectivity, linksinconnect, fseg, ...
+    u_hat, ...
+    matpara, mods, flags, FEM, Bcoeff)
+    %=========================================================================%
+    % Developed by Oxford Materials (as of 11/11/2020)
+
+    % First coarsen the parts of the mesh than can be coarsened, then
+    % refine the parts of the mesh that need it. meshcoarsen is done first
+    % because it relies on positions of nodes that were introduced at the
+    % end of the previous time step. Do not change the order of the 
+    % meshcoarsen and meshrefine subroutine calls.
+    %=========================================================================%
+    
+    %% Extraction
+    
+    % matpara:
+    lmin = matpara.lmin;
+    lmax = matpara.lmax;
+    areamin = matpara.areamin;
+    areamax = matpara.areamax;
+    a = matpara.a;
+    MU = matpara.MU;
+    NU = matpara.NU;
+    Ec = matpara.Ec;
+    
+    % mods:
+    mobility = mods.mobility;
+
+    % flags:
+    CUDA_flag = flags.CUDA_flag;
+
+    % FEM:
+    vertices = FEM.vertices;
+    nc = FEM.nc;
+    xnodes = FEM.xnodes;
+    D = FEM.D;
+    mx = FEM.mx; mz = FEM.mz;
+    w = FEM.w; h = FEM.h; d = FEM.d;
+    
+    %% Subroutines
+    
     [rn, links, connectivity, linksinconnect, fseg] = meshcoarsen(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
+        u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
 
     [rn, links, connectivity, linksinconnect, fseg] = meshrefine(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamax, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
+        u_hat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
 end
 
 function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshcoarsen(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, Ec, mobility, vertices, ...

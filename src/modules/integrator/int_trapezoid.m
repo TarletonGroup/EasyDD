@@ -1,11 +1,40 @@
-function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
-        rmax, rntol, mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
+function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, links, connectivity, ...
+        uhat, dt, dt0, ...
+        matpara, mods, flags, FEM, Bcoeff)
+    %=====================================================================%
+    % B.Bromage and D.Celis-Garza (05/11/2018)
 
-    %Implicit numerical integrator using the Euler-trapezoid method adapted
-    %from [Cai & Bulatov, Algorithm 10.2, pg. 216]. The tiemstep size is
-    %controlled so that it can increase suitably quickly and not decrease
-    %excessively whilst remaining within acceptable tolerence limits
-    %Written by B.Bromage and D.Celis-Garza 05/11/2018
+    % Implicit numerical integrator using the Euler-trapezoid method adapted
+    % from [Cai & Bulatov, Algorithm 10.2, pg. 216]. The tiemstep size is
+    % controlled so that it can increase suitably quickly and not decrease
+    % excessively whilst remaining within acceptable tolerence limits.
+    %=====================================================================%
+    
+    %% Extraction
+    
+    % simpara:
+    a = matpara.a;
+    MU = matpara.MU;
+    NU = matpara.NU;
+    Ec = matpara.Ec;
+    rmax = matpara.rmax;
+    rntol = matpara.rntol;
+    
+    % mods:
+    mobility = mods.mobility;
+    
+    % flags:
+    CUDA_flag = flags.CUDA_flag;
+    
+    % FEM:
+    vertices = FEM.vertices;
+    nc = FEM.nc;
+    xnodes = FEM.xnodes;
+    D = FEM.D;
+    mx = FEM.mx; mz = FEM.mz;
+    w = FEM.w; h = FEM.h; d = FEM.d;
+    
+    %% Calculation
 
     %Convert rn into a single column of coordinates and store the node flags
     rnvec0 = [rn(:, 1); rn(:, 2); rn(:, 3)]; flag = rn(:, 4);

@@ -19,9 +19,20 @@
 % flags, always use rn(:,end) or rnnew(:,end).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
-        remesh_surf(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, vertices, P, fn)
-
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_surf(...
+        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+        FEM, surfmesh)
+    %% Extraction
+    
+    % FEM:
+    vertices = FEM.vertices;
+    
+    % trimesh:
+    P = surfmesh.TriangleCentroids;
+    fn = surfmesh.TriangleNormals;
+    
+    %% Remesh
+    
     % Beginning of surface remeshing for surface nodes. %%%%%%%%%%%%%%%%%%%%
     % Flag all nodes outside of medium.
     tess = convhulln(vertices); tol = 10E-10;
