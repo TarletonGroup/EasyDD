@@ -1,5 +1,5 @@
-function [u, f] = deformationControl(...
-    u, f, diffBC, simTime, gamma, S, fixedDofs, freeDofs)
+function [u, f] = deformation_control(...
+    u, f, diffBC, simTime, gamma, dofs)
     %===============================================================%
     % Daniel Hortelano Roig (11/11/2020)
     % daniel.hortelanoroig@materials.ox.ac.uk 
@@ -9,13 +9,13 @@ function [u, f] = deformationControl(...
     % corresponding surface sets.
     %===============================================================%
     
-    %% Initialise BCs
+    %% Reset BCs
     
     u(:) = 0; f(:) = 0;
     
     %% Force conditions
     
-    f(freeDofs) = 0; % All freeDofs have zero applied force BCs
+    f(dofs.freeDofs) = 0; % All freeDofs have zero applied force BCs
     
     %% Displacement conditions
     

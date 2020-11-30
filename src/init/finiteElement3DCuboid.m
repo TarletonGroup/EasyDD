@@ -1,9 +1,9 @@
-function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
-    finiteElement3D(dx, dy, dz, mx, mu, nu)
+function [FEM] = ...
+    finiteElement3DCuboid(FEM, MU, NU)
     %=========================================================================%
     % E Tarleton edmund.tarleton@materials.ox.ac.uk
     % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2)
-    % per element
+    % per element for a cuboid domain.
     %
     % 4. ----- .3
     %  |\       |\
@@ -15,32 +15,50 @@ function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
     %      \|       \|
     %      5. ----- .6
     %
+    % Note: this is rotated about x axis w.r.t. local (s1,s2,s3) system.
+    % Note: this code uses constant element size in base and beam: (w,h,d).
     %
-    % rectangulare domain.
-    % (y going in to the page) note this is rotated about x axis w.r.t. local
-    % (s1,s2,s3) system.
     % -------------------------------------------------
     %
     % ^z                   (mx,my)
     % |
-    % |
+    % | (y going in to the page)
     % |------>x-----------------------------------------
     %=========================================================================%
-
-    fprintf('Constructing stiffness matrix K...\n');
-
-    % Simulation domain vertices. Required for surface remeshing.
-%     vertices = [0, 0, 0; ...
-%                 dx, 0, 0; ...
-%                 0, dy, 0; ...
-%                 dx, dy, 0; ...
-%                 0, 0, dz; ...
-%                 dx, 0, dz; ...
-%                 0, dy, dz; ...
-%                 dx, dy, dz];
-    % not that this code uses a constant element size in base and beam: (w,h,d)
-    % also gammau is the left surface (eg baseLength=0)
-
+    
+    %% Extraction
+    
+    dx = FEM.dx; dy = FEM.dy; dz = FEM.dz;
+    mx = FEM.mx;
+    
+    %% Initialising domain geometry data
+    
+    FEM.vertices = [0, 0, 0; % Vertices of cuboid
+                    dx, 0, 0;
+                    0, dy, 0;
+                    dx, dy, 0;
+                    0, 0, dz;
+                    dx, 0, dz;
+                    0, dy, dz;
+                    dx, dy, dz];
+    FEM.faces = [1, 2, 3, 8; % Faces of cuboid as defined by vertices
+                 1, 2, 5, 6;
+                 1, 6, 7, 8;
+                 2, 3, 4, 5;
+                 3, 4, 7, 8;
+                 4, 5, 6, 7];
+    FEM.normals = [1, 0, 0; % Normalised surface normal vectors for all faces
+                   0, 1, 0;
+                   0, 0, 1];
+    
+    FEM.n_nodes = 4; % Number of nodes per surface element
+    
+    %% Assign data to build global stiffness matrix
+    
+    fprintf('Constructing global stiffness matrix...\n');
+    
+    simvol = dx*dy*dz;
+    
     w = dx / mx; % elements width
 
     my = round(mx * dy / dx); % # elements in y direction
@@ -51,20 +69,22 @@ function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
     mz = max(mz, 1);
     d = dz / mz; % element depth
 
-    mel = mx * my * mz;
-    mno = (mx + 1) * (my + 1) * (mz + 1);
+    mel = mx * my * mz; % Number of finite elements
+    mno = (mx + 1) * (my + 1) * (mz + 1); % Number of FE nodes
+    ndofs = 3*mno; % Number of degrees of freedom (DoFs)
+    
+    ey = MU * (2 * (1 + NU));
+    la = NU * ey / ((1 + NU) * (1 - 2 * NU));
 
-    ey = mu * (2 * (1 + nu));
-    la = nu * ey / ((1 + nu) * (1 - 2 * nu));
-
+    % D matrix (to represent stress tensor in Voigt notation)
     D = zeros(6, 6);
 
     for i = 1:3
-        D(i, i) = la + 2 * mu;
+        D(i, i) = la + 2 * MU;
     end
 
     for i = 4:6
-        D(i, i) = mu;
+        D(i, i) = MU;
     end
 
     D(1, 2) = la;
@@ -315,7 +335,9 @@ function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
         end
 
     end
-
+    
+    %% Construct local stiffness matrix
+    
     fprintf('local K...\n');
     ke = zeros(24, 24, mel); %local stiffness matrix
 
@@ -327,18 +349,17 @@ function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
 
     end
 
-    % ensure ke is symmetric eg remove any very small entries due to numerical
-    % error.
+    %% Construct global stiffness matrix
+    
     fprintf('global K...\n');
-
-    %% kg Haiyang
+    
     tic
     
     a = 1:8; % local node numbers
     dofLocal = [3 * (a - 1) + 1, 3 * (a - 1) + 2, 3 * (a - 1) + 3];
     
     % ntriplets = mel*24*24;
-    ntriplets = 3 * mno; % Total number of of global DoFs
+    ntriplets = ndofs; % Total number of of global DoFs
     I = zeros(ntriplets, 1);
     J = zeros(ntriplets, 1);
     X = zeros(ntriplets, 1);
@@ -363,9 +384,29 @@ function [B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel, globnidx] = ...
         
     end
     
-    kg = sparse(I, J, X, 3 * mno, 3 * mno); % the (full) global stiffness matrix (sparse)
+    kg = sparse(I, J, X, ndofs, ndofs); % the (full) global stiffness matrix (sparse)
     % kg(I(k),J(k)) = X(k)
     
     toc
+    
+    %% Store FEM data in a structure
+    
+    % Data output:
+    FEM.simvol = simvol;
+    FEM.B = B;
+    FEM.xnodes = xnodes;
+    FEM.mno = mno;
+    FEM.ndofs = ndofs;
+    FEM.nc = nc;
+    FEM.n = n;
+    FEM.D = D;
+    FEM.kg = kg; % Global stiffness matrix
+    FEM.w = w;
+    FEM.h = h;
+    FEM.d = d;
+    FEM.my = my;
+    FEM.mz = mz;
+    FEM.mel = mel;
+    FEM.globnidx = globnidx;
     
 end

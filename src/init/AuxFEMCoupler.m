@@ -1,7 +1,5 @@
-function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,...
-        f_tilda, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0,...
-         u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes,...
-          nc, gamma, a_trac, CUDA_flag, n_threads, para_scheme)
+function [f_tilda, tract] = ...
+    AuxFEMCoupler(FEM, gamma, tract, flags)
     %=========================================================================%
     % Sets up auxiliary data structures for analytic traction calculations.
     %
@@ -28,12 +26,13 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     % para_tol := tolerance for calling segments parallel to the surface
     % x3x6 := coordinates of surface element nodes
     % n_se := number of surface elements
-    % gamma_dln := nodes where analytic tractions need to be calcualted
+    % gamma_dln := nodes where analytic tractions need to be calculated
     % f_tilda_node := dislocation forces on nodes of surface elements
     % f_tilda_se := dislocation forces on single surface elements
     % f_tilda := dislocation forces on FE nodes
     % idxi := index for adding forces from nodes shared by different surface
     %   elements
+    % n_nodes := number of nodes per surface element
     % n_nodes_t := number of nodes with traction boundary conditions
     % n_threads := number of threads per GPU block
     % para_scheme := parallelisation scheme, 1 parallelises over dislocations
@@ -41,23 +40,26 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     % gamma_disp := nodes with displacement boundary conditions
     %=========================================================================%
     
-    %% Extract BCs
-    gammat = gamma.t;
-    gammau = gamma.u;
-    gammaMixed = gamma.Mixed;
+    %% Extraction
     
-    %% Initialise parameters
+    % flags:
+    a_trac = flags.a_trac;
+    CUDA_flag = flags.CUDA_flag;
     
-    f = zeros(3 * mno, 1);
-    f_hat = zeros(3 * mno, 1);
-    gamma_disp = [gammau(:, 1); gammaMixed(:, 1)];
-    u = zeros(3 * mno, 1);
-    u_hat = zeros(3 * mno, 1);
-    u_tilda_0 = zeros(3 * mno, 1);
-    u_tilda = zeros(3 * mno, 1);
-    gamma_dln = [gammat; gammaMixed];
+    % tract:
+    n_threads = tract.n_threads;
+    para_scheme = tract.para_scheme;
     
-    %%
+    % FEM:
+    ndofs = FEM.ndofs;
+    mno = FEM.mno;
+    dx = FEM.dx; dy = FEM.dy; dz = FEM.dz;
+    mx = FEM.mx; my = FEM.my; mz = FEM.mz;
+    n_nodes = FEM.n_nodes;
+    xnodes = FEM.xnodes;
+    nc = FEM.nc;
+    
+    %% Set up auxiliary data
     
     if (~exist('CUDA_flag', 'var'))
         CUDA_flag = false;
@@ -84,8 +86,9 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     if (~exist('a_trac', 'var'))
         a_trac = false;
     end
-
-    if a_trac == false
+    
+    if a_trac == false % Analytic tractions disabled
+        
         para_tol = 0;
         x3x6 = 0;
         n_se = 0;
@@ -93,18 +96,34 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
         f_tilda_se = 0;
         idxi = 0;
         n_nodes_t = 0;
-        f_tilda = zeros(3 * mno, 1);
-        return
+        f_tilda = zeros(ndofs, 1);
+        
+    else % Analytic tractions enabled
+        
+        dimension = sqrt(dx * dx + dy * dy + dz * dz);
+        para_tol = dimension / 1e7;
+
+        planes = (1:1:6)';
+        [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx; my; mz], ...
+            planes, n_nodes);
+
+        [f_tilda_node, f_tilda_se, ...
+                f_tilda, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma.dln, n_nodes, n_se, mno);
     end
-
-    dimension = sqrt(dx * dx + dy * dy + dz * dz);
-    para_tol = dimension / 1e7;
-
-    planes = (1:1:6)';
-    [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx; my; mz], ...
-        planes, 4);
+        
+    %% Storage
     
-    [f_tilda_node, f_tilda_se, ...
-            f_tilda, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);
-
+    tract = struct; % Stores auxillary variables
+    
+    tract.para_tol = para_tol;
+    tract.x3x6 = x3x6;
+    tract.n_se = n_se;
+    tract.idxi = idxi;
+    tract.n_nodes = n_nodes;
+    tract.n_nodes_t = n_nodes_t;
+    tract.n_threads = n_threads;
+    tract.para_scheme = para_scheme;
+    tract.f_tilda_node = f_tilda_node;
+    tract.f_tilda_se = f_tilda_se;
+    
 end

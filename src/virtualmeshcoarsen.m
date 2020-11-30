@@ -1,17 +1,28 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Check whether virtual nodes can be eliminated based on:
-% 1) If they are not connected to any surface nodes
-% 2) If they are not due to an angle change in the simulated volume surface
-%
-% Bruce Bromage
-% Michromechanical Testing Group
-% Department of Materials, University of Oxford
-% bruce.bromage@materials.ox.ac.uk
-% May 2017
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(...
+    rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+    matpara)
+    %=========================================================================%
+    % Bruce Bromage
+    % Michromechanical Testing Group
+    % Department of Materials, University of Oxford
+    % bruce.bromage@materials.ox.ac.uk
+    % May 2017
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = virtualmeshcoarsen(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, MU, NU, a, Ec)
-
+    % Check whether virtual nodes can be eliminated based on:
+    % 1) If they are not connected to any surface nodes
+    % 2) If they are not due to an angle change in the simulated volume surface
+    %=========================================================================%
+    
+    %% Extraction
+    
+    % matpara:
+    a = matpara.a;
+    MU = matpara.MU;
+    NU = matpara.NU;
+    Ec = matpara.Ec;
+    
+    %% Function
+    
     %This function can coarsen away cross slip at the surface and may need to be
     %improved
 

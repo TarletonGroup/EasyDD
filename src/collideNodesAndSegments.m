@@ -1,6 +1,16 @@
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideNodesAndSegments(docollision, ...
-        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
-        u_hat, nc, xnodes, D, mx, mz, w, h, d, lmin, CUDA_flag, Bcoeff, curstep)
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideNodesAndSegments(...
+    rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+    u_hat, curstep, ...
+    matpara, mods, flags, FEM, Bcoeff)
+    %% Extraction
+    
+    % matpara:
+    rann = matpara.rann;
+
+    % flags:
+    docollision = flags.docollision;
+
+    %% Function
 
     if (docollision)
 
@@ -20,8 +30,10 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collid
                 end
 
                 if colliding_segments == 1
-                    [rnnew, linksnew, ~, ~, fsegnew, colliding_segments] = collision(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, ...
-                        u_hat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, segpair, lmin, CUDA_flag, Bcoeff);
+                    [rnnew, linksnew, ~, ~, fsegnew, colliding_segments] = collision(...
+                        rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ...
+                        u_hat, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, segpair, ...
+                        matpara, mods, flags, FEM, Bcoeff);
 
                     %removing links with effective zero Burgers vectors
                     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = cleanupsegments(rnnew, linksnew, fsegnew);

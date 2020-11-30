@@ -1,82 +1,113 @@
-function [output] = plotnodes(rn, links, plim, vertices)
-    %plot nodes
-    %only those nodes within [-plim,plim] in x,y,z directions are plotted
-    figure(1);
-    clf
-    amag = 3.18e-4; %lattice vector BCC W, in microns
-    % amag=1;
-    plot3(0, 0, 0); hold on;
-    LINKMAX = length(links(:, 1));
+function plotnodes(rn, links, FEM, viewangle)
+    %===============================================================%
+    % Daniel Hortelano Roig (11/11/2020)
+    % daniel.hortelanoroig@materials.ox.ac.uk 
+    
+    % Plots the dislocation network nodes.
+    %===============================================================%
 
-    for i = 1:LINKMAX
-        n0 = links(i, 1);
-        n1 = links(i, 2);
-        %to skip external nodes...
-        %     if rn(n0,end)==67||rn(n1,end)==67
-        %        continue;
-        %     end
-        lvec = amag * (rn(n1, 1:3) - rn(n0, 1:3));
-        plane_n = links(i, 6:8);
-        bvec = links(i, 3:5);
-        plane_n = cross(lvec / norm(lvec), bvec / norm(bvec));
-        %     if plane_n == [-1 0 1]/sqrt(2)
-        r0 = rn(n0, 1:3) * amag;
-        %      if rn(n0,4)==0 || rn(n0,4) == 6
-        %     if rn(n0,4)==0
-        %filter out "infinity" lines
-        plot3(rn([n0, n1], 1) * amag, rn([n0, n1], 2) * amag, rn([n0, n1], 3) * amag, 'r', 'LineWidth', 2);
-        quiver3(r0(1), r0(2), r0(3), lvec(1), lvec(2), lvec(3), 'r', 'LineWidth', 1);
-        %plot3(rn(n0,1)*bmag,rn(n0,2)*bmag,rn(n0,3)*bmag,'k.');
-        %plot3(rn(n1,1)*bmag,rn(n1,2)*bmag,rn(n1,3)*bmag,'k.');
-        %      end
+%% Extraction
 
+vertices = FEM.vertices;
+
+%% Plot nodes
+
+%%% Setup figure
+
+figname = "Dislocaton network";
+figure('Name',figname);
+grid on, hold on
+
+%%% Plot links
+
+plot3(0,0,0);
+
+for i = 1:length(links(:,1))
+    
+    n0 = links(i,1);
+    n1 = links(i,2);
+    
+    r0 = rn(n0,1:3);
+    r1 = rn(n1,1:3);
+    
+    midseg = (r1 + r0)/2;
+    
+    %to skip external nodes...
+    if rn(n0,end) == 67 || rn(n1,end) == 67
+       continue;
     end
+    
+    lvec = rn(n1,1:3)-rn(n0,1:3);
+    lunit = lvec / norm(lvec);
+    bvec = links(i,3:5);
+    bunit = bvec / norm(bvec);
+    bplot = 2e2 * bvec;
+    
+    screworient = abs(dot(bunit,lunit));
+    color = [1 screworient 0]; % =red: edge, =yellow: screw
+    
+	plot3(rn([n0,n1],1),rn([n0,n1],2),rn([n0,n1],3), ...
+        'Color',color,'LineWidth',2);
+    quiver3(midseg(1),midseg(2),midseg(3),bplot(1),bplot(2),bplot(3), ...
+        'Color','blue','LineWidth',1, ...
+        'ShowArrowHead','on','MaxHeadSize',1e2);
+end
 
-    %plot film film location
-    %dt = delaunayTriangulation(vertices*bmag);
-    % dt = delaunayTri(vertices);
-    %[tri, Xb] = freeBoundary(dt);
-    %trisurf(tri, Xb(:,1), Xb(:,2), Xb(:,3), 'FaceColor', 'white','FaceAlpha', 0.1);
-    %plot bounding box
-    face1 = [1 2 4 3 1];
-    face2 = [5 6 8 7 5];
-    vertices_scaled = vertices * amag;
-    surf1 = vertices_scaled(face1, :);
-    surf2 = vertices_scaled(face2, :);
+%%% Plot nodes
 
-    plot3(surf1(:, 1), surf1(:, 2), surf1(:, 3), 'k', 'LineWidth', 2);
-    hold on;
-    plot3(surf2(:, 1), surf2(:, 2), surf2(:, 3), 'k', 'LineWidth', 2);
+for j = 1:size(rn,1)
+    
+    % Assign different colour to pinned nodes:
+    if rn(j,4) == 7
+        nodemarkertype = '*';
+        nodemarkersize = 3;
+        nodelinewidth = 2;
+        nodecolor = [0.6350 0.0780 0.1840];
+    elseif rn(j,4) == 67
+        continue; % Skip virtual nodes
+    else
+        nodemarkertype = 'o';
+        nodemarkersize = 1;
+        nodelinewidth = 1;
+        nodecolor = 'black';
+    end
+    
+	plot3(rn(j,1),rn(j,2),rn(j,3), nodemarkertype, 'Color', nodecolor, ...
+        'MarkerSize', nodemarkersize, 'LineWidth', nodelinewidth);
+end
 
-    side = vertices_scaled([1 5], :);
-    plot3(side(:, 1), side(:, 2), side(:, 3), 'k', 'LineWidth', 2);
-    side = vertices_scaled([2 6], :);
-    plot3(side(:, 1), side(:, 2), side(:, 3), 'k', 'LineWidth', 2);
-    side = vertices_scaled([3 7], :);
-    plot3(side(:, 1), side(:, 2), side(:, 3), 'k', 'LineWidth', 2);
-    side = vertices_scaled([4 8], :);
-    plot3(side(:, 1), side(:, 2), side(:, 3), 'k', 'LineWidth', 2);
+%%% Plot bounding box
 
-    % plot virtual segments
-    % if isempty(virtual_seg)
-    %     %do nothing
-    % else
-    % for j=1:size(virtual_seg,1)% (node_ID_int, node_ID_inf, bx,by,bz,x_int,y_int,z_int,x_inf,y_inf,z_inf,nx,ny,nz)
-    % plot3([virtual_seg(j,6) virtual_seg(j,9)] , [virtual_seg(j,7) virtual_seg(j,10)], [virtual_seg(j,8) virtual_seg(j,11)],'k--');
-    % end
+face1 = [1 2 4 3 1];
+face2 = [5 6 8 7 5];
+vertices_scaled = vertices;
+surf1=vertices_scaled(face1,:);
+surf2=vertices_scaled(face2,:);
 
-    plotHandle = gcf;
-    hold off
-    axis equal
-    % grid
-    xlabel('x-direction (\mu m)', 'FontSize', 10);
-    ylabel('y-direction (\mu m)', 'FontSize', 10);
-    zlabel('z-direction (\mu m)', 'FontSize', 10);
+plot3(surf1(:,1),surf1(:,2),surf1(:,3),'k','LineWidth',2);
+plot3(surf2(:,1),surf2(:,2),surf2(:,3),'k','LineWidth',2);
 
-    xlim([vertices(1, 1) vertices(2, 1)] * amag);
-    ylim([vertices(1, 2) vertices(3, 2)] * amag);
-    zlim([vertices(1, 3) vertices(5, 3)] * amag);
+side = vertices_scaled([1 5],:);
+plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
+side = vertices_scaled([2 6],:);
+plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
+side = vertices_scaled([3 7],:);
+plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
+side = vertices_scaled([4 8],:);
+plot3(side(:,1),side(:,2),side(:,3),'k','LineWidth',2);
 
-    %axis equal;
-    output = plotHandle;
+%%% Axes and labels
+
+axis equal
+
+xlabel('x','FontSize',12);
+ylabel('y','FontSize',12);
+zlabel('z','FontSize',12);
+xlim([0 vertices(8,1)]);
+ylim([0 vertices(8,2)]);
+zlim([0 vertices(8,3)]);
+
+title(figname,'FontSize',18); % Title
+
+view(viewangle); % View angle
 end

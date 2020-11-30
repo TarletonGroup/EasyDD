@@ -9,14 +9,15 @@
 fprintf('================ %s ================\n\n', mfilename);
 fprintf('Material: %s\n\n',             materialname);
 fprintf('Temperature: %0.2e K\n',       temperature);
-fprintf('Shear modulus: %0.2e GPa\n',   pressureSI/1e9);
+fprintf('Shear modulus: %0.2e GPa\n',   MU*pressureSI/1e9);
 fprintf('Poisson ratio: %0.2e\n',       NU);
 fprintf('c/a ratio: %0.2e\n',           HCPc);
 
 % Selected subprocesses
 fprintf('\n--------------   Subprocesses   --------------\n\n');
-fprintf('Boundary condition: %s\n',     simType);
-fprintf('Loading condition: %s\n',      loading);
+fprintf('Simulation type: %s\n',        prescribeDofs);
+fprintf('Boundary condition: %s\n',     boundaryConditions);
+fprintf('Save condition: %s\n',         storeBC);
 fprintf('Integrator function: %s\n',    integrator);
 fprintf('Mobility function: %s\n',      mobility);
 

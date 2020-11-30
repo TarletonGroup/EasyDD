@@ -1,4 +1,4 @@
-function [K, L, U, bcwt] = cantileverK(kg, fixedDofs, freeDofs)
+function [Kdecomp] = reformatStiffnessMatrix(FEM, dofs)
     %===============================================================%
     % Daniel Hortelano Roig (11/11/2020)
     % daniel.hortelanoroig@materials.ox.ac.uk 
@@ -7,15 +7,23 @@ function [K, L, U, bcwt] = cantileverK(kg, fixedDofs, freeDofs)
     % boundary conditions on the degrees of freedom.
     %===============================================================%
     
-    %%
+    %% Extraction
+    
+    % FEM:
+    kg = FEM.kg;
+    
+    % DoFs:
+    fixedDofs = dofs.fixedDofs;
+    freeDofs = dofs.freeDofs;
+    
+    %% Reformatting
     
     fprintf('Cantilever boundary conditions: reformatting K.\n');
     
     % {freeDofs,fixedDofs} should contain every degree of freedom on
     % boundary + any internal Dofs with a force or displacement specified.
     if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
-        fprintf('error\n')
-        pause
+        error('length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))\n')
     end
     
     K = kg; % Reallocate stiffness matrix
@@ -34,12 +42,18 @@ function [K, L, U, bcwt] = cantileverK(kg, fixedDofs, freeDofs)
     
     fprintf('Cholesky factorisation of K...\n');
     tic;
-    U = chol(K);
-    L = U';
+    Uchol = chol(K);
+    Lchol = Uchol';
     toc;
     fprintf('Finished Cholesky factorisation of K.\n');
     
-    processForceDisp = 'cantileverBendingForceDisp';
-    plotForceDisp = 'cantileverBendingPlot';
-
+    %% Data storage
+    
+    Kdecomp = struct; % Stores stiffness matrix decomposition data
+    
+    Kdecomp.bcwt = bcwt;
+    Kdecomp.K = K;
+    Kdecomp.Uchol = Uchol;
+    Kdecomp.Lchol = Lchol;
+    
 end

@@ -1,20 +1,21 @@
-%===============================================================%
-% Daniel Hortelano Roig (11/11/2020)
-% daniel.hortelanoroig@materials.ox.ac.uk 
+function [mainpath] = addPaths(mainpath, varargin)
+    %===============================================================%
+    % Daniel Hortelano Roig (11/11/2020)
+    % daniel.hortelanoroig@materials.ox.ac.uk 
 
-% Adds all relative paths required to run the simulation.
-%===============================================================%
+    % Adds all relative paths required to run the simulation.
+    %===============================================================%
 
-%% Source folder paths
+    %% Source folder paths
 
-mainpath = '../';
-addpath(mainpath); % Main
-addpath(genpath([mainpath 'src/modules/'])); % Selected subprocesses
-addpath(genpath([mainpath 'src/init/'])); % Preamble functions
-
-%% Output folder paths
-
-outputpath = append('output/',INPUTNAME,'/');
-if ~exist([mainpath outputpath], 'dir')
-       mkdir([mainpath outputpath]);
+    addpath(mainpath); % Main path
+    
+    for i = 1:nargin-1
+        
+        if ~exist([mainpath varargin{i}], 'dir')
+            mkdir([mainpath varargin{i}]);
+        end
+        
+        addpath(genpath([mainpath varargin{i}])); % Selected paths
+    end
 end

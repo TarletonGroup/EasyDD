@@ -1,12 +1,11 @@
-%% Input file created by Daniel Hortelano Roig (11/11/2020) %%
+%% Input file created by Daniel Hortelano Roig (29/11/2020) %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Sections are the following:
 % 1) SIMULATION META-INFORMATION
 % 2) MATERIAL PARAMETERS
-% 3) SOURCE GENERATION PARAMETERS
-% 4) FEM PARAMETERS
-% 5) EasyDD PARAMETERS
+% 3) FEM PARAMETERS
+% 4) EasyDD PARAMETERS
 %       - Parallelisation
 %       - Meshing
 %       - Time integrator
@@ -14,15 +13,10 @@
 %       - Plotting
 %       - Mobility law
 %       - Dislocation nodes (rn) and segments (links)
-% 6) INFO & CHECKS
-% 7) REFERENCES
-
+% 5) INFO & CHECKS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear % Removes all items from workspace
 dbstop if error % Applies debugging breakpoint instead of error
-
-
-
 
 
 %% SIMULATION META-INFORMATION %%
@@ -51,28 +45,31 @@ if ~exist('figures/', 'dir')
        mkdir('figures/');
 end
 
+%%% Meta structures
 
+% Used in main file:
+Bcoeff = struct; % Stores mobility parameters
 
+% Used only in input file:
+glidecoeffsSTR = struct; % Stores mobility coefficients
+crsscoeffsSTR = struct; % Stores CRSS coefficients
 
 
 %% MATERIAL PARAMETERS %%
-
 
 materialname = "alpha-Zr"; % alpha-Zirconium (temperature below ~900K)
 CRYSTAL_STRUCTURE = 'hcp';
 
 %%% Simulation units (SI)
 
-simscale = struct; % Store scaling units in a structure
-
-simscale.lengthSI = 3.233e-10; % Length: [m]
-simscale.pressureSI = 37.1E9; % Pressure: [Pa]
-simscale.dragSI = 1.0e0; % Drag coefficient: [Pa s]
-simscale.timeSI = dragSI/pressureSI; % Time: [s]
-simscale.velocitySI = lengthSI/timeSI; % Velocity: [m/s]
-simscale.forceSI = pressureSI * lengthSI^2; % Force: [Pa m^2]
-simscale.nodalforceSI = pressureSI * lengthSI; % Nodal force: [Pa m]
-simscale.temperatureSI = 1.0e0; % Temperature: [K]
+lengthSI = 3.233e-10; % Length: [m]
+pressureSI = 37.1E9; % Pressure: [Pa]
+dragSI = 1.0e0; % Drag coefficient: [Pa s]
+timeSI = dragSI/pressureSI; % Time: [s]
+velocitySI = lengthSI/timeSI; % Velocity: [m/s]
+forceSI = pressureSI * lengthSI^2; % Force: [Pa m^2]
+nodalforceSI = pressureSI * lengthSI; % Nodal force: [Pa m]
+temperatureSI = 1.0e0; % Temperature: [K]
 
 %%% Crystallographic parameters
 
@@ -80,7 +77,7 @@ temperature = 600 / temperatureSI; % Units: [K]
 
 % Lattice parameter magnitude:
 length_inputunits = 1e-6; % Units: [m]
-simscale.amag = lengthSI / length_inputunits; % Units: [microns]
+amag = lengthSI / length_inputunits; % Units: [microns]
 
 % HCP a,c lattice parameters:
 HCPa = 1.0; % Units: lengthSI
@@ -88,32 +85,17 @@ HCPc = 1.593; % Units: lengthSI
 
 % Shear modulus:
 pressure_inputunits = 1e6; % Units: [Pa]
-simscale.mumag = pressureSI / pressure_inputunits; % Units: [MPa]
+mumag = pressureSI / pressure_inputunits; % Units: [MPa]
 MU = 1; % Units: pressureSI
 
 % Poisson's ratio:
 NU = 0.32; % Units: unitless
 
 
-
-
-
-%% SOURCE GENERATION PARAMETERS %%
-
-
-DIST_SOURCE = 0.5/amag;
-NUM_SOURCES = 1;
-
-
-
-
-
 %% FEM PARAMETERS %%
 
 
 %%% Canilever beam discretisation
-
-geometry = 'cantilever';
 
 % Cantilever axes:
 % ^z
@@ -130,41 +112,30 @@ mx = 40; % Number of FEs along x-direction
 
 %%% Simulation geometry and BC modules
 
-%simType = 'cantilever'; % Geometry
-loading = 'deformationControl'; % Applied BCs
+prescribeDofs = 'cantilever_bending';
+boundaryConditions = 'deformation_control';
+storeBC = 'cantilever_force_disp';
 
 %%% Time-dependent BCs
 
-diffBC = struct; % Stores derivatives of BCs
-
-strain_dot = 1e5*timeSI; % Strain rate
-diffBC.u_dot = strain_dot*dx; % Displacement rate
-
-diffBC.f_dot = 0; % Force rate
-
-% Boundary condition vector initialisation:
-ne = 1e6;
-t = zeros(ne, 1);
-Usim = zeros(ne, 1);
-Fsim = zeros(ne, 1);
-
-
-
+strain_dot = 1e4*timeSI; % Strain rate
+u_dot = strain_dot*dx; % Displacement rate
+f_dot = 0; % Force rate
 
 
 %% DDLab PARAMETERS %%
 
 
-%%%%% Parallelisation & processes flags %%%%%
+%% Parallelisation & processes flags %%
 
 % Parallelisation:
-CUDA_flag = false; % Compile CUDA code
 n_threads = 256; % Number of threads per GPU block
-para_scheme = 1; % Parallelisation scheme: =0, none;
-%                                          =1, over dislocations;
-%                                          =2, over surface elements;
+para_scheme = 1; % Parallelisation scheme: =0, none
+%                                          =1, over dislocations
+%                                          =2, over surface elements
 
 % Flags:
+CUDA_flag = false; % Compile CUDA code
 a_trac = true; % Enable analytic tractions
 calculateR_hat = true; % Enable force control (calculates reactive forces)
 doremesh = 1;
@@ -172,11 +143,7 @@ docollision = 1;
 doseparation = 1;
 dovirtmesh = 1;
 
-
-
-
-
-%%%%% Integrator %%%%%
+%% Integrator %%
 
 integrator = 'int_trapezoid'; % Time integrator function
 
@@ -185,12 +152,9 @@ Ec = (MU/(4*pi))*log(a/0.1); % Segment core energy per unit length
 rann = 0.5*a; % Segment annihilation dist
 rntol = 0.5*rann; % Tolerance for max dist travelled by segment
 rmax = 2.5*a*(sqrt(3)*2); % Max dist a node may move during time incr
+mindist = 2*rann;
 
-
-
-
-
-%%%%% Meshing %%%%%
+%% Meshing %%
 
 maxconnections = 8;
 lmax = rmax;
@@ -198,11 +162,7 @@ lmin = lmax/2.5;
 areamin = 2*rntol*lmax;
 areamax = 2*areamin + lmax^2*sqrt(3)/8;
 
-
-
-
-
-%%%%% Simulation time %%%%%
+%% Simulation time %%
 
 % Permitted absolute time increment:
 dt0 = 1E-7/timeSI; % Maximum
@@ -217,27 +177,15 @@ simTime = 0/timeSI;
 % Initial time-step:
 curstep = 0;
 
-
-
-
-
-%%%%% Plotting %%%%%
+%% Plotting %%
 
 % Plotting parameters:
 plotFreq = 0; % =0,1: plot at each time-step, =Inf: never plot
-plim = 12/amag;
 viewangle = [0,0]; % view(azimuth,elevation)
 saveFreq = 100; % Frequency to save workspace variables per time-step
 printfreq = 100; % =0,1: print info at each time-step, =Inf: never print
-pauseplot = 1e-3; % Time paused after plot is generated (Units: [s])
 
-maxstepsBC = 1e6; % Max time-steps saved in BC storage for plotting
-
-
-
-
-
-%%%%% Mobility %%%%%
+%% Mobility %%
 
 %%% Referential information
 
@@ -263,33 +211,32 @@ numplanetypes = 5; % Number of types of glissile planes
 %%% Drag coefficients
 
 % Plane Type -- Burgers Vector Index -- Orientation
-glidecoeffsstruct = struct;
 
 % Glide drag coefficients for <a> segments (Burgers vector indices 1-3):
-glidecoeffsstruct.Ba1Screw = 180e-6; glidecoeffsstruct.Ba1Edge = 90e-6;
-glidecoeffsstruct.Pr1Screw = 85e-6; glidecoeffsstruct.Pr1Edge = 39e-6;
-glidecoeffsstruct.PyI1Screw = 85e-6; glidecoeffsstruct.PyI1Edge = 39e-6;
-glidecoeffsstruct.PyII1Screw = 85e-6; glidecoeffsstruct.PyII1Edge = 39e-6;
+glidecoeffsSTR.Ba1Screw = 180e-6; glidecoeffsSTR.Ba1Edge = 90e-6;
+glidecoeffsSTR.Pr1Screw = 85e-6; glidecoeffsSTR.Pr1Edge = 39e-6;
+glidecoeffsSTR.PyI1Screw = 85e-6; glidecoeffsSTR.PyI1Edge = 39e-6;
+glidecoeffsSTR.PyII1Screw = 85e-6; glidecoeffsSTR.PyII1Edge = 39e-6;
 
 % Glide drag coefficients for <c+a> segments (4-9):
-glidecoeffsstruct.Pr4Screw = 500e-6; glidecoeffsstruct.Pr4Edge = 100e-6;
-glidecoeffsstruct.PyI4Screw = 500e-6; glidecoeffsstruct.PyI4Edge = 100e-6;
-glidecoeffsstruct.PyII4Screw = 500e-6; glidecoeffsstruct.PyII4Edge = 100e-6;
-glidecoeffsstruct.sP4Screw = 500e-6; glidecoeffsstruct.sP4Edge = 100e-6;
+glidecoeffsSTR.Pr4Screw = 500e-6; glidecoeffsSTR.Pr4Edge = 100e-6;
+glidecoeffsSTR.PyI4Screw = 500e-6; glidecoeffsSTR.PyI4Edge = 100e-6;
+glidecoeffsSTR.PyII4Screw = 500e-6; glidecoeffsSTR.PyII4Edge = 100e-6;
+glidecoeffsSTR.sP4Screw = 500e-6; glidecoeffsSTR.sP4Edge = 100e-6;
 
 % Glide drag coefficients for <c> segments (10):
-glidecoeffsstruct.Pr10Screw = 85e-6; glidecoeffsstruct.Pr10Edge = 39e-6;
+glidecoeffsSTR.Pr10Screw = 85e-6; glidecoeffsSTR.Pr10Edge = 39e-6;
 
 % Glide drag for junction segments:
-glidecoeffsstruct.dragsessile = 1e1;
+glidecoeffsSTR.dragsessile = 1e1;
 
 % Organize glide drag coefficients in matrix:
 glidecoefficients = OrganizeGlideDragCoefficients( ... % size (numburgs,numplanetypes,2)
 numburgsA,numburgsCA,numburgsC,numburgs,numplanetypes, ... % Organization-related inputs
-glidecoeffsstruct);                                        % Glide coefficient structure
+glidecoeffsSTR);                                        % Glide coefficient structure
 
 % Climb drag:
-dragclimb = glidecoeffsstruct.dragsessile;
+dragclimb = glidecoeffsSTR.dragsessile;
 
 % Line drag:
 dragline = min(1e-1 * min(glidecoefficients,[],'all'), 1e-1 / areamin);
@@ -297,28 +244,28 @@ dragline = min(1e-1 * min(glidecoefficients,[],'all'), 1e-1 / areamin);
 
 %%% Glissile slip systems
 
-slipsystemsref = cell(numburgs,numplanetypes,2);
+slipsystems = cell(numburgs,numplanetypes,2);
 
 % Type <a> Burgers vectors
 % [b1](p)
-slipsystemsref(1,1:5,1) = {1/3 * [2,-1,-1,0]};         % b1
-slipsystemsref(1,:,2) = {[0,0,0,1]; ...  % 1Ba
+slipsystems(1,1:5,1) = {1/3 * [2,-1,-1,0]};         % b1
+slipsystems(1,:,2) = {[0,0,0,1]; ...  % 1Ba
 					  [0,1,-1,0]; ... % 1Pr
 					  [0,1,-1,1]; ... % 1PyI
 					  [0,-1,1,1]; ... % 1PyII
 					  []; ...         % 1sP (empty)
 					  };
 % [b2](p)
-slipsystemsref(2,1:5,1) = {1/3 * [-1,-1,2,0]};         % b2
-slipsystemsref(2,:,2) = {[0,0,0,1]; ...  % 2Ba
+slipsystems(2,1:5,1) = {1/3 * [-1,-1,2,0]};         % b2
+slipsystems(2,:,2) = {[0,0,0,1]; ...  % 2Ba
 					  [1,-1,0,0]; ... % 2Pr
 					  [1,-1,0,1]; ... % 2PyI
 					  [-1,1,0,1]; ... % 2PyII
 					  []; ...         % 2sP (empty)
 					  };
 % [b3](p)
-slipsystemsref(3,1:5,1) = {1/3 * [-1,2,-1,0]};         % b3
-slipsystemsref(3,:,2) = {[0,0,0,1]; ...  % 3Ba
+slipsystems(3,1:5,1) = {1/3 * [-1,2,-1,0]};         % b3
+slipsystems(3,:,2) = {[0,0,0,1]; ...  % 3Ba
 					  [-1,0,1,0]; ... % 3Pr
 					  [-1,0,1,1]; ... % 3PyI
 					  [1,0,-1,1]; ... % 3PyII
@@ -327,48 +274,48 @@ slipsystemsref(3,:,2) = {[0,0,0,1]; ...  % 3Ba
 
 % Type <c+a> Burgers vectors
 % [b4](p)
-slipsystemsref(4,1:5,1) = {1/3 * [2,-1,-1,3]};         % b4
-slipsystemsref(4,:,2) = {[]; ...         % 4Ba (empty)
+slipsystems(4,1:5,1) = {1/3 * [2,-1,-1,3]};         % b4
+slipsystems(4,:,2) = {[]; ...         % 4Ba (empty)
 					  [0,1,-1,0]; ... % 4Pr
 					  [-1,0,1,1]; ... % 4PyI
 					  [-1,1,0,1]; ... % 4PyII
 					  [-2,1,1,2]; ... % 4sP
 					  };
 % [b5](p)
-slipsystemsref(5,1:5,1) = {1/3 * [2,-1,-1,-3]};        % b5
-slipsystemsref(5,:,2) = {[]; ... 		   % 5Ba (empty)
+slipsystems(5,1:5,1) = {1/3 * [2,-1,-1,-3]};        % b5
+slipsystems(5,:,2) = {[]; ... 		   % 5Ba (empty)
 					  [0,1,-1,0]; ...  % 5Pr
 					  [1,0,-1,1]; ...  % 5PyI
 					  [1,-1,0,1]; ...  % 5PyII
 					  [2,-1,-1,2]; ... % 5sP
 					  };
 % [b6](p)
-slipsystemsref(6,1:5,1) = {1/3 * [-1,-1,2,3]};         % b6
-slipsystemsref(6,:,2) = {[]; ...         % 6Ba (empty)
+slipsystems(6,1:5,1) = {1/3 * [-1,-1,2,3]};         % b6
+slipsystems(6,:,2) = {[]; ...         % 6Ba (empty)
 					  [1,-1,0,0]; ... % 6Pr
 					  [1,0,-1,1]; ... % 6PyI
 					  [0,1,-1,1]; ... % 6PyII
 					  [1,1,-2,2]; ... % 6sP
 					  };
 % [b7](p)
-slipsystemsref(7,1:5,1) = {1/3 * [-1,-1,2,-3]};        % b7
-slipsystemsref(7,:,2) = {[]; ...         % 7Ba (empty)
+slipsystems(7,1:5,1) = {1/3 * [-1,-1,2,-3]};        % b7
+slipsystems(7,:,2) = {[]; ...         % 7Ba (empty)
 					  [1,-1,0,0]; ... % 7Pr
 					  [1,0,-1,1]; ... % 7PyI
 					  [0,1,-1,1]; ... % 7PyII
 					  [1,1,-2,2]; ... % 7sP
 					  };
 % [b8](p)
-slipsystemsref(8,1:5,1) = {1/3 * [-1,2,-1,3]};         % b8
-slipsystemsref(8,:,2) = {[]; ...         % 8Ba (empty)
+slipsystems(8,1:5,1) = {1/3 * [-1,2,-1,3]};         % b8
+slipsystems(8,:,2) = {[]; ...         % 8Ba (empty)
 					  [-1,0,1,0]; ... % 8Pr
 					  [1,-1,0,1]; ... % 8PyI
 					  [0,-1,1,1]; ... % 8PyII
 					  [1,-2,1,2]; ... % 8sP
 					  };
 % [b9](p)
-slipsystemsref(9,1:5,1) = {1/3 * [-1,2,-1,-3]};        % b9
-slipsystemsref(9,:,2) = {[]; ... 		   % 9Ba (empty)
+slipsystems(9,1:5,1) = {1/3 * [-1,2,-1,-3]};        % b9
+slipsystems(9,:,2) = {[]; ... 		   % 9Ba (empty)
 					  [-1,0,1,0]; ...  % 9Pr
 					  [0,1,-1,1]; ...  % 9PyI
 					  [-1,1,0,1]; ...  % 9PyII
@@ -377,8 +324,8 @@ slipsystemsref(9,:,2) = {[]; ... 		   % 9Ba (empty)
 
 % Type <c> Burgers vectors
 % [b10](p)
-slipsystemsref(10,1:5,1) = {1/3 * [0,0,0,3]};          % b10
-slipsystemsref(10,:,2) = {[]; ...         % 10Ba (empty)
+slipsystems(10,1:5,1) = {1/3 * [0,0,0,3]};          % b10
+slipsystems(10,:,2) = {[]; ...         % 10Ba (empty)
 					   [0,1,-1,0; ...  % 10PrI
                        -1,0,1,0; ...   % 10PrII
                         1,-1,0,0]; ... % 10PrIII
@@ -388,14 +335,14 @@ slipsystemsref(10,:,2) = {[]; ...         % 10Ba (empty)
 					   };
                    
 % Maximum number of possible data directions:
-maxdatadirs = CalculateMaxDataDirs(slipsystemsref);
+maxdatadirs = CalculateMaxDataDirs(slipsystems);
 maxedgedatadirs = maxdatadirs - 1;
 
 
 %%% Transformation of crystal grain slip systems
 
 % Convert slip systems to cartesian:
-slipsystemscart = SlipSystemsToCartesian(slipsystemsref, refHCPa1,refHCPa2,refHCPa3,refHCPa4);
+slipsystemscart = SlipSystemsToCartesian(slipsystems, refHCPa1,refHCPa2,refHCPa3,refHCPa4);
 
 % Prepare to rotate slip systems:
 ssangx = -90/180 * pi;
@@ -420,27 +367,26 @@ burgscart = cat(1,slipsystemscartrot{:,1,1});
 enableCRSS = 0; % If = 0, all CRSS values are set to zero
 
 % Macro CRSS values (see [3])
-crsscoeffsstruct = struct;
 % <a>:
-crsscoeffsstruct.a_Ba = 204e6 / pressureSI; % 204 MPa
-crsscoeffsstruct.a_Pr = 153e6 / pressureSI; % 153 MPa
-crsscoeffsstruct.a_PyI = crsscoeffsstruct.a_Pr;
-crsscoeffsstruct.a_PyII = crsscoeffsstruct.a_Pr;
+crsscoeffsSTR.a_Ba = 204e6 / pressureSI; % 204 MPa
+crsscoeffsSTR.a_Pr = 153e6 / pressureSI; % 153 MPa
+crsscoeffsSTR.a_PyI = crsscoeffsSTR.a_Pr;
+crsscoeffsSTR.a_PyII = crsscoeffsSTR.a_Pr;
 % <c+a>:
-crsscoeffsstruct.ca_PyI = 532e6 / pressureSI; % 532 MPa
-crsscoeffsstruct.ca_PyII = crsscoeffsstruct.ca_PyI;
-crsscoeffsstruct.ca_sP = crsscoeffsstruct.ca_PyI;
-crsscoeffsstruct.ca_Pr = crsscoeffsstruct.ca_PyI;
+crsscoeffsSTR.ca_PyI = 532e6 / pressureSI; % 532 MPa
+crsscoeffsSTR.ca_PyII = crsscoeffsSTR.ca_PyI;
+crsscoeffsSTR.ca_sP = crsscoeffsSTR.ca_PyI;
+crsscoeffsSTR.ca_Pr = crsscoeffsSTR.ca_PyI;
 % <c>:
-crsscoeffsstruct.c_Pr = crsscoeffsstruct.a_Pr;
+crsscoeffsSTR.c_Pr = crsscoeffsSTR.a_Pr;
 % Sessile:
 crsssessile = 10e9 / pressureSI; % 10 GPa
-crsscoeffsstruct.sessile = crsssessile;
+crsscoeffsSTR.sessile = crsssessile;
 
 % Organize CRSS coefficients in matrix:
 crsscoefficients = OrganizeCoefficients( ... % size (numburgs,numplanetypes + 1)
 numburgsA,numburgsCA,numburgsC,numburgs,numplanetypes, ... % Organization-related inputs
-crsscoeffsstruct);                                         % Coefficients structure
+crsscoeffsSTR);                                               % Coefficients structure
 
 if enableCRSS ~= 1
     enableCRSS = 0;
@@ -450,28 +396,22 @@ end
 
 %%% Store mobility information inside structure
 
-mobstruct = struct;
+Bcoeff.slipsystemsref = slipsystemscartrot; % Cell: size (numburgs,numplanetypes,2)
+Bcoeff.burgscart = burgscart; % Matrix: size (numburgs,3)
+Bcoeff.HCPa1 = HCPa1;
+Bcoeff.HCPa2 = HCPa2;
+Bcoeff.HCPa3 = HCPa3;
+Bcoeff.HCPa4 = HCPa4;
+Bcoeff.dragline = dragline;
+Bcoeff.dragclimb = dragclimb;
+Bcoeff.glidecoefficients = glidecoefficients; % Matrix: size (numburgs,numplanetypes,2)
+Bcoeff.dragsessile = glidecoeffsSTR.dragsessile;
+Bcoeff.crsscoefficients = crsscoefficients; % Matrix: size (numburgs,numplanetypes+1)
+Bcoeff.crsssessile = crsssessile;
+Bcoeff.maxedgedatadirs = maxedgedatadirs;
+Bcoeff.MATLABrelease = MATLABrelease;
 
-mobstruct.slipsystemsref = slipsystemscartrot; % Cell: size (numburgs,numplanetypes,2)
-mobstruct.burgscart = burgscart; % Matrix: size (numburgs,3)
-mobstruct.HCPa1 = HCPa1;
-mobstruct.HCPa2 = HCPa2;
-mobstruct.HCPa3 = HCPa3;
-mobstruct.HCPa4 = HCPa4;
-mobstruct.dragline = dragline;
-mobstruct.dragclimb = dragclimb;
-mobstruct.glidecoefficients = glidecoefficients; % Matrix: size (numburgs,numplanetypes,2)
-mobstruct.dragsessile = glidecoeffsstruct.dragsessile;
-mobstruct.crsscoefficients = crsscoefficients; % Matrix: size (numburgs,numplanetypes+1)
-mobstruct.crsssessile = crsssessile;
-mobstruct.maxedgedatadirs = maxedgedatadirs;
-mobstruct.MATLABrelease = MATLABrelease;
-
-
-
-
-
-%%%%% Initial nodes and links %%%%%
+%% Initial nodes and links %%
 
 %%% Nodes %%%
 
@@ -662,22 +602,17 @@ links = [           linksfr_hi;     linksv1_hi; linksv2_hi; linksv3_hi];
 % Lower:
 links = [links;     linksfr_lo;     linksv1_lo; linksv2_lo; linksv3_lo];
 
-
-
-
-
 %% INFO & CHECKS %%
 
 
-run PrintInformation.m % Print simulation information
+run PrintInformation.m % Print simulation input information
 
 run PlotInitialNodalNetwork.m % Save figure of nodal network
-% To open saved figure: openfig(['figures/' INPUTNAME '.fig'])
+% To open saved figure, run: openfig(['figures/' INPUTNAME '.fig'])
 
 run InputConsistencyCheck.m % Checks and warnings
 
-
-
+run OrganizeInStructures.m % Store inessential variables in structures
 
 
 %% REFERENCES %%
