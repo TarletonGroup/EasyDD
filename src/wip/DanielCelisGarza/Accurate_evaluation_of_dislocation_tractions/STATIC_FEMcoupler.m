@@ -1,4 +1,4 @@
-function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, MU, NU, xnodes, mno, kg, L, U, P_l, P_u,...
+function [uhat, fend, Ubar, ftilda] = STATIC_FEMcoupler(rn, links, maxconnections, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u,...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, t)
 
     %Coupling of FEM and DDD
@@ -81,7 +81,10 @@ function [uhat, fend, Ubar, ftilda] = FEMcoupler(rn, links, maxconnections, a, M
     else
         uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
     end
+
+%     uhat(freeDofs) = K(freeDofs,freeDofs)\f(freeDofs);
     
+
     % uhat2=K\f;
 
     rhat = kg * uhat; % reaction force

@@ -21,14 +21,14 @@ a = 10;
 bVec = [[1 0 0]; [0 1 0]];
 
 planes = [1; 2; 3; 4; 5; 6];
-dx = 1000;
-dy = 1000;
-dz = 1000;
+dx = 2000;
+dy = 2000;
+dz = 2000;
 
 figCounter = 0;
 cntr = 0;
 addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
-for j = 40
+for j = 30%80%81
     mx = j;
 
     gridSize = mx;
@@ -113,15 +113,33 @@ end
 
 doSave = true;
 
-close all;
+% close all;
 
 if doSave
-    save('mesh')
+    close all;
+    save('mesh','-v7.3')
 end
 
 %%
 % TODO #34 Couplers to use features in to v2.0
 addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+% % K = kg(freeDofs, freeDofs);
+% % [U, ~, P_u] = chol(K);
+% % L = U';
+% % P_l = P_u';
+% bcwt = mean(diag(kg)); %=trace(K)/length(K)
+% bcwt = full(bcwt);
+% K = kg;
+% K(:, fixedDofs) = 0;
+% K(fixedDofs, :) = 0;
+% idx = logical(speye(size(K)));
+% diagonal = K(idx);
+% diagonal(fixedDofs) = bcwt;
+% K(idx) = diagonal;
+% [U, ~, P_u] = chol(K);
+% L = U';
+% P_l = P_u';
+% K = kg;
 
 for k = 1:2
     close all
@@ -300,11 +318,11 @@ for i = 1:len - 1
     links(i, :) = [i, i + 1, b, n];
 end
 
-[uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+[uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
     0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
     gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
     f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
-[uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
+[uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
     gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
 
 segments = constructsegmentlist(rn, links, doSave);
@@ -492,12 +510,12 @@ for node = [2, 5, 11, 18]
         links(i, :) = [i, i + 1, b, n];
     end
     
-    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
         0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
     
-    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
     
     sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);
@@ -616,12 +634,12 @@ for node = [2, 5, 11, 18]
         links(i, :) = [i, i + 1, b, n];
     end
     
-    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat, fend, Ubar, fan] = STATIC_analytic_FEMcoupler(rn, links, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
         0, 0, gammaMixed, fixedDofs, freeDofs, dx, simTime, ...
         gamma_dln, x3x6, 4, n_nodes_t, n_se, idxi, f_dln_node, ...
         f_dln_se, f_dln, f_hat, use_gpu, n_threads, para_scheme, tolerance);
     
-    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, L, U, ...
+    [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
         gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
     
     sigmaA = hatStressSurf(uhat, nc, xnodes, D, mx, mz, w, h, d, X, Y, Z);

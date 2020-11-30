@@ -81,6 +81,10 @@ function [uhat, fend, Ubar, f_dln] = STATIC_analytic_FEMcoupler(rn, links, a, MU
     else
         uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
     end
+    
+
+%     uhat(freeDofs) = K(freeDofs,freeDofs)\f(freeDofs);
+    
 
     rhat = kg * uhat;
 

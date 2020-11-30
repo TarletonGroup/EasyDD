@@ -628,13 +628,11 @@ disp('Cholesky Factorization of K...'); %should be symmetric!
 % [R, flag, P] = chol(S)
 % R'*R = P'*S*P -> P*R'*R*P' = S
 try
-    tic;
     [U, ~, P_u] = chol(K);
     L = U';
     P_l = P_u';
-    toc;
 catch
-    sprintf('Ran out of memory in cholesky factorisation, use explicit K.\n')
+    sprintf('Ran out of memory in cholesky factorisation, use explicit K.')
     U = [];
     L = [];
     P_u = [];
