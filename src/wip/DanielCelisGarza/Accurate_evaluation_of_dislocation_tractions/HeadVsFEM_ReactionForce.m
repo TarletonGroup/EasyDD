@@ -21,14 +21,14 @@ a = 10;
 bVec = [[1 0 0]; [0 1 0]];
 
 planes = [1; 2; 3; 4; 5; 6];
-dx = 2000;
-dy = 2000;
-dz = 2000;
+dx = 3000;
+dy = 3000;
+dz = 3000;
 
 figCounter = 0;
 cntr = 0;
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
-for j = 20%80%81
+addpath '../../../'
+for j = 61%80%81
     mx = j;
 
     gridSize = mx;
@@ -122,7 +122,7 @@ end
 
 %%
 % TODO #34 Couplers to use features in to v2.0
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+addpath '../../../'
 % % K = kg(freeDofs, freeDofs);
 % % [U, ~, P_u] = chol(K);
 % % L = U';
@@ -477,7 +477,7 @@ close all
 plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, false)
 linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 30, doSave)
 %%
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+addpath '../../../'
 
 for node = [2, 5, 11, 18]
     close all
@@ -601,7 +601,7 @@ for node = [2, 5, 11, 18]
 end
 %%
 %%
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+addpath '../../../'
 
 for node = [2, 5, 11, 18]
     close all
