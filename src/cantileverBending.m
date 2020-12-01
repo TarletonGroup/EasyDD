@@ -1,6 +1,6 @@
 function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
     gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = cantileverBending(...
-    kg, w, h, d, mx, my, mz)
+    kg, w, h, d, mno, mx, my, mz)
 
     fprintf('Cantilever bending boundary conditions: reformatting K\n');
 
@@ -155,22 +155,24 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
     gammaMixed = Smixed; % t1=t2=0, u3= U
 
     fixedDofs = [3 * gammau(:, 1) - 2; 3 * gammau(:, 1) - 1; 3 * gammau(:, 1); 3 * gammaMixed(:, 1)];
-    freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1); 3 * gammaMixed(:, 1) - 2; ...
-                3 * gammaMixed(:, 1) - 1];
+    freeDofs = setdiff([1:3*mno], fixedDofs);
+%     freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1); 3 * gammaMixed(:, 1) - 2; ...
+%                 3 * gammaMixed(:, 1) - 1];
 
-    K(:, fixedDofs) = 0;
-    K(fixedDofs, :) = 0;
-    idx = logical(speye(size(K)));
-    diagonal = K(idx);
-    diagonal(fixedDofs) = bcwt;
-    K(idx) = diagonal;
+%     K(:, fixedDofs) = 0;
+%     K(fixedDofs, :) = 0;
+%     idx = logical(speye(size(K)));
+%     diagonal = K(idx);
+%     diagonal(fixedDofs) = bcwt;
+%     K(idx) = diagonal;
+    K = K(freeDofs, freeDofs);
 
     % {freeDofs,fixedDofs} should contain every degree of freedom on boundary +
     % any internal Dofs with a force or displacement specified.
-    if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
-        fprintf('error\n')
-        pause
-    end
+%     if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
+%         fprintf('error\n')
+%         pause
+%     end
 
     try
         fprintf('Cholesky Factorization of K...\n'); %should be symmetric!

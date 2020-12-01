@@ -77,9 +77,9 @@ function [uhat, fend, Ubar, ftilda] = STATIC_FEMcoupler(rn, links, maxconnection
 
     % f(fixedDofs) = bcwt*uhat(fixedDofs);
     if isempty(U)
-        uhat = K \ f;
+        uhat(freeDofs) = K \ f(freeDofs);
     else
-        uhat = P_l \ (U \ (L \ (P_u \ f))); % using LU decomposition for sparse matrices
+        uhat(freeDofs) = P_l \ (U \ (L \ (P_u \ f(freeDofs)))); % using LU decomposition for sparse matrices
     end
 
 %     uhat(freeDofs) = K(freeDofs,freeDofs)\f(freeDofs);

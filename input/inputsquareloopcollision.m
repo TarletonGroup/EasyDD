@@ -84,8 +84,8 @@ n1 = [-1 0 1] / sqrt(2);
 n2 = [1 0 1] / sqrt(2);
 % a = 5*norm(b1); % Default value of a has num tractions freak out, a = 5*||b|| is even worse.
 a = 10 * norm(b1);
-% calculateTractions = @calculateAnalyticTractions;
-calculateTractions = @calculateNumericTractions;
+calculateTractions = @calculateAnalyticTractions;
+% calculateTractions = @calculateNumericTractions;
 
 links = [1 2 b1 n1;
     2 3 b1 n1;

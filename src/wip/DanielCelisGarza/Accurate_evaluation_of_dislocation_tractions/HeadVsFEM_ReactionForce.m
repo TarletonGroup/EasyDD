@@ -28,7 +28,7 @@ dz = 2000;
 figCounter = 0;
 cntr = 0;
 addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
-for j = 30%80%81
+for j = 20%80%81
     mx = j;
 
     gridSize = mx;
@@ -111,7 +111,7 @@ for j = 30%80%81
     hold off
 end
 
-doSave = true;
+doSave = false;
 
 % close all;
 
@@ -141,7 +141,7 @@ addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
 % P_l = P_u';
 % K = kg;
 
-for k = 1:2
+for k = 1
     close all
     cntr = cntr + 1;
     b = bVec(k, :);

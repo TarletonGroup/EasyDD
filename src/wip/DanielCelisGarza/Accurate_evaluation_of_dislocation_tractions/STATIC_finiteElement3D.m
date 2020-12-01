@@ -554,7 +554,8 @@ if loading == 1% end loaded cantilever
     gammaMixed = []; % t1=t2=0, u3= U
 
     fixedDofs = [3 * gammau(:, 1) - 2; 3 * gammau(:, 1) - 1; 3 * gammau(:, 1)];
-    freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1)];
+    freeDofs = setdiff([1:3*mno], fixedDofs);
+%     freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1)];
 
 elseif loading == 0% used for debugging
 
@@ -591,17 +592,18 @@ else
     pause
 end
 
-K(:, fixedDofs) = 0;
-K(fixedDofs, :) = 0;
-idx = logical(speye(size(K)));
-diagonal = K(idx);
-diagonal(fixedDofs) = bcwt;
-K(idx) = diagonal;
+% K(:, fixedDofs) = 0;
+% K(fixedDofs, :) = 0;
+% idx = logical(speye(size(K)));
+% diagonal = K(idx);
+% diagonal(fixedDofs) = bcwt;
+% K(idx) = diagonal;
+K = K(freeDofs, freeDofs);
 
-if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
-    disp('error')
-    pause
-end
+% if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
+%     disp('error')
+%     pause
+% end
 
 % % {freeDofs,fixedDofs} should contain every degree of freedom on boundary +
 % % any internal Dofs with a force or displacement specified.

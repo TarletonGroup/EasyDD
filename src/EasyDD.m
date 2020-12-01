@@ -75,7 +75,7 @@ consistencycheck(rn, links, connectivity, linksinconnect);
 
 [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, ...
         gammau, gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = ...
-    simType(kg, w, h, d, mx, my, mz);
+    simType(kg, w, h, d, mno, mx, my, mz);
 
 plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 
