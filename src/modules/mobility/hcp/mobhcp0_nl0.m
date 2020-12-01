@@ -1,20 +1,22 @@
 %===============================================================%
-% Daniel Hortelano Roig (15/11/2020)
+% Daniel Hortelano Roig (30/11/2020)
 % daniel.hortelanoroig@materials.ox.ac.uk
 
-% Linear HCP mobility law function.
+% Nonlinear HCP mobility law function.
 % Solves for v:
-% f = B*v
+% f = (c*|v|^m)*(B*v)
 
 % f: nodal force
+% c, m: constants inducing nonlinearity
 % B: drag matrix
 % v: nodal velocity
+% |v|: nodal velocity 2-norm
 
 % For an overview of the HCP mobility law and notation used in this script,
 % see Aubry et al: http://dx.doi.org/10.1016/j.jmps.2016.04.019
 %===============================================================%
 
-function [vn,fn] = mobhcp0(fseg,rn,links,connectivity,nodelist,conlist, ...
+function [vn,fn] = mobhcp0_nl0(fseg,rn,links,connectivity,nodelist,conlist, ...
 mobstruct)
 % OUTPUT:
 %		fn: matrix of nodal forces -- size (N,3) for N input nodes
@@ -40,6 +42,10 @@ dragsessile = mobstruct.dragsessile; % Sessile ("junction")
 crsscoefficients = mobstruct.crsscoefficients;
 crsssessile = mobstruct.crsssessile;
 
+%%% Nonlinearity:
+nlconst = mobstruct.nlconst; % Scaling term
+nlexp = mobstruct.nlexp; % Velocity exponent term
+
 %%% MATLAB release:
 MATLABrelease = mobstruct.MATLABrelease;
 
@@ -59,6 +65,12 @@ eps_seglen = 1e7; % Max segment length before linprog could have problems
 eps_reflist = 1e-2; % Min difference between actual and reference vectors
 eps_decomp = 1e-4; % Min magnitude of decomposed segment component
 eps_rconddrag = 1e-9; % Min drag matrix inverse condition number
+
+%%% Nonlinear system analysis:
+eps_nrjac = 1e-10; % Min NR Jacobian entries before iteration is reset
+eps_nrtol = 1e-14; % Max NR error tolerance allowed in each iteration
+nrmaxiter = 20; % Max number of NR iterations before reporting failure
+nrlinesearch = 1e-2; % NR line search to improve robustness
 
 %%% Linear system analysis:
 eps_dragline = 1/dragline; % Drag line coefficient to improve conditioning
@@ -317,7 +329,67 @@ for n = 1:numnodes
     end
     
     
-    %% Analyse and solve drag system %%
+    %% Solve nonlinear drag system
+    % Performs Newton-Raphson iteration.
+    
+    % Iteration: J(k)*(v(k+1) - v(k)) = -F(k)
+	% rootfn = F(k)             	<-- Root function
+	% jacfn = J(k) = grad(F(k))     <-- Jacobian of root function
+    % nrerror2 = |rootfn|^2         <-- Squared residual norm (error)
+    
+    % Initial (linear) guess of solution:
+    vNR = (Btotal \ fn(n,:)')'; % Velocity (target)
+    rootfn = RootFunction(fn(n,:), nlconst, nlexp, vNR, Btotal); % Root function
+    jacfn = JacobianFunction(nlconst, nlexp, vNR, Btotal); % Jacobian function
+    nrerror2 = norm(rootfn)^2;
+    
+    nrcount = 0;
+    % Do NR iteration until tolerance met or max iterations reached:
+    while (nrcount < nrmaxiter) && (nrerror2 > eps_nrtol)
+        
+        % Try to resolve potential singularity induced by stationary point:
+        if  all(abs(jacfn) < eps_nrjac,'all')            
+            vNR = 10*(rand(1,3)-0.5); % Try random velocity
+            rootfn = RootFunction(fn(n,:), nlconst, nlexp, vNR, Btotal);
+            jacfn = JacobianFunction(nlconst, nlexp, vNR, Btotal);
+        end
+        
+        % Solve nonlinear system:
+        deltav = (jacfn \ (-rootfn'))';
+        vNR = vNR + nrlinesearch * deltav;
+        
+        % Compute corresponding root and jacobian functions:
+        rootfn = RootFunction(fn(n,:), nlconst, nlexp, vNR, Btotal);
+        jacfn = JacobianFunction(nlconst, nlexp, vNR, Btotal);
+        
+        nrerror2 = norm(rootfn)^2;
+        
+        nrcount = nrcount + 1;
+    end
+    
+    
+    %% Analyse nonlinear drag system
+    
+    if (nrcount >= nrmaxiter) || (nrerror2 > eps_nrtol)
+        % Newton-Raphson iteration cannot converge for node n.
+        % The system will instead be approximated as linear.
+        
+        warning('Newton-Raphson has failed for node: %d of %d. The system will be approximated as linear.\n', ...
+            n, numnodes);
+        fprintf('nrcount: %d || det(Btotal): %0.16s || nrerror2: %0.16s || nrerror2tol: %0.16s\n', ...
+            nrcount, det(Btotal), nrerror2, eps_nrtol);
+    else
+        % Newton-Raphson iteration converged for node n.
+        
+        %%%%%%%%%%%%%%
+        vn(n,:) = vNR; % Nonlinear system
+        %%%%%%%%%%%%%%
+        
+        continue % Continue to next node
+    end
+    
+    
+    %% Analyse and solve linear drag system %%
     
 	%%% Verify properties of drag matrix:
     if ~isreal(Btotal)
@@ -420,7 +492,7 @@ for n = 1:numnodes
 	end
     
     %%%%%%%%%%%%%%
-    vn(n,:) = vnF;
+    vn(n,:) = vnF; % Linear system
     %%%%%%%%%%%%%%
     
     
@@ -729,6 +801,56 @@ function [dragMatrix] = BuildGlissileDragMatrix(lineVector, climbVector, glideVe
 	glideDirMatrix = glideVector' * glideVector;
 	
 	dragMatrix = lineDragCoefficient * lineDirMatrix + climbDragCoefficient * climbDirMatrix + glideDragCoefficient * glideDirMatrix;
+end
+
+
+%% Build Jacobian matrix %%
+
+function [rootFn] = RootFunction(f,c,m,vel,dragMatrix)
+    
+    % Root function:
+    % F = f - (c*|v|^m)*(B*v)
+    
+    % f: size (1,3)
+    % c,m: size (1)
+    % vel: size (1,3)
+    % dragMatrix: size (3,3)
+    
+    %%%
+    
+    % Change to size (3,1):
+    f = f';
+    vel = vel';
+    
+    normvel = norm(vel);
+    
+    rootFn = f - c*(normvel^(m))*(dragMatrix*vel);
+    
+    rootFn = rootFn'; % Change to size (1,3)
+end
+
+
+function [jacFn] = JacobianFunction(c,m,vel,dragMatrix)
+    
+    % Jacobian function:
+    % J = -c*|v|^(m)*B - c*m*|v|^(m-2)*(B*v)*v
+    
+    % c,m: size (1)
+    % vel: size (1,3)
+    % dragMatrix: size (3,3)
+    
+    % Warning: stationary point at |v| = 0 induces singularity in NR
+    
+    %%%
+    
+    % Change to size (3,1):
+    vel = vel';
+    
+    normvel = norm(vel);
+    
+    jacFn = -c*(normvel^(m))*dragMatrix - c*m*(normvel^(m-2))*(dragMatrix*vel)*vel';
+    
+    jacFn = jacFn'; % Change to size (1,3)
 end
 
 
