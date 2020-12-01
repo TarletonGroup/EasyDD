@@ -189,7 +189,7 @@ printfreq = 100; % =0,1: print info at each time-step, =Inf: never print
 
 %%% Referential information
 
-mobility = 'mobhcp0';
+mobility = 'mobhcp0_nl0';
 
 % HCP lattice vectors:
 refHCPa1 = HCPa * [-1/2 sqrt(3)/2 0];
@@ -394,6 +394,12 @@ if enableCRSS ~= 1
 end
 
 
+%%% Nonlinearity
+
+nlconst = 1; % Scaling term
+nlexp = 1; % Velocity exponent term
+
+
 %%% Store mobility information inside structure
 
 Bcoeff.slipsystemsref = slipsystemscartrot; % Cell: size (numburgs,numplanetypes,2)
@@ -408,6 +414,8 @@ Bcoeff.glidecoefficients = glidecoefficients; % Matrix: size (numburgs,numplanet
 Bcoeff.dragsessile = glidecoeffsSTR.dragsessile;
 Bcoeff.crsscoefficients = crsscoefficients; % Matrix: size (numburgs,numplanetypes+1)
 Bcoeff.crsssessile = crsssessile;
+Bcoeff.nlconst = nlconst; % Nonlinearity
+Bcoeff.nlexp = nlexp; % Nonlinearity
 Bcoeff.maxedgedatadirs = maxedgedatadirs;
 Bcoeff.MATLABrelease = MATLABrelease;
 
