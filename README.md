@@ -43,6 +43,8 @@ dislocation-dislocation interactions O(N^2).
 
 - Make vertices and faces an argument, if they are not defined by the input provide a default.
 - In remesh_surf, make it so dislocations do not leave the domain via the fixed end depending on the simulation type.
+- [ ] Fix issue #56.
+
 
 ### Known issues and improvement wish list
 
