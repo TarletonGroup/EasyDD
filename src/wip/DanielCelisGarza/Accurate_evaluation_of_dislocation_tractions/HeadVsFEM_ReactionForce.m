@@ -21,14 +21,14 @@ a = 10;
 bVec = [[1 0 0]; [0 1 0]];
 
 planes = [1; 2; 3; 4; 5; 6];
-dx = 2000;
-dy = 2000;
-dz = 2000;
+dx = 3000;
+dy = 3000;
+dz = 3000;
 
 figCounter = 0;
 cntr = 0;
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
-for j = 20%80%81
+addpath '../../../'
+for j = 61%80%81
     mx = j;
 
     gridSize = mx;
@@ -111,18 +111,21 @@ for j = 20%80%81
     hold off
 end
 
-doSave = false;
+doSave = true;
 
 % close all;
-
+try
 if doSave
     close all;
     save('mesh','-v7.3')
 end
+catch
+    sprintf('Couldnt save')
+end
 
 %%
 % TODO #34 Couplers to use features in to v2.0
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+addpath '../../../'
 % % K = kg(freeDofs, freeDofs);
 % % [U, ~, P_u] = chol(K);
 % % L = U';
@@ -141,7 +144,7 @@ addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
 % P_l = P_u';
 % K = kg;
 
-for k = 1
+for k = 1:2
     close all
     cntr = cntr + 1;
     b = bVec(k, :);
@@ -306,9 +309,9 @@ for k = 1
 %     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 
 end
-
+close all
+save('stresses','-regexp','^(?!(K|kg|L|U)$).')
 %%
-
 % Screw
 close all
 b = [0 0 1];
@@ -473,11 +476,11 @@ print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
 % hold off
 close all
-%%
+
 plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, false)
 linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 30, doSave)
-%%
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+
+addpath '../../../'
 
 for node = [2, 5, 11, 18]
     close all
@@ -599,9 +602,9 @@ for node = [2, 5, 11, 18]
     linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
     linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
 end
-%%
-%%
-addpath 'D:\DPhil\OneDrive - Nexus365\EasyDD\src'
+
+
+addpath '../../../'
 
 for node = [2, 5, 11, 18]
     close all
