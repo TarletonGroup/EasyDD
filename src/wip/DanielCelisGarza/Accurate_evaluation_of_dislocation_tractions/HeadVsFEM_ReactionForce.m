@@ -101,7 +101,7 @@ for j = 40%61%80%81
     y1 = y(1);
     t = [0 0 1];
     n = [1 0 0];
-    rn = zeros(len, 3);
+    rn = zeros(len, 4);
     rn(:, 1) = x;
     rn(:, 2) = y;
     rn(:, 3) = z;
@@ -155,7 +155,7 @@ for k = 1:2
     syyN = squeeze(sigmaN(2, 2, :, :));
     sxyN = squeeze(sigmaN(1, 2, :, :));
 
-    segments = constructsegmentlist(rn, links, doSave);
+    segments = constructsegmentlist(rn, links, true);
     p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
     p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
 
@@ -312,7 +312,7 @@ end
 [uhat2, fend2, Ubar2, fnum] = STATIC_FEMcoupler(rn, links, 0, a, MU, NU, xnodes, mno, kg, K, L, U, P_l, P_u, ...
     gammau, gammat, gammaMixed, fixedDofs, freeDofs, dx, simTime);
 
-segments = constructsegmentlist(rn, links, doSave);
+segments = constructsegmentlist(rn, links, true);
 p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
 p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
 
@@ -404,12 +404,12 @@ plotCountourfSigmaHat(X, Y, syzN, x1, y1, orientationB, symbol, 'yz', 'N', 'x,~b
 % Line plots
 % Edge perp
 close all
-i = 2;
+i = 3;
 symbol = '\hat{\sigma}';
 orientationB = 'Eperp';
-linePlot(sxxAperp(:, i), sxxNperp(:, i), txxPerp(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-linePlot(syyAperp(:, i), syyNperp(:, i), tyyPerp(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-linePlot(sxyAperp(:, i), sxyNperp(:, i), txyPerp(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+linePlot(sxxAperp(:, i), sxxNperp(:, i), txxPerp(:, i), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+linePlot(syyAperp(:, i), syyNperp(:, i), tyyPerp(:, i), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+linePlot(sxyAperp(:, i), sxyNperp(:, i), txyPerp(:, i), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 % plotCountourfSigmaHat(X, Y, txxPerp, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 % hold on
 % x = linspace(xcoord, xcoord, j);
@@ -424,13 +424,14 @@ linePlot(sxyAperp(:, i), sxyNperp(:, i), txyPerp(:, i), orientationB, symbol, 'x
 % hold on
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
 % hold off
-
+%%
 % Edge par
-i = 2;
+close all
+i = 3;
 orientationB = 'Epar';
-linePlot(sxxApar(:, i), sxxNpar(:, i), txxPar(:, i), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-linePlot(syyApar(:, i), syyNpar(:, i), tyyPar(:, i), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-linePlot(sxyApar(:, i), sxyNpar(:, i), txyPar(:, i), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+linePlot(sxxApar(:, i), sxxNpar(:, i), txxPar(:, i), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+linePlot(syyApar(:, i), syyNpar(:, i), tyyPar(:, i), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+linePlot(sxyApar(:, i), sxyNpar(:, i), txyPar(:, i), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 % plotCountourfSigmaHat(X, Y, txxPar, x1, y1, orientationB, symbol, 'xx', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 % hold on
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
@@ -443,12 +444,12 @@ linePlot(sxyApar(:, i), sxyNpar(:, i), txyPar(:, i), orientationB, symbol, 'xy',
 % hold on
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
 % hold off
-
+%%
 % Screw
-i = 2;
+i = 3;
 orientationB = 'screw';
-linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 30, doSave)
-linePlot(syzA(:, i), syzN(:, i), tyz(:, i), orientationB, symbol, 'yz', 'Grid Point', '$\mu$', 30, doSave)
+linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+linePlot(syzA(:, i), syzN(:, i), tyz(:, i), orientationB, symbol, 'yz', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, false)
 hold on
 plot(linspace(x(2), x(2), j), y, 'LineWidth', 2, 'LineStyle', '--')
@@ -464,11 +465,11 @@ print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % close all
 
 plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, false)
-linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 30, doSave)
+linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 %%
 addpath '../../../'
 
-for node = floor(j/4)+1
+for node = [3, floor(j/4)+2]
     close all
     len = 100;
     % TODO #44
@@ -482,7 +483,7 @@ for node = floor(j/4)+1
     y1 = y(1);
     t = [0 0 1];
 
-    rn = zeros(len, 3);
+    rn = zeros(len, 4);
     rn(:, 1) = x;
     rn(:, 2) = y;
     rn(:, 3) = z;
@@ -516,7 +517,7 @@ for node = floor(j/4)+1
     syyN = squeeze(sigmaN(2, 2, :, :));
     sxyN = squeeze(sigmaN(1, 2, :, :));
 
-    segments = constructsegmentlist(rn, links, doSave);
+    segments = constructsegmentlist(rn, links, true);
     p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
     p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
 
@@ -562,9 +563,9 @@ for node = floor(j/4)+1
     plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
 
-    linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 
 
     % Edge
@@ -584,16 +585,16 @@ for node = floor(j/4)+1
     plotCountourfSigmaHat(X, Y, syyN+syyFP, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN+sxyFP, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
 
-    linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 end
 
 %%
 
 addpath '../../../'
 
-for node = floor(j/4)+1
+for node = [3, floor(j/4)+2]
     close all
     len = 100;
     % TODO #44
@@ -607,7 +608,7 @@ for node = floor(j/4)+1
     y1 = y(1);
     t = [0 0 1];
 
-    rn = zeros(len, 3);
+    rn = zeros(len, 4);
     rn(:, 1) = x;
     rn(:, 2) = y;
     rn(:, 3) = z;
@@ -641,7 +642,7 @@ for node = floor(j/4)+1
     syyN = squeeze(sigmaN(2, 2, :, :));
     sxyN = squeeze(sigmaN(1, 2, :, :));
 
-    segments = constructsegmentlist(rn, links, doSave);
+    segments = constructsegmentlist(rn, links, true);
     p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
     p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
 
@@ -687,9 +688,9 @@ for node = floor(j/4)+1
     plotCountourfSigmaHat(X, Y, syyN, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
 
-    linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxxApar(:, node), sxxNpar(:, node), txxPar(:, node), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(syyApar(:, node), syyNpar(:, node), tyyPar(:, node), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(sxyApar(:, node), sxyNpar(:, node), txyPar(:, node), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 
 
     % Edge
@@ -709,16 +710,124 @@ for node = floor(j/4)+1
     plotCountourfSigmaHat(X, Y, syyN+syyFP, x1, y1, orientationB, symbol, 'yy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalyy, stddevyy)
     plotCountourfSigmaHat(X, Y, sxyN+sxyFP, x1, y1, orientationB, symbol, 'xy', 'N', 'x,~b', 'y,~b', '$\mu$', 30, doSave, meanvalxy, stddevxy)
 
-    linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', 'Grid Point', '$\mu$', 30, doSave)
-    linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', 'Grid Point', '$\mu$', 30, doSave)
+    linePlot(sxxApar(:, node)+sxxFP(:, node), sxxNpar(:, node)+sxxFP(:, node), txxPar(:, node)+sxxFP(:, node), orientationB, symbol, 'xx', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(syyApar(:, node)+syyFP(:, node), syyNpar(:, node)+syyFP(:, node), tyyPar(:, node)+syyFP(:, node), orientationB, symbol, 'yy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
+    linePlot(sxyApar(:, node)+sxyFP(:, node), sxyNpar(:, node)+sxyFP(:, node), txyPar(:, node)+sxyFP(:, node), orientationB, symbol, 'xy', '$y,~b$', '$\mu$', 30, dy, gridSize, doSave)
 end
-function fig = linePlot(analytic, numeric, head, orientationB, stress, component, xaxis, yaxis, fontSize, save)
+
+%%
+close all
+addpath '../../../'
+MU = 1;
+NU = 0.28;
+
+len = 100;
+l = [0 0 1];
+b = [1 0 0];
+n = [0 1 0];
+a = 5*norm(b);
+
+x = linspace(0,0,len);
+y = linspace(0,0,len);
+z = linspace(a, a + len, len);
+x1 = 0;
+y1 = 0;
+
+rn = zeros(len, 4);
+rn(:, 1) = x;
+rn(:, 2) = y;
+rn(:, 3) = z;
+links = zeros(len - 1, 8);
+for i = 1:len - 1
+    links(i, :) = [i, i + 1, b, n];
+end
+
+segments = constructsegmentlist(rn, links, true);
+p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
+p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
+
+lengrid = 100;
+xrange = [-500 500];
+yrange = [-500 500];
+xgrid = linspace(xrange(1), xrange(2), lengrid);
+ygrid = linspace(yrange(1), yrange(2), lengrid);
+zgrid = linspace(x1, y1, lengrid);
+[X, Y] = meshgrid(xgrid, ygrid);
+Z = meshgrid(zgrid);
+
+sigmaFP = FieldPointStressSurf(X, Y, Z, p1, p2, b, a, MU, NU);
+
+sxzFP = squeeze(sigmaFP(1, 3, :, :));
+syzFP = squeeze(sigmaFP(2, 3, :, :));
+szzFP = squeeze(sigmaFP(3, 3, :, :));
+symbol = '\tilde{\sigma}';
+name = sprintf('perpEdgeFiveb');
+
+plotCountourfSigmaHat(X, Y, sxzFP, x1, y1, name, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+plotCountourfSigmaHat(X, Y, syzFP, x1, y1, name, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+plotCountourfSigmaHat(X, Y, szzFP, x1, y1, name, symbol, 'zz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+
+%%
+close all
+addpath '../../../'
+MU = 1;
+NU = 0.28;
+
+len = 100;
+l = [1 0 0];
+b = [0 1 0];
+n = [0 1 0];
+a = 5*norm(b);
+
+lengrid = 100;
+xrange = [-500 500];
+yrange = [-500 500];
+x = linspace(xrange(1), xrange(2),len);
+y = linspace(0, 0,len);
+z = linspace(a, a, len);
+x1 = x;
+y1 = zeros(len);
+
+rn = zeros(len, 4);
+rn(:, 1) = x;
+rn(:, 2) = y;
+rn(:, 3) = z;
+links = zeros(len - 1, 8);
+for i = 1:len - 1
+    links(i, :) = [i, i + 1, b, n];
+end
+
+segments = constructsegmentlist(rn, links, true);
+p1 = [segments(:, 6) segments(:, 7) segments(:, 8)];
+p2 = [segments(:, 9) segments(:, 10) segments(:, 11)];
+
+xgrid = linspace(xrange(1), xrange(2), lengrid);
+ygrid = linspace(yrange(1), yrange(2), lengrid);
+zgrid = linspace(a, a, lengrid);
+[X, Y] = meshgrid(xgrid, ygrid);
+Z = meshgrid(zgrid);
+
+sigmaFP = FieldPointStressSurf(X, Y, Z, p1, p2, b, a, MU, NU);
+
+sxzFP = squeeze(sigmaFP(1, 3, :, :));
+syzFP = squeeze(sigmaFP(2, 3, :, :));
+szzFP = squeeze(sigmaFP(3, 3, :, :));
+symbol = '\tilde{\sigma}';
+name = sprintf('parEdgeFiveb');
+
+plotCountourfSigmaHat(X, Y, sxzFP, x1, y1, name, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+plotCountourfSigmaHat(X, Y, syzFP, x1, y1, name, symbol, 'yz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave) % set(fig, 'PaperPositionMode', 'Auto', 'PaperUnits', 'Inches', 'PaperSize', [pos(3)+pos(3)*0.15, pos(4)])
+plotCountourfSigmaHat(X, Y, szzFP, x1, y1, name, symbol, 'zz', '', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
+
+
+%%
+function fig = linePlot(analytic, numeric, head, orientationB, stress, component, xaxis, yaxis, fontSize, dy, gridSize, save)
     fig = figure();
     hold on
-    plot(analytic, 'LineWidth', 2)
-    plot(numeric, '--', 'LineWidth', 2)
-    plot(head, ':', 'LineWidth', 2)
+    x = linspace(0, dy, gridSize);
+    plot(x, analytic, 'LineWidth', 2)
+    plot(x, numeric, '--', 'LineWidth', 2)
+    plot(x, head, ':', 'LineWidth', 2)
     hold off
     %     title(sprintf('$%s_{%s}^{\\textrm{%s}}$', stress, component, equation), 'Interpreter', 'latex', 'FontSize', fontSize)
     xlabel(sprintf('%s', xaxis), 'Interpreter', 'latex', 'FontSize', fontSize)
@@ -729,7 +838,7 @@ function fig = linePlot(analytic, numeric, head, orientationB, stress, component
     a = get(gca,'XTickLabel');
     set(gca,'XTickLabel', a, 'fontSize', floor(fontSize*0.7), 'FontWeight', 'bold')
     set(gca,'XTickLabelMode','auto')
-    xlim([1,size(analytic,1)])
+%     xlim([1,size(analytic,1)])
 
     if save
         name = erase(sprintf('line_s%s%s', component, orientationB), ["\", "$"]);
@@ -752,8 +861,6 @@ function [fig, meanval, stddev] = plotCountourfSigmaHat(X, Y, Z, x0, y0, orienta
     colormap(parula)
     cb = colorbar;
     set(cb,'FontSize', floor(fontSize*0.7), 'TickLabelInterpreter','latex')
-
-
 
     if ~exist('meanval', 'var') ||~exist('stddev', 'var')
         meanval = mean(Z, 'all');
