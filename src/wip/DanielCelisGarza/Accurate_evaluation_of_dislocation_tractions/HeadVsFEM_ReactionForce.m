@@ -19,16 +19,17 @@ NU = 0.28;
 % Lattice constants
 a = 10;
 bVec = [[1 0 0]; [0 1 0]];
+nVec = [[0 1 0]; [1 0 0]];
 
 planes = [1; 2; 3; 4; 5; 6];
-dx = 3000;
-dy = 3000;
-dz = 3000;
+dx = 2000;
+dy = 2000;
+dz = 2000;
 
 figCounter = 0;
 cntr = 0;
 addpath '../../../'
-for j = 61%80%81
+for j = 40%61%80%81
     mx = j;
 
     gridSize = mx;
@@ -92,7 +93,7 @@ for j = 61%80%81
     ycoord = linspace(0, dy, j);
     % TODO #44
     xcoord = xcoord(2) / 2; % middle of first element.
-    ycoord = (ycoord(floor(j / 2)) + ycoord(floor(j / 2) + 1)) / 2; % middle of the domain
+    ycoord = dy/2; % middle of the domain
     x = linspace(xcoord, xcoord, len);
     y = linspace(ycoord, ycoord, len);
     z = linspace(0, dz, len);
@@ -113,10 +114,10 @@ end
 
 doSave = true;
 
-% close all;
 try
 if doSave
-    close all;
+    close all
+%     save('mesh','-regexp','^(?!(K|kg|L|U)$).')
     save('mesh','-v7.3')
 end
 catch
@@ -126,28 +127,12 @@ end
 %%
 % TODO #34 Couplers to use features in to v2.0
 addpath '../../../'
-% % K = kg(freeDofs, freeDofs);
-% % [U, ~, P_u] = chol(K);
-% % L = U';
-% % P_l = P_u';
-% bcwt = mean(diag(kg)); %=trace(K)/length(K)
-% bcwt = full(bcwt);
-% K = kg;
-% K(:, fixedDofs) = 0;
-% K(fixedDofs, :) = 0;
-% idx = logical(speye(size(K)));
-% diagonal = K(idx);
-% diagonal(fixedDofs) = bcwt;
-% K(idx) = diagonal;
-% [U, ~, P_u] = chol(K);
-% L = U';
-% P_l = P_u';
-% K = kg;
-
 for k = 1:2
+    sprintf('k = %d', k)
     close all
     cntr = cntr + 1;
     b = bVec(k, :);
+    n = nVec(k, :);
 
     for i = 1:len - 1
         links(i, :) = [i, i + 1, b, n];
@@ -309,8 +294,7 @@ for k = 1:2
 %     plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 
 end
-close all
-save('stresses','-regexp','^(?!(K|kg|L|U)$).')
+
 %%
 % Screw
 close all
@@ -414,7 +398,9 @@ plotCountourfSigmaHat(X, Y, syzN, x1, y1, orientationB, symbol, 'yz', 'N', 'x,~b
 % % Abs Err FEM + Numeric tractions
 % plotCountourfSigmaHat(X, Y, (sxzN + sxzFP) - (txzT), x1, y1, orientationB, symbol, 'xz', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
 % plotCountourfSigmaHat(X, Y, (sxyN + sxyFP) - (txyT), x1, y1, orientationB, symbol, 'xy', '$\Delta$N', 'x,~b', 'y,~b', '$\mu$', 30, doSave)
-
+% close all
+% save('stresses','-regexp','^(?!(K|kg|L|U)$).')
+%%
 % Line plots
 % Edge perp
 close all
@@ -475,28 +461,27 @@ print(gcf(), sprintf('./paper/images/contourLine.pdf'), '-dpdf', '-r0')
 % hold on
 % plot(x, y, 'LineWidth', 2, 'LineStyle', '--')
 % hold off
-close all
+% close all
 
 plotCountourfSigmaHat(X, Y, txz, x1, y1, orientationB, symbol, 'xz', '', 'x,~b', 'y,~b', '$\mu$', 30, false)
 linePlot(sxzA(:, i), sxzN(:, i), txz(:, i), orientationB, symbol, 'xz', 'Grid Point', '$\mu$', 30, doSave)
 %%
 addpath '../../../'
 
-for node = [2, 5, 11, 18]
+for node = floor(j/4)+1
     close all
     len = 100;
-    xcoord = linspace(0, dx, j);
-    ycoord = linspace(0, dy, j);
     % TODO #44
-    xcoord = (xcoord(node-1) + xcoord(node)) / 2; % middle of first element.
-    ycoord = (ycoord(floor(j / 2)) + ycoord(floor(j / 2) + 1)) / 2; % middle of the domain
+    xcoord = linspace(0, dx, j);
+    xcoord = (xcoord(node-1) + xcoord(node))/2;
+    ycoord = dy/2; % middle of the domain
     x = linspace(xcoord, xcoord, len);
     y = linspace(ycoord, ycoord, len);
     z = linspace(0, dz, len);
     x1 = x(1);
     y1 = y(1);
     t = [0 0 1];
-    n = [1 0 0];
+
     rn = zeros(len, 3);
     rn(:, 1) = x;
     rn(:, 2) = y;
@@ -506,8 +491,9 @@ for node = [2, 5, 11, 18]
     plot3(rn(:, 1), rn(:, 2), rn(:, 3), 'r.')
     plot3(X, Y, Z, 'k.')
     hold off
-
-    b = bVec(2, :);
+    
+    b = bVec(1, :);
+    n = nVec(1, :);
 
     for i = 1:len - 1
         links(i, :) = [i, i + 1, b, n];
@@ -544,9 +530,9 @@ for node = [2, 5, 11, 18]
     b = 1; %sqrt(3) / 2;
     [X, Y] = meshgrid(x, y);
 
-    [txx, tyy, txy] = imageStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
-    [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePar(MU, b, NU, X, Y, x1, y1);
-    orientationB = sprintf('Epar%d', node);
+    [txx, tyy, txy] = imageStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
+    [txxFP, tyyFP, txyFP] = FPStressAnalyticEdgePerp(MU, b, NU, X, Y, x1, y1);
+    orientationB = sprintf('Eperp%d', node);
 
     sxxApar = sxxA;
     syyApar = syyA;
@@ -607,21 +593,20 @@ end
 
 addpath '../../../'
 
-for node = [2, 5, 11, 18]
+for node = floor(j/4)+1
     close all
     len = 100;
-    xcoord = linspace(0, dx, j);
-    ycoord = linspace(0, dy, j);
     % TODO #44
-    xcoord = (xcoord(node-1) + xcoord(node)) / 2; % middle of first element.
-    ycoord = (ycoord(floor(j / 2)) + ycoord(floor(j / 2) + 1)) / 2; % middle of the domain
+    xcoord = linspace(0, dx, j);
+    xcoord = (xcoord(node-1) + xcoord(node))/2;
+    ycoord = dy/2; % middle of the domain
     x = linspace(xcoord, xcoord, len);
     y = linspace(ycoord, ycoord, len);
     z = linspace(0, dz, len);
     x1 = x(1);
     y1 = y(1);
     t = [0 0 1];
-    n = [1 0 0];
+
     rn = zeros(len, 3);
     rn(:, 1) = x;
     rn(:, 2) = y;
@@ -632,7 +617,8 @@ for node = [2, 5, 11, 18]
     plot3(X, Y, Z, 'k.')
     hold off
 
-    b = t;
+    b = bVec(2, :);
+    n = nVec(2, :);
 
     for i = 1:len - 1
         links(i, :) = [i, i + 1, b, n];
