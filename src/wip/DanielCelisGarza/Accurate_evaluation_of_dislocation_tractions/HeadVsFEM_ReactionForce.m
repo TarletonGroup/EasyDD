@@ -17,7 +17,7 @@ MU = 1;
 NU = 0.28;
 
 % Lattice constants
-a = 10;
+a = 5;
 bVec = [[1 0 0]; [0 1 0]];
 nVec = [[0 1 0]; [1 0 0]];
 
