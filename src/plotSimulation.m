@@ -6,7 +6,7 @@ function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewang
         view(viewangle);
         drawnow
 
-        feval(plotForceDisp, Usim, Fsim, amag, mumag, curstep);
+        plotForceDisp(Usim, Fsim, amag, mumag, curstep);
         pause(0.01);
     end
 

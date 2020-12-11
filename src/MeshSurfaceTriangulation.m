@@ -3,7 +3,11 @@ function [P, fn, tri, Xb] = MeshSurfaceTriangulation(xnodes, Stop, Sbot, Sfront,
     % Beginning of surface remeshing for surface node. %%%%%%%%%%%%%%%%%%%%
 
     %create triangulation (uses all surface nodes from FEM code)
-    pts = xnodes([Stop(:, 1); Sbot(:, 1); Sfront(:, 1); Sback(:, 1); Sleft(:, 1); Sright(:, 1); Smixed(:, 1)], :);
+    if isempty(Smixed)
+        pts = xnodes([Stop(:, 1); Sbot(:, 1); Sfront(:, 1); Sback(:, 1); Sleft(:, 1); Sright(:, 1)], :);
+    else
+        pts = xnodes([Stop(:, 1); Sbot(:, 1); Sfront(:, 1); Sback(:, 1); Sleft(:, 1); Sright(:, 1); Smixed(:, 1)], :);
+    end
     dt = delaunayTriangulation(pts);
     %dt = delaunayTriangulation(vertices); %coarse triangulation
 

@@ -44,12 +44,23 @@ end
 
 if ~exist('mx', 'var')
     mx = 20;
+    my = round(mx * dy / dx); % # elements in y direction
+    my = max(my, 1);
+    mz = round(mx * dz / dx); % elements in z direction
+    mz = max(mz, 1);
     fprintf('Providing default value for mx = %f.\n', mx)
 end
 
 if ~exist('loading', 'var')
-    loading = 'displacementControl';
-    fprintf('Providing default value for loading = %s.', loading)
+    loading = @displacementControl;
+    fprintf('Providing default value for loading:\n'),
+    functions(loading)
+end
+
+if ~exist('calculateLoading', 'var')
+    calculateLoading = @constantLoading;
+    fprintf('Providing default value for calculateLoading:\n')
+    functions(calculateLoading)
 end
 
 if ~exist('vertices', 'var')
@@ -85,8 +96,9 @@ if ~exist('NU', 'var')
 end
 
 if ~exist('mobility', 'var')
-    mobility = 'mobbcc_bb1b';
-    fprintf('Providing default value for mobility = %s.\n', mobility)
+    mobility = @mobbcc_bb1b;
+    fprintf('Providing default value for mobility:\n')
+    functions(mobility)
 end
 
 if ~exist('Bcoeff', 'var')
@@ -168,8 +180,9 @@ if ~exist('simTime', 'var')
 end
 
 if ~exist('integrator', 'var')
-    integrator = 'int_trapezoid';
-    fprintf('Providing default value for integrator = %s.\n', integrator)
+    integrator = @int_trapezoid;
+    fprintf('Providing default value for integrator:\n')
+    functions(integrator)
 end
 
 if ~exist('a', 'var')
@@ -227,9 +240,10 @@ if ~exist('viewangle', 'var')
     fprintf('Providing default value for viewangle = [%f, %f].\n', viewangle(1), viewangle(2))
 end
 
-if ~exist('a_trac', 'var')
-    a_trac = true;
-    fprintf('Providing default value for a_trac = %d.\n', a_trac)
+if ~exist('calculateTractions', 'var')
+    calculateTractions = @calculateAnalyticTractions;
+    fprintf('Providing default value for calculateTractions:\n')
+    functions(calculateTractions)
 end
 
 if ~exist('CUDA_flag', 'var')
@@ -262,14 +276,55 @@ if ~exist('u_dot', 'var')
     fprintf('Providing default value for u_dot = %f.\n', u_dot)
 end
 
+if ~exist('u_bar', 'var')
+    u_bar = 0;
+    fprintf('Providing default value for u_bar = %f.\n', u_bar)
+end
+
 if ~exist('f_dot', 'var')
     f_dot = dx / 160E6;
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
 end
 
+if ~exist('f_bar', 'var')
+    f_bar = 0;
+    fprintf('Providing default value for f_bar = %f.\n', f_bar)
+end
+
+if ~exist('f_hat', 'var')
+    f_hat = 0;
+    fprintf('Providing default value for f_hat = %f.\n', f_hat)
+end
+
+if ~exist('f_tilda', 'var')
+    f_tilda = 0;
+    fprintf('Providing default value for f_tilda = %f.\n', f_tilda)
+end
+
+if ~exist('u_hat', 'var')
+    u_hat = 0;
+    fprintf('Providing default value for u_hat = %f.\n', u_hat)
+end
+
+if ~exist('u_tilda', 'var')
+    u_tilda = 0;
+    fprintf('Providing default value for u_tilda = %f.\n', u_tilda)
+end
+
+if ~exist('r_hat', 'var')
+    r_hat = 0;
+    fprintf('Providing default value for r_hat = %f.\n', r_hat)
+end
+
+if ~exist('calculateLoadingFunctionArgs', 'var')
+    calculateLoadingFunctionArgs = 0;
+    fprintf('Providing default value for calculateLoadingFunctionArgs = %f\n.', calculateLoadingFunctionArgs)
+end
+
 if ~exist('simType', 'var')
-    simType = 'cantileverBending';
-    fprintf('Providing default value for simType = %s.\n', simType)
+    simType = @cantileverBending;
+    fprintf('Providing default value for simType:\n')
+    functions(simType)
 end
 
 if ~exist('Fsim', 'var')
@@ -290,4 +345,9 @@ end
 if ~exist('dt', 'var')
     dt = dt0;
     fprintf('Providing default value for dt = %f.\n', dt)
+end
+
+if ~exist('rotMatrix', 'var')
+    rotMatrix = [];
+    fprintf('Using standard coordinates, x = [1 0 0], y = [0 1 0], z = [0 0 1]\n')
 end

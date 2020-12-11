@@ -1,6 +1,6 @@
 # Figures
 *.fig
-*.pdf
+# *.pdf
 *.eps
 *.png
 *.gif

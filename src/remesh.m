@@ -1,18 +1,23 @@
-function [rn, links, connectivity, linksinconnect, fseg] = remesh(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+function [rn, links, connectivity, linksinconnect, fseg] = remesh(rn, links, ...
+        connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, ...
+        NU, a, Ec, mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, ...
+        w, h, d, CUDA_flag, Bcoeff)
     % first coarsen the parts of the mesh than can be coarsened
     % then refine the parts of the mesh that need it
     % meshcoarsen is done first because it relies on positions of nodes that were introduced at the end of the previous time step
     % do not change the order of these two subroutines
-    [rn, links, connectivity, linksinconnect, fseg] = meshcoarsen(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, Ec, mobility, vertices, ...
+    [rn, links, connectivity, linksinconnect, fseg] = meshcoarsen(rn, links, connectivity, ...
+        linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
 
-    [rn, links, connectivity, linksinconnect, fseg] = meshrefine(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamax, MU, NU, a, Ec, mobility, vertices, ...
+    [rn, links, connectivity, linksinconnect, fseg] = meshrefine(rn, links, connectivity, ...
+        linksinconnect, fseg, lmin, lmax, areamax, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff);
 end
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshcoarsen(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshcoarsen(...
+        rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamin, MU, NU, a, ...
+        Ec, mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
     rnnew = rn;
     [~, lrn2] = size(rn);
     linksnew = links;
@@ -89,7 +94,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshco
                                 for k = 1:2
                                     nodelist = linksnew(linkm, k);
                                     clist = [connectivitynew(nodelist, 1) linspace(1, connectivitynew(nodelist, 1), connectivitynew(nodelist, 1))];
-                                    [rnnew(nodelist, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, nodelist, clist, Bcoeff);
+                                    [rnnew(nodelist, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, nodelist, clist, Bcoeff, rotMatrix);
                                 end
 
                             end
@@ -114,8 +119,9 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshco
 
 end
 
-function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshrefine(rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamax, MU, NU, a, Ec, mobility, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
+function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshrefine(...
+        rn, links, connectivity, linksinconnect, fseg, lmin, lmax, areamax, MU, NU, a, Ec, ...
+        mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag, Bcoeff)
     [lrn, lrn2] = size(rn);
     lrn3 = lrn2 - 1;
     rnnew = rn;
@@ -164,11 +170,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
                     clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                    [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff);
+                    [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                 end
 
                 clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff);
+                [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
             end
 
             if (((area2 > areamax2) && (r1 >= lmin2) && (link1_nodenoti <= lrn)) || (r1 > lmax))
@@ -185,11 +191,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                     fsegnew(linkid, :) = segforcevec(MU, NU, a, Ec, rnnew(:, [1 2 3 lrn2]), linksnew, linkid, vertices, ...
                         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                     clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                    [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff);
+                    [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                 end
 
                 clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff);
+                [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
             end
 
         elseif (connectivitynew(i, 1) > 2) && (rnnew(i, lrn2) == 0)
@@ -214,11 +220,11 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = meshre
                         fsegnew(linkid, :) = segforcevec(MU, NU, a, Ec, rnnew(:, [1 2 3 lrn2]), linksnew, linkid, vertices, ...
                             uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
                         clist = [connectivitynew(oldnode, 1) linspace(1, connectivitynew(oldnode, 1), connectivitynew(oldnode, 1))];
-                        [rnnew(oldnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff);
+                        [rnnew(oldnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, oldnode, clist, Bcoeff, rotMatrix);
                     end
 
                     clist = [connectivitynew(newnode, 1) linspace(1, connectivitynew(newnode, 1), connectivitynew(newnode, 1))];
-                    [rnnew(newnode, 4:6), ~] = feval(mobility, fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff);
+                    [rnnew(newnode, 4:6), ~] = mobility(fsegnew, rnnew, linksnew, connectivitynew, newnode, clist, Bcoeff, rotMatrix);
                 end
 
             end

@@ -1,4 +1,4 @@
-function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finiteElement3D(dx, dy, dz, mx, mu, nu)
+function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, mx, my, mz, mel] = finiteElement3D(dx, dy, dz, mx, my, mz, mu, nu)
     %=========================================================================%
     % E Tarleton edmund.tarleton@materials.ox.ac.uk
     % 3D FEM code using linear 8 node element with 8 integration pts (2x2x2)
@@ -42,13 +42,7 @@ function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finite
     % loading = 1;
 
     w = dx / mx; % elements width
-
-    my = round(mx * dy / dx); % # elements in y direction
-    my = max(my, 1);
     h = dy / my; % element height
-
-    mz = round(mx * dz / dx); % elements in z direction
-    mz = max(mz, 1);
     d = dz / mz; % element depth
 
     mel = mx * my * mz;
@@ -244,79 +238,71 @@ function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finite
         pause
     end
 
-    J = zeros(3, 3, mel, 8); % 3Dx3D, mel elements, 8 quad pts/element
-    detJ = zeros(mel, 8); % det(J) at mel elements, 9 quad points/element
-    nx = zeros(mel, 8, 8, 3); % derivative of shape functions w.r.t global x,y
-    B = zeros(6, 24, mel, 8); % (# strain components, # dof/element, # elements, int pts/element)
+    J = zeros(3, 3, 8); % 3Dx3D, mel elements, 8 quad pts/element
+    detJ = zeros(8, 1); % det(J) at mel elements, 9 quad points/element
+    nx = zeros(8, 8, 3); % derivative of shape functions w.r.t global x,y
+    B = zeros(6, 24, 8); % (# strain components, # dof/element, # elements, int pts/element)
 
-    for p = 1:mel% all elements
+    for q = 1:8% integration points per element
 
-        for q = 1:8% integration points per element
+        for i = 1:3% DOF
 
-            for i = 1:3% DOF
+            for j = 1:3% DOF
+                J(i, j, q) = ns(q, 1:8, j) * xnodes(nc(1, 1:8), i);
+                % implied sum over a: local shape function number
+                % sum over a of dNa(s1,s2,s3)/dsj at S=z(q) *xi(local node a of element p)
+                %Jij= dxi/dsj evaluated at element p integration point q
+            end
 
-                for j = 1:3% DOF
-                    J(i, j, p, q) = ns(q, 1:8, j) * xnodes(nc(p, 1:8), i);
-                    % implied sum over a: local shape function number
-                    % sum over a of dNa(s1,s2,s3)/dsj at S=z(q) *xi(local node a of element p)
-                    %Jij= dxi/dsj evaluated at element p integration point q
+        end
+
+        detJ(q) = det(J(:, :, q)); % det(J) evaluated at element p int point q
+
+        invJ = inv(J(:, :, q)); % invJ_ij = dsi/dxj
+
+        for a = 1:8
+
+            for j = 1:3
+
+                for i = 1:3
+                    nx(q, a, j) = nx(q, a, j) + ns(q, a, i) * invJ(i, j);
                 end
 
             end
 
-            detJ(p, q) = det(J(:, :, p, q)); % det(J) evaluated at element p int point q
+            B(1, (a - 1) * 3 + 1, q) = nx(q, a, 1);
+            B(1, (a - 1) * 3 + 2, q) = 0;
+            B(1, (a - 1) * 3 + 3, q) = 0;
 
-            invJ = inv(J(:, :, p, q)); % invJ_ij = dsi/dxj
+            B(2, (a - 1) * 3 + 1, q) = 0;
+            B(2, (a - 1) * 3 + 2, q) = nx(q, a, 2);
+            B(2, (a - 1) * 3 + 3, q) = 0;
 
-            for a = 1:8
+            B(3, (a - 1) * 3 + 1, q) = 0;
+            B(3, (a - 1) * 3 + 2, q) = 0;
+            B(3, (a - 1) * 3 + 3, q) = nx(q, a, 3);
 
-                for j = 1:3
+            B(4, (a - 1) * 3 + 1, q) = nx(q, a, 2);
+            B(4, (a - 1) * 3 + 2, q) = nx(q, a, 1);
+            B(4, (a - 1) * 3 + 3, q) = 0;
 
-                    for i = 1:3
-                        nx(p, q, a, j) = nx(p, q, a, j) + ns(q, a, i) * invJ(i, j);
-                    end
+            B(5, (a - 1) * 3 + 1, q) = nx(q, a, 3);
+            B(5, (a - 1) * 3 + 2, q) = 0;
+            B(5, (a - 1) * 3 + 3, q) = nx(q, a, 1);
 
-                end
-
-                B(1, (a - 1) * 3 + 1, p, q) = nx(p, q, a, 1);
-                B(1, (a - 1) * 3 + 2, p, q) = 0;
-                B(1, (a - 1) * 3 + 3, p, q) = 0;
-
-                B(2, (a - 1) * 3 + 1, p, q) = 0;
-                B(2, (a - 1) * 3 + 2, p, q) = nx(p, q, a, 2);
-                B(2, (a - 1) * 3 + 3, p, q) = 0;
-
-                B(3, (a - 1) * 3 + 1, p, q) = 0;
-                B(3, (a - 1) * 3 + 2, p, q) = 0;
-                B(3, (a - 1) * 3 + 3, p, q) = nx(p, q, a, 3);
-
-                B(4, (a - 1) * 3 + 1, p, q) = nx(p, q, a, 2);
-                B(4, (a - 1) * 3 + 2, p, q) = nx(p, q, a, 1);
-                B(4, (a - 1) * 3 + 3, p, q) = 0;
-
-                B(5, (a - 1) * 3 + 1, p, q) = nx(p, q, a, 3);
-                B(5, (a - 1) * 3 + 2, p, q) = 0;
-                B(5, (a - 1) * 3 + 3, p, q) = nx(p, q, a, 1);
-
-                B(6, (a - 1) * 3 + 1, p, q) = 0;
-                B(6, (a - 1) * 3 + 2, p, q) = nx(p, q, a, 3);
-                B(6, (a - 1) * 3 + 3, p, q) = nx(p, q, a, 2);
-
-            end
+            B(6, (a - 1) * 3 + 1, q) = 0;
+            B(6, (a - 1) * 3 + 2, q) = nx(q, a, 3);
+            B(6, (a - 1) * 3 + 3, q) = nx(q, a, 2);
 
         end
 
     end
 
     fprintf('local K...\n');
-    ke = zeros(24, 24, mel); %local stiffness matrix
+    ke = zeros(24, 24); %local stiffness matrix
 
-    for p = 1:mel%all elements
-
-        for q = 1:8% int points per element
-            ke(:, :, p) = ke(:, :, p) + B(:, :, p, q)' * D * B(:, :, p, q) * detJ(p, q);
-        end
-
+    for q = 1:8% int points per element
+        ke(:, :) = ke(:, :) + B(:, :, q)' * D * B(:, :, q) * detJ(q);
     end
 
     % ensure ke is symmetric eg remove any very small entries due to numerical
@@ -343,7 +329,7 @@ function [vertices, B, xnodes, mno, nc, n, D, kg, w, h, d, my, mz, mel] = finite
                 ntriplets = ntriplets + 1;
                 I(ntriplets) = dof(i);
                 J(ntriplets) = dof(j);
-                X(ntriplets) = ke(dofLocal(i), dofLocal(j), p);
+                X(ntriplets) = ke(dofLocal(i), dofLocal(j));
             end
 
         end

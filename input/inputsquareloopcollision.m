@@ -21,6 +21,7 @@
 % Pressure: Pa
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+close all
 clear all
 %% SOURCE GENERATION PARAMETERS
 amag = 3.18e-4;
@@ -38,7 +39,7 @@ dy = 5 / amag; %2micron
 dz = 5 / amag; %2micron
 
 mx = 20; % number of elements along beam length
-loading = 'displacementControl';
+% loading = @displacementControl;
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
             0, dy, 0; ...
@@ -81,6 +82,10 @@ b1 = [-1 -1 -1] / 2;
 b2 = [-1 1 1] / 2;
 n1 = [-1 0 1] / sqrt(2);
 n2 = [1 0 1] / sqrt(2);
+% a = 5*norm(b1); % Default value of a has num tractions freak out, a = 5*||b|| is even worse.
+a = 10 * norm(b1);
+calculateTractions = @calculateAnalyticTractions;
+% calculateTractions = @calculateNumericTractions;
 
 links = [1 2 b1 n1;
     2 3 b1 n1;
@@ -98,6 +103,15 @@ links = [1 2 b1 n1;
     14 15 b2 n2;
     15 16 b2 n2;
     16 9 b2 n2];
+
+plotFreq = 5;
+saveFreq = 1e9;
+u_dot = dx / 160E6;
+
+calculateLoading = @sixStageDisplacementByEndLoad;
+% calculateLoading = @constantLoading;
+calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
+    'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
 
 %create mirror of prismatic loops (outside boundary)
 % rn_mirror = [rn(:,1)+dx , rn(:,2) , rn(:,3)+dx , zeros(length(rn(:,1)),1)+67];
@@ -172,3 +186,8 @@ links = [1 2 b1 n1;
 % Bscrew = 10;
 % mobility = 'mobbcc_bb1b';
 % a_trac = 1;
+
+my = round(mx * dy / dx); % # elements in y direction
+my = max(my, 1);
+mz = round(mx * dz / dx); % elements in z direction
+mz = max(mz, 1);

@@ -1,8 +1,18 @@
-function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
+function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff, rotMatrix)
+    % TODO #49
     %mobility law function (model: BCC0)
     Bscrew = Bcoeff.screw;
     Bedge = Bcoeff.edge;
     Beclimb = Bcoeff.climb;
+    rotateCoords = false;
+    if ~isempty(rotMatrix)
+        rotateCoords = true;
+        rn(:, 1:3) = rn(:, 1:3) * rotMatrix;
+        fseg(:, 1:3) = fseg(:, 1:3) * rotMatrix;
+        fseg(:, 3:6) = fseg(:, 3:6) * rotMatrix;
+        links(:, 3:5) = links(:, 3:5) * rotMatrix;
+        links(:, 6:8) = links(:, 6:8) * rotMatrix;
+    end
 
     %numerical tolerance
     tol = 1e-7;
@@ -164,7 +174,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
                         else
                             mdir = cross(ndir, linedir);
                             cosdev2 = cosdev * cosdev;
-                            cosratio = 1 - 4 * cosdev2;
+                            cosratio = max(1 - 4 * cosdev2, 0); % In case of numerical instability in cosdev2 calculation.
                             sinratio = 1 - cosratio;
                             Bglide = 1 / sqrt((1 / Beclimb^2) * sinratio + (1 / Bscrew^2) * cosratio);
                             Btotal = Btotal + mag .* ((0.5 * L) .* ((Bglide) .* (mdir' * mdir) + (Beclimb) .* (ndir' * ndir) + (Bedge) .* (linedir' * linedir)));
@@ -201,6 +211,11 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
 
         if any(isnan(vn))
             fprintf('YDFUS, see line 157 of mobbcc_bb1b\n');
+        end
+
+        if rotateCoords
+            vn = vn * rotMatrix';
+            fn = fn * rotMatrix';
         end
 
     end

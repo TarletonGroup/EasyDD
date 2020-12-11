@@ -1,6 +1,6 @@
-function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
+function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
     gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = cantileverBending(...
-    kg, w, h, d, mx, my, mz)
+    kg, w, h, d, mno, mx, my, mz)
 
     fprintf('Cantilever bending boundary conditions: reformatting K\n');
 
@@ -155,31 +155,45 @@ function [K, L, U, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gam
     gammaMixed = Smixed; % t1=t2=0, u3= U
 
     fixedDofs = [3 * gammau(:, 1) - 2; 3 * gammau(:, 1) - 1; 3 * gammau(:, 1); 3 * gammaMixed(:, 1)];
-    freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1); 3 * gammaMixed(:, 1) - 2; ...
-                3 * gammaMixed(:, 1) - 1];
+    freeDofs = setdiff([1:3*mno], fixedDofs);
+%     freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1); 3 * gammaMixed(:, 1) - 2; ...
+%                 3 * gammaMixed(:, 1) - 1];
 
-    for m = 1:length(fixedDofs)
-        i = fixedDofs(m);
-        K(:, i) = 0;
-        K(i, :) = 0;
-        K(i, i) = bcwt;
-    end
+%     K(:, fixedDofs) = 0;
+%     K(fixedDofs, :) = 0;
+%     idx = logical(speye(size(K)));
+%     diagonal = K(idx);
+%     diagonal(fixedDofs) = bcwt;
+%     K(idx) = diagonal;
+    K = K(freeDofs, freeDofs);
 
     % {freeDofs,fixedDofs} should contain every degree of freedom on boundary +
     % any internal Dofs with a force or displacement specified.
-    if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
-        fprintf('error\n')
-        pause
+%     if length([fixedDofs; freeDofs]) > length(unique([fixedDofs; freeDofs]))
+%         fprintf('error\n')
+%         pause
+%     end
+
+    try
+        fprintf('Cholesky Factorization of K...\n'); %should be symmetric!
+        % Special algorithm for sparse matrices
+        % [R, flag, P] = chol(S)
+        % R'*R = P'*S*P -> P*R'*R*P' = S
+        tic;
+            [U, ~, P_u] = chol(K);
+            L = U';
+            P_l = P_u';
+        toc
+    catch
+        sprintf('Ran out of memory in cholesky factorisation, use explicit K.\n')
+        U = [];
+        L = [];
+        P_u = [];
+        P_l = [];
     end
-
-    fprintf('Cholesky Factorization of K...\n'); %should be symmetric!
-    tic;
-    U = chol(K);
-    L = U';
-    toc;
-
-    processForceDisp = 'cantileverBendingForceDisp';
-    plotForceDisp = 'cantileverBendingPlot';
+    
+    processForceDisp = @cantileverBendingForceDisp;
+    plotForceDisp = @cantileverBendingPlot;
 
     fprintf('finished FEM\n')
 

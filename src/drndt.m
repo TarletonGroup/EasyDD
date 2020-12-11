@@ -1,5 +1,5 @@
 function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivity, ...
-        mobility, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
+        mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
 
     % This needs to be an input/obtained from the surface nodes. This is a temporary fix for cuboid.
     normals = [1 0 0;
@@ -17,7 +17,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
         uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
 
     %mobility function
-    [vn, fn] = feval(mobility, fseg, rn, links, connectivity, [], [], Bcoeff);
+    [vn, fn] = mobility(fseg, rn, links, connectivity, [], [], Bcoeff, rotMatrix);
     % fixed nodes (flag==7) are not allowed to move.
     % flag == 6, are only allowed to move on the surface they live at.
     % flag == 67, are virtual nodes that are not allowed to move.
@@ -27,6 +27,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
         if rn(p, 4) == 7 || rn(p, 4) == 67
             vn(p, :) = [0 0 0];
             % Surface nodes are confined to moving in the movement plane and surface plane.
+            % TODO #41
         elseif rn(p, 4) == 6
             % Skip stationary surface nodes
             if norm(vn(p, :)) < eps

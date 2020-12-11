@@ -1,0 +1,11 @@
+\renewcommand{\vec}{\vectorsym}
+\newcommand{\tns}{\tensorsym}
+\newcommand{\mtx}{\mathbf}
+\newcommand{\hvar}[1]{\ensuremath{^{\textrm{h}}#1}}
+\newcommand{\dvar}[1]{\ensuremath{^{\textrm{d}}#1}}
+\newcommand{\tvar}[1]{\ensuremath{^{\textrm{t}}#1}}
+\newcommand{\rvar}[1]{\ensuremath{\textrm{#1}}}
+\newcommand{\nn}{\nonumber\\}							% No number skip line.
+\algblockdefx[gpufunction]{GPUFunction}{EndGPUFunction}%
+[2][]{\textbf{GPU function} \textsc{#1}(#2)}%
+{\textbf{end GPU function}}
