@@ -148,7 +148,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
                         end
 
                         if ~isequal(size(cosdev_alt), [1 1]) ||~isequal(size(slipplanes, 1), size(dotprods2_alt, 1)) ||~isequal(size(dotprods2_alt, 2), 1)% check calculations are performed correctly
-                            disp('YDFUS, see line 127 of mobbcc_bb1b')
+                            disp('YDFUS, see line 151 of mobbcc_bb1b')
                         end
 
                         ndir_alt = slipplanes(dotprods2_alt == cosdev_alt, :);
@@ -209,7 +209,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
         end
 
         if any(any(isnan(vn))) || any(any(~isreal(vn)))% ensure no non-physical velocities exist
-            disp('YDFUS, see line 179 of mobbcc_bb1b')
+            disp('YDFUS, see line 212 of mobbcc_bb1b')
         end
 
         if rotateCoords
