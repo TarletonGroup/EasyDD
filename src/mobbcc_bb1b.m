@@ -175,7 +175,7 @@ for n=1:L1
         vn(n,:)=(Btotal\fn(n,:)')';                 % Btotal was well conditioned so just take the inverse
     end
     
-    if any(isnan(vn)) || any(~isreal(vn))  % ensure no non-physical velocities exist
+    if any(any(isnan(vn))) || any(any(~isreal(vn)))  % ensure no non-physical velocities exist
         disp('YDFUS, see line 179 of mobbcc_bb1b')
     end
     
