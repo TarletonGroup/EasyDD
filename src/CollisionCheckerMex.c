@@ -47,16 +47,12 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double *segpair;
     double smallestMinDistTmp = 0.0;
     double smallestMinDist = 0.0;
-    double HYseg1[3], HYseg2[3];
-    double HYseg1L2 = 0.0;
-    double HYseg2L2 = 0.0;
-    double HYseg1dseg2 = 0.0;
-    double HYsin2 = 0.0;
-	double *burgv_x, *burgv_y, *burgv_z;
-	double *plane_x, *plane_y, *plane_z;
-	double bi[3], ni[3], bj[3], nj[3];
-	double xmid[3], ymid[3];
-	double Lcr_temp2 = 0.0;
+    double seg1[3], seg2[3];
+    double *burgv_x, *burgv_y, *burgv_z;
+    double *plane_x, *plane_y, *plane_z;
+    double bi[3], ni[3], bj[3], nj[3];
+    double xmid[3], ymid[3];
+    double Lcr_temp2 = 0.0;
     /********* MEX memory management *********/
     rn_x = (double *)mxGetPr(prhs[0]);
     rn_y = (double *)mxGetPr(prhs[1]);
@@ -69,15 +65,15 @@ void mexFunction(int nlhs, mxArray *plhs[],
     links_c2 = (double *)mxGetPr(prhs[8]);
     connectivity_pointer = (double *)mxGetPr(prhs[9]);
     mindist = mxGetScalar(prhs[10]);
-	burgv_x = (double *)mxGetPr(prhs[11]);
-	burgv_y = (double *)mxGetPr(prhs[12]);
-	burgv_z = (double *)mxGetPr(prhs[13]);
-	plane_x = (double *)mxGetPr(prhs[14]);
-	plane_y = (double *)mxGetPr(prhs[15]);
-	plane_z = (double *)mxGetPr(prhs[16]);
+    burgv_x = (double *)mxGetPr(prhs[11]);
+    burgv_y = (double *)mxGetPr(prhs[12]);
+    burgv_z = (double *)mxGetPr(prhs[13]);
+    plane_x = (double *)mxGetPr(prhs[14]);
+    plane_y = (double *)mxGetPr(prhs[15]);
+    plane_z = (double *)mxGetPr(prhs[16]);
     rn_length = mxGetNumberOfElements(prhs[0]);
     links_length = mxGetNumberOfElements(prhs[7]);
-    /*printf("links_length=%i \n",links_length);*/
+
     /*create 2D array for connectivity */
     connectivity_M = mxGetM(prhs[9]);
     connectivity_N = mxGetN(prhs[9]);
@@ -86,13 +82,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     {
         connectivity[j] = connectivity_pointer + connectivity_M * j;
     }
-    /*printf("%i x %i \n",connectivity_M,connectivity_N);
-    for (i=0;i<connectivity_M;i++){
-        printf("\n");
-        for (j=0;j<connectivity_N;j++){
-            printf("%f ",connectivity[j][i]);
-        }
-    }*/
+
     plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
     plhs[1] = mxCreateDoubleMatrix(1, 1, mxREAL);
     plhs[2] = mxCreateDoubleMatrix(1, 1, mxREAL);
@@ -127,7 +117,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
             i = i + 1;
             continue;
         }
-        
+
         if ((int)round(flag[i]) == 7)
         {
             i = i + 1;
@@ -152,7 +142,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 printf("Error in accessing connectivity. See collision_checker or links array");
                 nodenoti = 0; /*dummy value*/
             }
-            /*printf("n1s1=%i, n2s1=%i, nodenoti=%i \n",n1s1_int,n2s1_int,nodenoti);*/
 
             // Find the squared length of link 0.
             tmp1d = rn_x[i] - rn_x[nodenoti];
@@ -215,9 +204,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
                         }
                     }
 
-                    /*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/
-                    /*printf("n1s1=%i, n2s1=%i, nodenoti=%i \n",n1s1_int,n2s1_int,nodenoti);*/
-
                     x0[0] = rn_x[n1s1_int];
                     x0[1] = rn_y[n1s1_int];
                     x0[2] = rn_z[n1s1_int];
@@ -263,16 +249,16 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     if (logic == 1)
                     {
                         colliding_segments[0] = 1;
-                        n1s1[0] = (double)(n1s1_int + 1); /*correct for matlab indexing*/
-                        n1s2[0] = (double)(nodenoti + 1); /*correct for matlab indexing*/
-                        n2s1[0] = (double)(n2s1_int + 1); /*correct for matlab indexing*/
-                        n2s2[0] = (double)(nodenoti + 1); /*correct for matlab indexing*/
+                        n1s1[0] = (double)(n1s1_int + 1); // correct for matlab indexing
+                        n1s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
+                        n2s1[0] = (double)(n2s1_int + 1); // correct for matlab indexing
+                        n2s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
                         s1[0] = (double)linkid + 1;
                         s2[0] = (double)link_row + 1;
 
                         floop[0] = 2;
-                        //                         printf("Hinge condition found... Running collision correction");
-                        /*remember to de-allocate 2D connectivity array*/
+
+                        // remember to de-allocate 2D connectivity array
                         mxFree(connectivity);
                         return;
                     }
@@ -295,61 +281,38 @@ void mexFunction(int nlhs, mxArray *plhs[],
             i = i + 1;
             continue;
         }
-        
+
         if (flag1 == 7 || flag2 == 7)
         {
             i = i + 1;
             continue;
         }
-        
+
         j = i + 1;
         while (j < (links_length))
         {
-			/*HY20200913*/
-			/*bi[0] = burgv_x[i];
-			bi[1] = burgv_y[i];
-			bi[2] = burgv_z[i];
-			ni[0] = plane_x[i];
-			ni[1] = plane_y[i];
-			ni[2] = plane_z[i];
-			bj[0] = burgv_x[j];
-			bj[1] = burgv_y[j];
-			bj[2] = burgv_z[j];
-			nj[0] = plane_x[j];
-			nj[1] = plane_y[j];
-			nj[2] = plane_z[j];
-			if ((bi[0]-bj[0])*(bi[0]-bj[0])+(bi[1]-bj[1])*(bi[1]-bj[1])+(bi[2]-bj[2])*(bi[2]-bj[2])<1e-4)
-			{
-				if ((ni[0]-nj[0])*(ni[0]-nj[0])+(ni[1]-nj[1])*(ni[1]-nj[1])+(ni[2]-nj[2])*(ni[2]-nj[2])>1e-4)
-				{
-					j = j + 1;
-					continue;
-				}
-			}*/
 
             n1s1_int = (int)round(links_c1[i]) - 1; /*correct for matlab indexing*/
             n2s1_int = (int)round(links_c2[i]) - 1; /*correct for matlab indexing*/
             n1s2_int = (int)round(links_c1[j]) - 1; /*correct for matlab indexing*/
             n2s2_int = (int)round(links_c2[j]) - 1; /*correct for matlab indexing*/
-            /*printf("n1s1=%i, n2s1=%i, n1s2=%i, n2s2=%i \n",n1s1_int,n2s1_int,n1s2_int,n2s2_int);*/
+
             if ((n1s1_int != n1s2_int) && (n1s1_int != n2s2_int) && (n2s1_int != n1s2_int) && (n2s1_int != n2s2_int))
             {
-				/*HY20200912*/
-				flag1 = (int)round(flag[n1s2_int]);
-                flag2 = (int)round(flag[n2s2_int]);
-				if (flag1 == 67 || flag2 == 67)
-				{
-					j = j + 1;
-					continue;
-				}
-				if (flag1 == 7 || flag2 == 7)
-				{
-					j = j + 1;
-					continue;
-				}
 
-				/*uncomment to compare with matlab script to check n1s1 and n2s1 - checked*/
-                /*printf("n1s1=%i, n2s1=%i, n1s2=%i, n2s2=%i \n",n1s1_int,n2s1_int,n1s2_int,n2s2_int);*/
+                flag1 = (int)round(flag[n1s2_int]);
+                flag2 = (int)round(flag[n2s2_int]);
+                if (flag1 == 67 || flag2 == 67)
+                {
+                    j = j + 1;
+                    continue;
+                }
+                if (flag1 == 7 || flag2 == 7)
+                {
+                    j = j + 1;
+                    continue;
+                }
+
                 segpair[0] = segpair[0] + 1;
                 x0[0] = rn_x[n1s1_int];
                 x0[1] = rn_y[n1s1_int];
@@ -379,83 +342,38 @@ void mexFunction(int nlhs, mxArray *plhs[],
                 vy1[1] = v_y[n2s2_int];
                 vy1[2] = v_z[n2s2_int];
 
-				/*HY20200921*/
-			    bi[0] = burgv_x[i];
-			    bi[1] = burgv_y[i];
-			    bi[2] = burgv_z[i];
-			    bj[0] = burgv_x[j];
-			    bj[1] = burgv_y[j];
-			    bj[2] = burgv_z[j];
-				HYseg1[0] = x1[0] - x0[0];
-                HYseg1[1] = x1[1] - x0[1];
-                HYseg1[2] = x1[2] - x0[2];
-                HYseg2[0] = y1[0] - y0[0];
-                HYseg2[1] = y1[1] - y0[1];
-                HYseg2[2] = y1[2] - y0[2];
-			    if ((bi[0]-bj[0])*(bi[0]-bj[0])+(bi[1]-bj[1])*(bi[1]-bj[1])+(bi[2]-bj[2])*(bi[2]-bj[2])<1e-4)
-				{
-					if (HYseg1[0]*HYseg2[0]+HYseg1[1]*HYseg2[1]+HYseg1[2]*HYseg2[2]>1e-4)
-					{
-						j = j + 1;
-						continue;
-					}
-				}
-				if ((bi[0]+bj[0])*(bi[0]+bj[0])+(bi[1]+bj[1])*(bi[1]+bj[1])+(bi[2]+bj[2])*(bi[2]+bj[2])<1e-4)
-				{
-					if (HYseg1[0]*HYseg2[0]+HYseg1[1]*HYseg2[1]+HYseg1[2]*HYseg2[2]<1e-4)
-					{
-						j = j + 1;
-						continue;
-					}
-				}
-                
-                /*HY20200912*/
-                /*HYseg1[0] = x1[0] - x0[0];
-                HYseg1[1] = x1[1] - x0[1];
-                HYseg1[2] = x1[2] - x0[2];
-                HYseg2[0] = y1[0] - y0[0];
-                HYseg2[1] = y1[1] - y0[1];
-                HYseg2[2] = y1[2] - y0[2];
-                HYseg1L2 = HYseg1[0] * HYseg1[0] + HYseg1[1] * HYseg1[1] + HYseg1[2] * HYseg1[2];
-                HYseg2L2 = HYseg2[0] * HYseg2[0] + HYseg2[1] * HYseg2[1] + HYseg2[2] * HYseg2[2];
-                HYseg1dseg2 = HYseg1[0] * HYseg2[0] + HYseg1[1] * HYseg2[1] + HYseg1[2] * HYseg2[2];
-                HYsin2 = 1 - HYseg1dseg2 * HYseg1dseg2 / HYseg1L2 / HYseg2L2;
-                if (HYsin2 > 0.96)
+                bi[0] = burgv_x[i];
+                bi[1] = burgv_y[i];
+                bi[2] = burgv_z[i];
+                bj[0] = burgv_x[j];
+                bj[1] = burgv_y[j];
+                bj[2] = burgv_z[j];
+
+                seg1[0] = x1[0] - x0[0];
+                seg1[1] = x1[1] - x0[1];
+                seg1[2] = x1[2] - x0[2];
+                seg2[0] = y1[0] - y0[0];
+                seg2[1] = y1[1] - y0[1];
+                seg2[2] = y1[2] - y0[2];
+                // Haiyang Yu, get line directions of gliding segments. Compare line direction and burgers vector directions to know whether they can collide and react. Preventing superdislocations from happening.
+                if ((bi[0] - bj[0]) * (bi[0] - bj[0]) + (bi[1] - bj[1]) * (bi[1] - bj[1]) + (bi[2] - bj[2]) * (bi[2] - bj[2]) < 1e-4)
                 {
-                    j = j + 1;
-                    continue;
+                    if (seg1[0] * seg2[0] + seg1[1] * seg2[1] + seg1[2] * seg2[2] > 1e-4)
+                    {
+                        j = j + 1;
+                        continue;
+                    }
+                }
+                if ((bi[0] + bj[0]) * (bi[0] + bj[0]) + (bi[1] + bj[1]) * (bi[1] + bj[1]) + (bi[2] + bj[2]) * (bi[2] + bj[2]) < 1e-4)
+                {
+                    if (seg1[0] * seg2[0] + seg1[1] * seg2[1] + seg1[2] * seg2[2] < 1e-4)
+                    {
+                        j = j + 1;
+                        continue;
+                    }
                 }
 
-				if ((bi[0]-bj[0])*(bi[0]-bj[0])+(bi[1]-bj[1])*(bi[1]-bj[1])+(bi[2]-bj[2])*(bi[2]-bj[2])<1e-4)
-				{
-					if ((ni[0]-nj[0])*(ni[0]-nj[0])+(ni[1]-nj[1])*(ni[1]-nj[1])+(ni[2]-nj[2])*(ni[2]-nj[2])<1e-4)
-					{
-						if (HYsin2 > 0.75)
-						{
-							j = j + 1;
-							continue;
-						}
-					}
-				}
-				xmid[0] = 0.5 * (x1[0] + x0[0]);
-				xmid[1] = 0.5 * (x1[1] + x0[1]);
-				xmid[2] = 0.5 * (x1[2] + x0[2]);
-				ymid[0] = 0.5 * (y1[0] + y0[0]);
-				ymid[1] = 0.5 * (y1[1] + y0[1]);
-				ymid[2] = 0.5 * (y1[2] + y0[2]);
-				Lcr_temp2 = mindist2*0.09;
-				if (((y0[0]-xmid[0])*(y0[0]-xmid[0])+(y0[1]-xmid[1])*(y0[1]-xmid[1])+(y0[2]-xmid[2])*(y0[2]-xmid[2])<Lcr_temp2)
-					|| ((y1[0]-xmid[0])*(y1[0]-xmid[0])+(y1[1]-xmid[1])*(y1[1]-xmid[1])+(y1[2]-xmid[2])*(y1[2]-xmid[2])<Lcr_temp2)
-					|| ((x0[0]-ymid[0])*(x0[0]-ymid[0])+(x0[1]-ymid[1])*(x0[1]-ymid[1])+(x0[2]-ymid[2])*(x0[2]-ymid[2])<Lcr_temp2)
-					|| ((x1[0]-ymid[0])*(x1[0]-ymid[0])+(x1[1]-ymid[1])*(x1[1]-ymid[1])+(x1[2]-ymid[2])*(x1[2]-ymid[2])<Lcr_temp2))
-				{
-					printf("Skipped: T patter detected");
-					j = j+1;
-					continue;
-				}*/
-                
-
-                /* Bruce Bromage, Daniel Celis. Stop interfereing with remesh. 20/07/2020. */
+                // Bruce Bromage, Daniel Celis. Stop interfereing with remesh. 20/07/2020.
                 n1s1_cnct = (int)round(connectivity[0][n1s1_int]) - 1;
                 n2s1_cnct = (int)round(connectivity[0][n2s1_int]) - 1;
                 remesh_flag = 1;

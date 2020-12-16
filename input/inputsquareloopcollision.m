@@ -108,8 +108,8 @@ plotFreq = 5;
 saveFreq = 1e9;
 u_dot = dx / 160E6;
 
-% calculateLoading = @sixStageDisplacementByEndLoad;
-calculateLoading = @constantLoading;
+calculateLoading = @sixStageDisplacementByEndLoad;
+% calculateLoading = @constantLoading;
 calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
     'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
 
