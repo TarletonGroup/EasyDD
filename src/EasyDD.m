@@ -100,7 +100,7 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 close all
-save(sprintf('../output/parms_%s_%d', simName, curstep));
+save(sprintf('../output/initial_%s_%d', simName, curstep));
 
 fprintf('Initialisation complete.\n');
 %%
@@ -163,13 +163,12 @@ while simTime < totalSimTime
 
     if mod(curstep, saveFreq) == 0
         close all;
-        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U)$).');
+        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
     end
 
     if ~any(rn(:, 4) == 0)
         fprintf('No more real segments, ending simulation.\n')
-        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U)$).');
-        %         saveSimulation(simName, curstep, 1)
+        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
         return;
     end
 
