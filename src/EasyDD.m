@@ -55,7 +55,7 @@
 
 % [fList, pList] = matlab.codetools.requiredFilesAndProducts('EasyDD.m');
 % fList(:)
-run inputCompletion.m
+%run inputCompletion.m
 
 % Compile mex files.
 CUDA_flag = compileCode(CUDA_flag);
@@ -145,7 +145,7 @@ while simTime < totalSimTime
         rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
         u_hat, nc, xnodes, D, mx, mz, w, h, d, lmin, CUDA_flag, Bcoeff, curstep);
 
-    rnnew = fixBlockadingNodes(rnnew);
+    rnnew = fixBlockadingNodes(rnnew,connectivitynew);
 
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = separation(doseparation, rnnew, ...
         linksnew, connectivitynew, linksinconnectnew, fsegnew, mobility, rotMatrix, MU, NU, a, Ec, ...

@@ -1,4 +1,4 @@
-function rnnew = fixBlockadingNodes(rnnew)
+function rnnew = fixBlockadingNodes(rnnew,connectivitynew)
 
     %find blockading fixed nodes and allow code to deal with them
     for i = 1:size(rnnew, 1)

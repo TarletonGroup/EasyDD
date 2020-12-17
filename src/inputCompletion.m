@@ -222,7 +222,7 @@ end
 
 if ~exist('simName', 'var')
     simName = date;
-    fprintf('Providing default value for saveFreq = %s.\n', simName)
+    fprintf('Providing default value for simName = %s.\n', simName)
 end
 
 if ~exist('saveFreq', 'var')

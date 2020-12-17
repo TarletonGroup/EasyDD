@@ -22,6 +22,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clear all
+
+simName = strcat('bb-tungsten-',date);
 %% SOURCE GENERATION PARAMETERS
 amag = 3.18e-4;
 mumag = 145E3; % MPa only used for plotting
@@ -38,7 +40,27 @@ dy = 5.4 / amag; %2micron
 dz = 5.3 / amag; %2micron
 
 mx = 40; % number of elements along beam length
-loading = 1;
+my = 8;
+mz = 8;
+loading = @displacementControl;
+simType = @cantileverBending;
+calculateTractions = @calculateAnalyticTractions;
+calculateLoading = @constantLoading;
+sign_u_dot = -1;
+sign_f_dot = -1;
+u_dot = dx / 160E6;
+u_bar = 0;
+f_dot = dx / 160E6;
+f_bar = 0;
+f_hat = 0;
+f_tilda = 0;
+u_hat = 0;
+u_tilda = 0;
+r_hat = 0;
+Fsim = zeros(1e6, 1);
+Usim = zeros(1e6, 1);
+t = zeros(1e6, 1);
+calculateLoadingFunctionArgs = 0;
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
             0, dy, 0; ...
@@ -55,6 +77,9 @@ MU = 1;
 NU = 0.28;
 
 %% DDLab PARAMETERS
+
+
+
 
 % c=1/amag;
 % x=0.25/(amag*sqrt(6));
@@ -82,6 +107,7 @@ NU = 0.28;
 %        7 8   b1 n1;
 %        8 1   b1 n1];
 
+rotMatrix = [];
 [rn, links] = bccsourcegen(NUM_SOURCES, DIST_SOURCE, dx, dy, dz);
 %     [rn]=[dx-0.5*dx,dy-0.5*dy,dz-0.5*dz,7;
 %           dx-0.5*dx,dy-0.5*dy,dz-0.55*dz,7;
@@ -101,8 +127,7 @@ NU = 0.28;
 
 %%
 %Edge and screw glide and climb mobility parameters
-mobility = 'mobbcc1';
-global Bscrew Bedge Beclimb Bline
+mobility = @mobbcc_bb1b;
 %Bedge=1e-4; %Pa s
 %Bscrew=1e-5; %Pa s
 %Beclimb=1e5; %Pa s - really big
@@ -111,6 +136,7 @@ Bedge = 1;
 Bscrew = 2;
 Beclimb = 1e10;
 Bline = 1e-4 * min(Bscrew, Bedge);
+Bcoeff = struct('screw', Bscrew, 'edge', Bedge, 'climb', Beclimb);
 
 %Meshing
 maxconnections = 4;
@@ -124,19 +150,20 @@ doseparation = 1; %flat set to 0 or 1 that turns splitting algorithm for highly 
 dovirtmesh = 1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
 
 %Simulation time
-dt0 = 1E6;
+dt0 = 1E9;
+dt=dt0;
 
 intSimTime = 0;
 sinTime = 0;
 %dtplot=2E-9; %2ns
 dtplot = 5E4;
 doplot = 1; % frame recording: 1 == on, 0 == off
-totalSimTime = (2 / amag) / (100 * 1E3 * dx * (1E-4/160E9));
+totalSimTime = (2 / amag) / (100 * 1E3 * dx * (1E-4/160E9))*1E3;
 curstep = 0;
 simTime = 0;
 
 %Integrator
-integrator = 'int_trapezoid';
+integrator = @int_trapezoid;
 %integrator='int_trapezoid_stoc'; %in development
 a = (lmin / sqrt(3) * 0.5) / 4;
 Ec = MU / (4 * pi) * log(a / 0.1);
@@ -146,6 +173,7 @@ rmax = lmax;
 
 %Plotting
 plotFreq = 10E7;
+saveFreq = 100;
 plim = 12 / amag; %12microns
 viewangle = [-35, 15];
 printfreq = 500;
@@ -154,3 +182,5 @@ printnode = 2;
 %GPU Setup
 
 n_threads = 512;
+CUDA_flag=false;
+para_scheme = 1;
