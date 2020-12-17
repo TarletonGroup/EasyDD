@@ -282,6 +282,11 @@ if ~exist('u_bar', 'var')
     fprintf('Providing default value for u_bar = %f.\n', u_bar)
 end
 
+if ~exist('u_bar_0', 'var')
+    u_bar_0 = 0;
+    fprintf('Providing default value for u_bar_0 = %f.\n', u_bar_0)
+end
+
 if ~exist('f_dot', 'var')
     f_dot = dx / 160E6;
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
@@ -290,6 +295,11 @@ end
 if ~exist('f_bar', 'var')
     f_bar = 0;
     fprintf('Providing default value for f_bar = %f.\n', f_bar)
+end
+
+if ~exist('f_bar_0', 'var')
+    f_bar_0 = 0;
+    fprintf('Providing default value for f_bar_0 = %f.\n', f_bar_0)
 end
 
 if ~exist('f_hat', 'var')
