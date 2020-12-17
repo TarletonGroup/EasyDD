@@ -174,11 +174,6 @@ if ~exist('curstep', 'var')
     fprintf('Providing default value for curstep = %d.\n', curstep)
 end
 
-if ~exist('simTime', 'var')
-    simTime = 0;
-    fprintf('Providing default value for simTime = %f.\n', simTime)
-end
-
 if ~exist('integrator', 'var')
     integrator = @int_trapezoid;
     fprintf('Providing default value for integrator:\n')
