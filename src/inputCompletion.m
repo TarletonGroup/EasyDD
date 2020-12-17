@@ -220,6 +220,12 @@ if ~exist('plotFreq', 'var')
     fprintf('Providing default value for plotFreq = %d.\n', plotFreq)
 end
 
+if ~exist('plotFlags', 'var')
+    plotFlags = struct('nodes', true, 'secondary', false);
+    fprintf('Providing default value for plotFlags.nodes = %d.\n', plotFlags.nodes)
+    fprintf('Providing default value for plotFlags.secondary = %d.\n', plotFlags.secondary)
+end
+
 if ~exist('simName', 'var')
     simName = date;
     fprintf('Providing default value for saveFreq = %s.\n', simName)
