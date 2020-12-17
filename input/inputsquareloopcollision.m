@@ -106,12 +106,15 @@ links = [1 2 b1 n1;
 
 plotFreq = 5;
 saveFreq = 1e9;
-u_dot = dx / 160E6;
+u_dot = dx / 160E9;
 
-calculateLoading = @sixStageDisplacementByEndLoad;
-% calculateLoading = @constantLoading;
-calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
-    'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
+% calculateLoading = @sixStageDisplacementByEndLoad;
+% calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
+%     'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
+calculateLoading = @constantLoading;
+u_bar_0 = 315;
+holdingTime = 1E7;
+
 
 %create mirror of prismatic loops (outside boundary)
 % rn_mirror = [rn(:,1)+dx , rn(:,2) , rn(:,3)+dx , zeros(length(rn(:,1)),1)+67];

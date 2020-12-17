@@ -164,8 +164,13 @@ if ~exist('simTime', 'var')
     fprintf('Providing default value for simTime = %f.\n', simTime)
 end
 
+if ~exist('holdingTime', 'var')
+    holdingTime = 0;
+    fprintf('Providing default value for holdingTime = %f.\n', holdingTime)
+end
+
 if ~exist('totalSimTime', 'var')
-    totalSimTime = 1e9;
+    totalSimTime = 1e9 + holdingTime;
     fprintf('Providing default value for totalSimTime = %f.\n', totalSimTime)
 end
 
