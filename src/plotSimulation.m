@@ -1,13 +1,21 @@
-function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep)
+function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep, plotFlags)
 
+    figNum = 0;
+    
     if (mod(curstep, plotFreq) == 0)
-        figure(1)
-        plotnodes(rn, links, plim, vertices);
-        view(viewangle);
-        drawnow
-
-        plotForceDisp(Usim, Fsim, amag, mumag, curstep);
-        pause(0.01);
+        if plotFlags.nodes
+            figNum = figNum + 1;
+            figure(figNum)
+            plotnodes(rn, links, plim, vertices);
+            view(viewangle);
+            drawnow
+        end
+        
+        if plotFlags.secondary
+            figNum = figNum + 1;
+            figure(figNum)
+            plotForceDisp(Usim, Fsim, amag, mumag, curstep);
+        end
     end
 
 end

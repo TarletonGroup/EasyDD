@@ -129,7 +129,7 @@ while simTime < totalSimTime
     % plastic strain and plastic spin calculations
     [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, (2 * plim)^3);
 
-    plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep);
+    plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep, plotFlags);
 
     [planeindex] = outofplanecheck(rn, links);
 
