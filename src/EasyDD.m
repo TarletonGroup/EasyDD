@@ -114,8 +114,8 @@ while simTime < totalSimTime
     % DDD+FEM coupling
     [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superposition(...
         rn, links, a, MU, NU, xnodes, kg, K, L, U, P_l, P_u, gamma_disp, gammaMixed, fixedDofs, ...
-        freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, sign_f_dot, ...
-        f_dot, u_tilda_0, u, u_hat, u_tilda, loading, calculateTractions, gamma_dln, x3x6, 4, ...
+        freeDofs, dx, dy, dz, simTime, mx, my, mz, sign_u_dot, u_dot, u_bar_0, sign_f_dot, ...
+        f_dot, f_bar_0, u_tilda_0, u, u_hat, u_tilda, loading, calculateTractions, gamma_dln, x3x6, 4, ...
         n_nodes_t, n_se, idxi, f, f_tilda_node, f_tilda_se, f_tilda, f_hat, CUDA_flag, ...
         n_threads, para_scheme, para_tol);
 
@@ -168,6 +168,7 @@ while simTime < totalSimTime
 
     if ~any(rn(:, 4) == 0)
         fprintf('No more real segments, ending simulation.\n')
+        close all;
         save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
         return;
     end
@@ -175,4 +176,5 @@ while simTime < totalSimTime
 end
 
 fprintf('Simulation completed.\n')
-saveSimulation(simName, curstep, 1)
+close all;
+save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
