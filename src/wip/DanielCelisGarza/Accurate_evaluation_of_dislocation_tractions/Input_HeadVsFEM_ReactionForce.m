@@ -19,9 +19,9 @@ planes = [1; 2; 3; 4; 5; 6];
 dx = 2000;
 dy = 2000;
 dz = 2000;
-mx = 40;
-my = 40;
-mz = 40;
+mx = 20;
+my = 20;
+mz = 20;
 
 mobility = @mobbcc1;
 simType = @NumTracVsAnaTrac;
@@ -52,6 +52,7 @@ clear x y z;
 len = 100;
 xcoord = linspace(0, dx, gridSize);
 ycoord = linspace(0, dy, gridSize);
+%  xcoord = xcoord(2) / 4 % there were substantial differences
 xcoord = xcoord(2) / 2; % middle of first element.
 ycoord = dy / 2; % middle of the domain
 x = linspace(xcoord, xcoord, len);
@@ -66,12 +67,14 @@ rn(:, 1) = x;
 rn(:, 2) = y;
 rn(:, 3) = z;
 links = zeros(len - 1, 8);
-rn(1, 4) = 7;
-rn(end, 4) = 7;
+rn(1, 4) = 6;
+rn(end, 4) = 6;
+rn = [rn; x(1) y(1) -1000*dz 67; x(1) y(1) 1000*dz 67];
 
 for i = 1:len - 1
     links(i, :) = [i, i + 1, bVec, nVec];
 end
+links = [links; len + 1, 1, bVec, nVec; len + 2, len, bVec, nVec];
 
 hold on
 plot3(rn(:, 1), rn(:, 2), rn(:, 3), 'r.')
@@ -84,9 +87,19 @@ f_dot = 0;
 loading = @staticSim;
 
 CUDA_flag = false;
-para_scheme = 2;
+para_scheme = 1;
 
-calculateTractions = @calculateNumericTractions;
-plotFreq = 10;
+simName = date;
+
+% calculateTractions = @calculateNumericTractions;
+% simName = strcat('numeric_', simName);
+calculateTractions = @calculateAnalyticTractions;
+simName = strcat('analytic_', simName);
+plotFreq = 5;
+saveFreq = 4*plotFreq;
+
+lmin = 10 * a;
+lmax = 2.5*lmin;
+rotMatrix = findRotationMatrixAtoB([1;0;0], [1;1;0])';
 
 addpath '../../../'
