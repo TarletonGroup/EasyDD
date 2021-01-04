@@ -3,6 +3,7 @@ clear all
 
 CRYSTAL_STRUCTURE = 'bcc';
 amag = 3.18e-4;
+simName = date;
 
 simTime = 0;
 use_gpu = 0;
@@ -24,6 +25,8 @@ my = 20;
 mz = 20;
 
 mobility = @mobbcc1;
+% mobility = @mobbcc_bb1b;
+% simName = strcat(simName, '_bb');
 simType = @NumTracVsAnaTrac;
 
 Fsim = [];
@@ -89,14 +92,12 @@ loading = @staticSim;
 CUDA_flag = false;
 para_scheme = 1;
 
-simName = date;
-
 % calculateTractions = @calculateNumericTractions;
 % simName = strcat('numeric_', simName);
 calculateTractions = @calculateAnalyticTractions;
 simName = strcat('analytic_', simName);
 plotFreq = 5;
-saveFreq = 4*plotFreq;
+saveFreq = 1e9;%4*plotFreq;
 
 lmin = 10 * a;
 lmax = 2.5*lmin;
