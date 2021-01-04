@@ -108,10 +108,10 @@ plotFreq = 5;
 saveFreq = 1e9;
 u_dot = dx / 160E9;
 
-% calculateLoading = @sixStageDisplacementByEndLoad;
-% calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
-%     'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
-calculateLoading = @constantLoading;
+calculateLoading = @sixStageDisplacementByEndLoad;
+calculateLoadingFunctionArgs = struct('u_dot_0', u_dot, ...
+    'u_bar_crit', [75; 115; 125; 145; 165], 'scaleFactor', [1/2; 1/5; 1/10; 1/25; 1/50]);
+% calculateLoading = @constantLoading;
 u_bar_0 = 315;
 holdingTime = 1E7;
 
@@ -190,6 +190,7 @@ holdingTime = 1E7;
 % mobility = 'mobbcc_bb1b';
 % a_trac = 1;
 
+% mobility = @mobbcc1;
 my = round(mx * dy / dx); % # elements in y direction
 my = max(my, 1);
 mz = round(mx * dz / dx); % elements in z direction

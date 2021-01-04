@@ -264,7 +264,7 @@ end
 
 if ~exist('para_scheme', 'var')
     para_scheme = 1;
-    fprintf('Providing default value for para_scheme = %d.\n', para_scheme)
+    fprintf('Providing default value for para_scheme = %d, parallelise over dislocation segments.\n', para_scheme)
 end
 
 if ~exist('sign_u_dot', 'var')

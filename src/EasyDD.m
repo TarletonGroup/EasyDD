@@ -100,7 +100,7 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 close all
-save(sprintf('../output/initial_%s_%d', simName, curstep));
+% save(sprintf('../output/initial_%s_%d', simName, curstep));
 
 fprintf('Initialisation complete.\n');
 %%
@@ -120,7 +120,7 @@ while simTime < totalSimTime
         n_threads, para_scheme, para_tol);
 
     [Fsim, Usim, t] = processForceDisp(Fsim, f_bar, f_hat, f_tilda, Usim, u_bar, u_hat, u_tilda, ...
-        r_hat, gammaMixed, fixedDofs, freeDofs, curstep, simTime);
+        r_hat, gammaMixed, fixedDofs, freeDofs, curstep, t, simTime);
 
     %integrating equation of motion
     [rnnew, vn, dt, fn, fseg] = integrator(rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
