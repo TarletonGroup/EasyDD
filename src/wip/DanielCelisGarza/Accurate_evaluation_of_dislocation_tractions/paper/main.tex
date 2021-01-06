@@ -278,10 +278,11 @@ The symmetry of the simple test cases can also influence how solution is as the 
 \end{figure}
 
 \citet{Queyreau} found the analytic solution is approximately 10 times more computationally expensive than its numerical counterpart for 1 quadrature point. The implementation of the analytic solution is also much more involved. One issue is the calculation of the $y$-coordinate in the local coordinate frame as shown in \cref{f:force_lin_rect} and \cref{eq:problem}, if $\vec{l} \perp \vec{n}$, we get a singularity. As mentioned in \cite{Queyreau}, an easy fix is to rotate the line segment about its midpoint around the $\vec{l} \times \vec{n}$ axis and use the mean values either side as the true result. An example of what this looks like in terms of forces can be seen in \cref{f:rotate} (we removed the singularity to keep the graph smooth).
-% TODO #53 zoom in at 0 +/-10 degrees 
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\linewidth]{ftot_rotation_lin_rect.pdf}
+    \subfloat[Full rotation of a segment.]{{\includegraphics[width=0.8\linewidth]{ftot_rotation_lin_rect.pdf}}}
+
+    \subfloat[Zoom of the rotation of a segment $\pm 10~\text{deg}$.]{{\includegraphics[width=0.8\linewidth]{ftot_rotation_lin_rect_zoom.pdf}}}
     \caption{Example of the components of the total force on a surface element (the force summed over all four FE nodes) as a dislocation segment parallel to the surface element ($\theta = 0$) is rotated about its midpoint around the axis defined by $\vec{l}\times\vec{n}$. The force is smooth but not necessarily antisymmetric about the neighbourhood of $\theta=0$.}
     \label{f:rotate}
 \end{figure}
