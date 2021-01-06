@@ -4,6 +4,7 @@ Created on Tue Jun  6 15:55:48 2017
 
 @author: daniel
 """
+# %%
 import matplotlib.pyplot as plt
 import numpy as np
 # Close all figures.
@@ -15,7 +16,8 @@ plt.rcParams["lines.linewidth"] = 4
 plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 plt.rcParams.update({'figure.autolayout': True})
 
-data = np.loadtxt("test.txt")
+data = np.loadtxt(
+    "D:\DPhil\OneDrive - Nexus365\EasyDD\src\wip\DanielCelisGarza\Accurate_evaluation_of_dislocation_tractions\paper\images\\test.txt")
 theta = data[0:, 0]
 fx = data[0:, 1]
 fy = data[0:, 2]
@@ -34,8 +36,8 @@ ax.set_xlim([-180, 180])
 ax.set_yticks(np.arange(-0.05, 0.06, 0.01))
 ax.set_xticks(np.arange(-180, 210, 30))
 ax.grid(True, which='both')
-plt.savefig('ftot_rotation.pdf', format='pdf')
-
+plt.show()
+plt.savefig('ftot_rotation_lin_rect.pdf', format='pdf')
 
 fig = plt.figure(2, figsize=(10, 10/1.618))
 ax = fig.add_subplot(111)
@@ -49,6 +51,7 @@ ax.set_xlim([-10, 10])
 ax.set_yticks(np.arange(-0.05, 0.06, 0.01))
 ax.set_xticks(np.arange(-10, 11, 2))
 ax.grid(True, which='both')
-plt.savefig('ftot_rotation_zoom.pdf', format='pdf')
+plt.show()
+plt.savefig('ftot_rotation_lin_rect_zoom.pdf', format='pdf')
 
-
+# %%
