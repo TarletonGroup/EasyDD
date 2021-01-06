@@ -36,8 +36,8 @@ ax.set_xlim([-180, 180])
 ax.set_yticks(np.arange(-0.05, 0.06, 0.01))
 ax.set_xticks(np.arange(-180, 210, 30))
 ax.grid(True, which='both')
-plt.show()
 plt.savefig('ftot_rotation_lin_rect.pdf', format='pdf')
+plt.show()
 
 fig = plt.figure(2, figsize=(10, 10/1.618))
 ax = fig.add_subplot(111)
@@ -51,7 +51,7 @@ ax.set_xlim([-10, 10])
 ax.set_yticks(np.arange(-0.05, 0.06, 0.01))
 ax.set_xticks(np.arange(-10, 11, 2))
 ax.grid(True, which='both')
-plt.show()
 plt.savefig('ftot_rotation_lin_rect_zoom.pdf', format='pdf')
+plt.show()
 
 # %%
