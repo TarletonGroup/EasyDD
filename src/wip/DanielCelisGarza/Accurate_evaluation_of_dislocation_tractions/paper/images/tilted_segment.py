@@ -5,6 +5,7 @@ Created on Tue Jun  6 15:55:48 2017
 @author: daniel
 """
 # %%
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 # Close all figures.
@@ -16,8 +17,7 @@ plt.rcParams["lines.linewidth"] = 4
 plt.rcParams["text.latex.preamble"] = r"\usepackage{bm}"
 plt.rcParams.update({'figure.autolayout': True})
 
-data = np.loadtxt(
-    "D:\DPhil\OneDrive - Nexus365\EasyDD\src\wip\DanielCelisGarza\Accurate_evaluation_of_dislocation_tractions\paper\images\\test.txt")
+data = np.loadtxt(os.getcwd()+"\\test.txt")
 theta = data[0:, 0]
 fx = data[0:, 1]
 fy = data[0:, 2]
