@@ -13,8 +13,18 @@ n_threads = 0;
 MU = 1;
 NU = 0.28;
 a = 5;
-bVec = [0 1 0];
-nVec = [1 0 0];
+
+% No rotation matrix.
+bVec = [1 1 1];
+nVec = [-1 1 0];
+
+% With rotation matrix.
+% n1 = [1 0 0]; e1 = [1;-1;0]; e1 = e1/norm(e1);
+% n2 = [0 1 0]; e2 = [1;1;1]; e2 = e2/norm(e2);
+% n3 = cross(n1,n2); e3 = cross(e1,e2); e3 = e3/norm(e3);
+% rotMatrix = [e1 e2 e3]';
+% bVec = [0 1 0];
+% nVec = [-1 0 0];
 
 planes = [1; 2; 3; 4; 5; 6];
 dx = 2000;
@@ -57,6 +67,9 @@ xcoord = linspace(0, dx, gridSize);
 ycoord = linspace(0, dy, gridSize);
 %  xcoord = xcoord(2) / 4 % there were substantial differences
 xcoord = xcoord(2) / 2; % middle of first element.
+% xcoord = dx / 8; % eigth of the domain.
+% xcoord = xcoord(2) / 2 * 5; % middle of third element.
+
 ycoord = dy / 2; % middle of the domain
 x = linspace(xcoord, xcoord, len);
 y = linspace(ycoord, ycoord, len);
@@ -92,15 +105,17 @@ loading = @staticSim;
 CUDA_flag = false;
 para_scheme = 1;
 
-% calculateTractions = @calculateNumericTractions;
-% simName = strcat('numeric_', simName);
-calculateTractions = @calculateAnalyticTractions;
-simName = strcat('analytic_', simName);
-plotFreq = 5;
+calculateTractions = @calculateNumericTractions;
+simName = strcat('numeric_', simName);
+% calculateTractions = @calculateAnalyticTractions;
+% simName = strcat('analytic_', simName);
+plotFreq = 1;
 saveFreq = 1e9;%4*plotFreq;
 
 lmin = 10 * a;
 lmax = 2.5*lmin;
-rotMatrix = findRotationMatrixAtoB([1;0;0], [1;1;0])';
 
 addpath '../../../'
+Bcoeff = struct('screw', 10, 'edge', 1, 'climb', 1e10, 'line', 1e-4);
+% dt0 = 1e9;
+% totalSimTime = 1e12;
