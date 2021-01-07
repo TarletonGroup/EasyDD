@@ -14,7 +14,7 @@ MU = 1;
 NU = 0.28;
 a = 5;
 
-% No rotation matrix.
+% % No rotation matrix.
 bVec = [1 1 1];
 nVec = [-1 1 0];
 
@@ -25,6 +25,9 @@ nVec = [-1 1 0];
 % rotMatrix = [e1 e2 e3]';
 % bVec = [0 1 0];
 % nVec = [-1 0 0];
+% 
+% bVec * rotMatrix
+% nVec * rotMatrix
 
 planes = [1; 2; 3; 4; 5; 6];
 dx = 2000;
@@ -66,8 +69,8 @@ len = 100;
 xcoord = linspace(0, dx, gridSize);
 ycoord = linspace(0, dy, gridSize);
 %  xcoord = xcoord(2) / 4 % there were substantial differences
-xcoord = xcoord(2) / 2; % middle of first element.
-% xcoord = dx / 8; % eigth of the domain.
+% xcoord = xcoord(2) / 2; % middle of first element.
+xcoord = dx / 8; % eigth of the domain.
 % xcoord = xcoord(2) / 2 * 5; % middle of third element.
 
 ycoord = dy / 2; % middle of the domain
@@ -109,7 +112,7 @@ calculateTractions = @calculateNumericTractions;
 simName = strcat('numeric_', simName);
 % calculateTractions = @calculateAnalyticTractions;
 % simName = strcat('analytic_', simName);
-plotFreq = 1;
+plotFreq = 10;
 saveFreq = 1e9;%4*plotFreq;
 
 lmin = 10 * a;
