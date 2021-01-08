@@ -100,7 +100,7 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 close all
-save(sprintf('../output/initial_%s_%d', simName, curstep), 'K','kg','L','U','P_l','P_u');
+% save(sprintf('../output/initial_%s_%d', simName, curstep), 'K','kg','L','U','P_l','P_u');
 
 fprintf('Initialisation complete.\n');
 %%

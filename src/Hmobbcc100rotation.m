@@ -1,9 +1,14 @@
-function [vn,fn,links] = Hmobbcc100rotation(fseg,rn,links,connectivity,nodelist,conlist,concentration)
+function [vn,fn,links] = Hmobbcc100rotation(fseg,rn,links,connectivity,nodelist,conlist,Bcoeff, rotMatrix)
 %mobility law function (model: FCC0)
 
 % [rn,links] = cross_slip_FCCrotate(fseg,rn,links,connectivity,nodelist,conlist);
 
-global Bscrew Bedge Bclimb Bline rotationBCC
+% global Bscrew Bedge Bclimb Bline rotationBCC
+
+    Bscrew = Bcoeff.screw;
+    Bedge = Bcoeff.edge;
+    Bclimb = Bcoeff.climb;
+    rotateCoords = false;
 
 rn0 = rn;
 links0 = links;
@@ -13,12 +18,15 @@ combinations110 = 1/sqrt(2) * [1 1 0 ; -1 -1 0 ; 1 -1 0 ; -1 1 0 ; ...
     0 1 1 ; 0 -1 -1 ; 0 1 -1 ; 0 -1 1 ];
 
 %HY20181010: rotate rn (line direction) to crystal system
-rn(:,1:3) = rn(:,1:3)*rotationBCC';
-%HY20181010: the fseg and links also need to be rotated
-fseg(:,1:3) = fseg(:,1:3)*rotationBCC';
-fseg(:,4:6) = fseg(:,4:6)*rotationBCC';
-links(:,3:5) = links(:,3:5)*rotationBCC';
-links(:,6:8) = links(:,6:8)*rotationBCC';
+if ~isempty(rotMatrix)
+    rotateCoords = true;
+    rn(:,1:3) = rn(:,1:3)*rotMatrix;
+    %HY20181010: the fseg and links also need to be rotated
+    fseg(:,1:3) = fseg(:,1:3)*rotMatrix;
+    fseg(:,4:6) = fseg(:,4:6)*rotMatrix;
+    links(:,3:5) = links(:,3:5)*rotMatrix;
+    links(:,6:8) = links(:,6:8)*rotMatrix;
+end
 
 %numerical tolerance
 eps=1e-6;
@@ -266,10 +274,12 @@ vdotl(row, 1) = 0;
 % vn(row, 1:3) = 0;
 % fn(row, 1:3) = 0;
 
-%HY20181010: rotate vn back to global system
-vn = vn*rotationBCC;
-%HY20181018: fn should also be rotated back!!!!
-fn = fn*rotationBCC;
+if rotateCoords
+    %HY20181010: rotate vn back to global system
+    vn = vn*rotMatrix';
+    %HY20181018: fn should also be rotated back!!!!
+    fn = fn*rotMatrix';
+end
 
 % if highlighti>0
 % plim = 1.1314e+03;

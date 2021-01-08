@@ -120,11 +120,6 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist, Bc
         else
             vn(n, :) = (Btotal \ fn(n, :)')'; % Btotal was wellconditioned so just take the inverse
         end
-        
-        if rotateCoords
-            vn = vn * rotMatrix';
-            fn = fn * rotMatrix';
-        end
 
         %    if numNbrs==2
         %        ii=conlist(n,2);
@@ -136,6 +131,11 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist, Bc
         %        linedir=rt./L;
         %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
         %    end
+    end
+    
+    if rotateCoords
+        vn = vn * rotMatrix';
+        fn = fn * rotMatrix';
     end
 
 end

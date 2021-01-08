@@ -212,11 +212,9 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
             disp('YDFUS, see line 212 of mobbcc_bb1b')
         end
 
-        if rotateCoords
-            vn = vn * rotMatrix';
-            fn = fn * rotMatrix';
-        end
-
     end
-
+    if rotateCoords
+        vn = vn * rotMatrix';
+        fn = fn * rotMatrix';
+    end
 end
