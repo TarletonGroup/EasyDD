@@ -100,12 +100,21 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 close all
-save(sprintf('../output/initial_%s_%d', simName, curstep));
+% save(sprintf('../output/initial_%s_%d', simName, curstep), 'K','kg','L','U','P_l','P_u');
 
 fprintf('Initialisation complete.\n');
 %%
 while simTime < totalSimTime
-
+    if ~any(rn(:, 4) == 0)
+        fprintf('No more real segments, ending simulation.\n')
+        return;
+    end
+    
+    if mod(curstep, saveFreq) == 0
+        close all
+        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
+    end
+    
     % Loading function.
     [sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, u_hat, u_tilda] = calculateLoading(...
         sign_u_dot, u_dot, sign_f_dot, f_dot, u_tilda_0, u, f_bar, f_hat, f_tilda, u_bar, ...
@@ -120,7 +129,7 @@ while simTime < totalSimTime
         n_threads, para_scheme, para_tol);
 
     [Fsim, Usim, t] = processForceDisp(Fsim, f_bar, f_hat, f_tilda, Usim, u_bar, u_hat, u_tilda, ...
-        r_hat, gammaMixed, fixedDofs, freeDofs, curstep, simTime);
+        r_hat, gammaMixed, fixedDofs, freeDofs, curstep, t, simTime);
 
     %integrating equation of motion
     [rnnew, vn, dt, fn, fseg] = integrator(rn, dt, dt0, MU, NU, a, Ec, links, connectivity, ...
@@ -160,21 +169,8 @@ while simTime < totalSimTime
         linksnew, connectivitynew, linksinconnectnew, fsegnew);
 
     [curstep, simTime] = updateTime(curstep, simTime, dt);
-
-    if mod(curstep, saveFreq) == 0
-        close all;
-        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
-    end
-
-    if ~any(rn(:, 4) == 0)
-        fprintf('No more real segments, ending simulation.\n')
-        close all;
-        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
-        return;
-    end
-
 end
 
 fprintf('Simulation completed.\n')
-close all;
+close all
 save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');

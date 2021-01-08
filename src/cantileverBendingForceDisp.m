@@ -1,5 +1,5 @@
 function [Fsim, Usim, t] = cantileverBendingForceDisp(Fsim, f_bar, f_hat, f_tilda, Usim, u_bar, u_hat, u_tilda, r_hat, ...
-        gammaMixed, fixedDofs, freeDofs, curstep, simTime)
+        gammaMixed, fixedDofs, freeDofs, curstep, t, simTime)
 
     f_out = sum(r_hat(3 * gammaMixed(:, 1)) + f_tilda(3 * gammaMixed(:, 1)));
     u_out = u_bar;

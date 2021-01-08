@@ -1,10 +1,21 @@
-function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff)
+function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff, rotMatrix)
     %mobility law function (model: BCC0)
     %modified by Francesco Ferroni, francesco.ferroni@materials.ox.ac.uk
     Bscrew = Bcoeff.screw;
     Bedge = Bcoeff.edge;
     Beclimb = Bcoeff.climb;
     Bline = Bcoeff.line;
+    
+    rotateCoords = false;
+
+    if ~isempty(rotMatrix)
+        rotateCoords = true;
+        rn(:, 1:3) = rn(:, 1:3) * rotMatrix;
+        fseg(:, 1:3) = fseg(:, 1:3) * rotMatrix;
+        fseg(:, 4:6) = fseg(:, 4:6) * rotMatrix;
+        links(:, 3:5) = links(:, 3:5) * rotMatrix;
+        links(:, 6:8) = links(:, 6:8) * rotMatrix;
+    end
 
     %numerical tolerance
     eps = 1e-7;
@@ -120,6 +131,11 @@ function [vn, fn] = mobbcc1(fseg, rn, links, connectivity, nodelist, conlist, Bc
         %        linedir=rt./L;
         %        vn(n,:)=((eye(3)-linedir'*linedir)*vn(n,:)')';
         %    end
+    end
+    
+    if rotateCoords
+        vn = vn * rotMatrix';
+        fn = fn * rotMatrix';
     end
 
 end

@@ -24,7 +24,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
     for p = 1:size(vn, 1)
 
         % Virtual and fixed nodes have zero velocity
-        if rn(p, 4) == 7 || rn(p, 4) == 67
+        if rn(p, 4) == 7 || rn(p, 4) == 67 || rn(p, 4) == 61
             vn(p, :) = [0 0 0];
             % Surface nodes are confined to moving in the movement plane and surface plane.
             % TODO #41
@@ -103,7 +103,6 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
                 if norm(vn(p, :)) < eps
                     vn(p, :) = [0 0 0];
                 end
-
             end
 
         end

@@ -148,15 +148,21 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(...
     % Parallel CUDA C calculation.
     % serial last dislocation and surface element
     if CUDA_flag
-        % Provide a default number of threads in case none is given.
-        if ~exist('n_threads', 'var')
-            n_threads = ceil(mod(n_dln, 256) / 32) * 32;
-        end %if
-
+        
         % Provide a default parallelisaion scheme in case none is given.
         if ~exist('para_scheme', 'var')
             % Parallelise over dislocations.
             para_scheme = 1;
+        end %if
+        
+        % Provide a dynamic default number of threads in case none is given.
+        if ~exist('n_threads', 'var') || n_threads == 0
+            if para_scheme == 1
+                numInstances = n_dln;
+            else
+                numInstances = n_se;
+            end
+            n_threads = ceil(mod(numInstances, gpuDevice().MaxThreadsPerBlock) / 32) * 32;
         end %if
 
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
@@ -166,6 +172,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(...
             se_node_coord(:, 3), se_node_coord(:, 4), ...
             burgers(:), mu, nu, a, n_se, n_dln, n_threads, ...
             para_scheme, para_tol);
+
         % Serial force calculation in C.
     else
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
