@@ -213,6 +213,7 @@ function [vn, fn] = mobbcc_bb1b(fseg, rn, links, connectivity, nodelist, conlist
         end
 
     end
+    
     if rotateCoords
         vn = vn * rotMatrix';
         fn = fn * rotMatrix';

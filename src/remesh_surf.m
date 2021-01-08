@@ -134,7 +134,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     while i < size(rnnew, 1)
 
-        if rnnew(i, end) ~= 6
+        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
             i = i + 1;
             continue
         end
@@ -145,7 +145,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
         for j = 1:numcon
             connode = linksnew(connectivitynew(i, 2 * j), 3 - connectivitynew(i, 2 * j + 1));
 
-            if rnnew(connode, end) == 6
+            if rnnew(connode, end) == 6 || rnnew(connode, end) == 61
                 [rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, ~] = mergenodes(rnnew, connectivitynew, linksnew, linksinconnectnew, fsegnew, connode, i, 1, 1, 1, 1);
                 %             if nodeid~=0
                 %                 [rnnew] = movetosurf(rnnew,linksnew,nodeid,vertices);
@@ -170,7 +170,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     for i = 1:L1%length(rnnew)  ET updated- check!
 
-        if rnnew(i, end) ~= 6
+        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
             continue;
         end
 
@@ -205,7 +205,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     while i < size(rnnew, 1)
 
-        if rnnew(i, end) ~= 6
+        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
             i = i + 1;
             continue
         end
