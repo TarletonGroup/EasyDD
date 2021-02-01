@@ -49,31 +49,32 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
         end
 
     end
-%% This needs to be changed to make it general.
-%     %Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
-%     for n = 1:L1
-% 
-%         if rnnew(n, end) == 65 && rnnew(n, 1) <= 0
-%             vec = [0, 0, 0];
-%             connumb = connectivitynew(n, 1);
-% 
-%             for m = 1:connumb
-%                 vec = vec + rnnew(linksnew(connectivitynew(n, 2 * m), 3 - connectivitynew(n, 2 * m + 1)), 1:3) - rnnew(n, 1:3);
-%             end
-% 
-%             vec = rnnew(n, 1) .* (vec / vec(1, 1));
-%             rnnew(n, 1:3) = rnnew(n, 1:3) - vec;
-%             rnnew(n, end) = 7;
-% 
-%             if any(isnan(rnnew(n, 1:3)))
-%                 fprintf('Error fixing node to back end. See remesh_surf line 62')
-%                 pause;
-%             end
-% 
-%         end
-% 
-%     end
-%%
+
+    %% This needs to be changed to make it general.
+    %     %Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
+    %     for n = 1:L1
+    %
+    %         if rnnew(n, end) == 65 && rnnew(n, 1) <= 0
+    %             vec = [0, 0, 0];
+    %             connumb = connectivitynew(n, 1);
+    %
+    %             for m = 1:connumb
+    %                 vec = vec + rnnew(linksnew(connectivitynew(n, 2 * m), 3 - connectivitynew(n, 2 * m + 1)), 1:3) - rnnew(n, 1:3);
+    %             end
+    %
+    %             vec = rnnew(n, 1) .* (vec / vec(1, 1));
+    %             rnnew(n, 1:3) = rnnew(n, 1:3) - vec;
+    %             rnnew(n, end) = 7;
+    %
+    %             if any(isnan(rnnew(n, 1:3)))
+    %                 fprintf('Error fixing node to back end. See remesh_surf line 62')
+    %                 pause;
+    %             end
+    %
+    %         end
+    %
+    %     end
+    %%
     %Create surface nodes for newly exited nodes
     for n = 1:L1
         n0 = nodelist(n); % the node id which is currently considered.
@@ -134,7 +135,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     while i < size(rnnew, 1)
 
-        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
+        if ~(rnnew(i, end) == 6 || rnnew(i, end) == 61)
             i = i + 1;
             continue
         end
@@ -170,7 +171,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     for i = 1:L1%length(rnnew)  ET updated- check!
 
-        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
+        if ~(rnnew(i, end) == 6 || rnnew(i, end) == 61)
             continue;
         end
 
@@ -205,7 +206,7 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
 
     while i < size(rnnew, 1)
 
-        if rnnew(i, end) ~= 6 || rnnew(i, end) ~= 61
+        if ~(rnnew(i, end) == 6 || rnnew(i, end) == 61)
             i = i + 1;
             continue
         end
