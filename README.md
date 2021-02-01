@@ -1,6 +1,6 @@
 # EasyDD
 
-Dislocation plasticity simulations using explicitly calculated interactions.
+Dislocation plasticity simulations using explicitly calculated interactions. Based on DDLab. 
 
 ## Requirements
 
