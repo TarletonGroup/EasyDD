@@ -7,6 +7,10 @@ if ~exist('amag', 'var')
     fprintf('Providing default value for amag = %f.\n', amag)
 end
 
+if ~exist('plotArgs', 'var')
+    plotArgs = [];
+end
+
 if ~exist('mumag', 'var')
     mumag = 1.6e5; % MPa only for plotting.
     fprintf('Providing default value for mumag = %f.\n', mumag)
@@ -125,12 +129,12 @@ if ~exist('lmin', 'var')
 end
 
 if ~exist('areamin', 'var')
-    areamin = lmin * lmin * sin(60/180 * pi) * 0.5;
+    areamin = lmin * lmin * 0.5;
     fprintf('Providing default value for areamin = %f.\n', areamin)
 end
 
 if ~exist('areamax', 'var')
-    areamax = 20 * areamin;
+    areamax = max(4*sind(45)*lmax^2/2, 1.2*areamin);%lmax * lmax * 0.5;%20 * areamin;
     fprintf('Providing default value for areamax = %f.\n', areamax)
 end
 
@@ -196,7 +200,7 @@ if ~exist('Ec', 'var')
 end
 
 if ~exist('rann', 'var')
-    rann = 0.9 * lmin;
+    rann = lmin/2;%0.9 * lmin;
     fprintf('Providing default value for rann = %f.\n', rann)
 end
 
@@ -266,6 +270,12 @@ if ~exist('para_scheme', 'var')
     para_scheme = 1;
     fprintf('Providing default value for para_scheme = %d, parallelise over dislocation segments.\n', para_scheme)
 end
+
+if ~exist('CUDA_segseg_flag', 'var')
+    CUDA_segseg_flag = false;
+    fprintf('Providing default value for para_scheme = %d, parallelise segseg forces.\n', CUDA_segseg_flag)
+end
+
 
 if ~exist('sign_u_dot', 'var')
     sign_u_dot = -1;
@@ -361,6 +371,11 @@ end
 if ~exist('dt', 'var')
     dt = dt0;
     fprintf('Providing default value for dt = %f.\n', dt)
+end
+
+if ~exist('dtMin', 'var')
+    dtMin = dt0*1e-6;
+    fprintf('Providing default value for dtMin = %f.\n', dtMin)
 end
 
 if ~exist('rotMatrix', 'var')

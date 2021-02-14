@@ -1,0 +1,172 @@
+\RequireVersions{
+  *{application}{eTeX}    {0000/00/00 v2.6}
+  *{format} {LaTeX2e}     {2020-02-02 v2.e}
+  *{class}  {iopart}      {1996/06/10 v0.0}
+  *{file}   {iopart12.clo}{1997/01/15 v1.0}
+  *{package}{graphicx}    {2019/11/30 v1.2a}
+  *{package}{keyval}      {2014/10/28 v1.15}
+  *{package}{graphics}    {2019/11/30 v1.4a}
+  *{package}{trig}        {2016/01/03 v1.10}
+  *{file}   {graphics.cfg}{2016/06/04 v1.11}
+  *{file}   {xetex.def}   {2020/08/26 v5.0i}
+  *{package}{subfig}      {2005/06/28 v1.3}
+  *{package}{caption}     {2020/09/02 v3.5a}
+  *{package}{caption3}    {2020/09/11 v2.0b}
+  *{package}{hyperref}    {2020-05-15 v7.00e}
+  *{package}{ltxcmds}     {2019/12/15 v1.24}
+  *{package}{iftex}       {2020/03/06 v1.0d}
+  *{package}{pdftexcmds}  {2020-06-27 v0.33}
+  *{package}{infwarerr}   {2019/12/03 v1.5}
+  *{package}{kvsetkeys}   {2019/12/15 v1.18}
+  *{package}{kvdefinekeys}{2019-12-19 v1.6}
+  *{package}{pdfescape}   {2019/12/09 v1.15}
+  *{package}{hycolor}     {2020-01-27 v1.10}
+  *{package}{letltxmacro} {2019/12/03 v1.6}
+  *{package}{auxhook}     {2019-12-17 v1.6}
+  *{package}{kvoptions}   {2019/11/29 v3.13}
+  *{file}   {pd1enc.def}  {2020-05-15 v7.00e}
+  *{package}{intcalc}     {2019/12/15 v1.3}
+  *{package}{etexcmds}    {2019/12/15 v1.7}
+  *{package}{url}         {2013/09/16 v3.4}
+  *{package}{bitset}      {2019/12/09 v1.3}
+  *{package}{bigintcalc}  {2019/12/15 v1.5}
+  *{package}{atbegshi}    {2019/12/05 v1.19}
+  *{file}   {hxetex.def}  {2020-05-15 v7.00e}
+  *{file}   {puenc.def}   {2020-05-15 v7.00e}
+  *{package}{stringenc}   {2019/11/29 v1.12}
+  *{package}{rerunfilecheck}{2019/12/05 v1.9}
+  *{package}{atveryend}   {2019-12-11 v1.11}
+  *{package}{uniquecounter}{2019/12/15 v1.4}
+  *{package}{lineno}      {2005/11/02 v4.41}
+  *{package}{booktabs}    {2020/01/12 v1.61803398}
+  *{package}{amsmath}     {2020/01/20 v2.17e}
+  *{package}{amstext}     {2000/06/29 v2.01}
+  *{package}{amsgen}      {1999/11/30 v2.0}
+  *{package}{amsbsy}      {1999/11/29 v1.2d}
+  *{package}{amsopn}      {2016/03/08 v2.02}
+  *{package}{isomath}     {2012/09/04 v0.6.1}
+  *{package}{fixmath}     {2000/04/11 v0.9}
+  *{package}{amssymb}     {2013/01/14 v3.01}
+  *{package}{amsfonts}    {2013/01/14 v3.01}
+  *{package}{bm}          {2019/07/24 v1.2d}
+  *{package}{cleveref}    {2018/03/27 v0.21.4}
+  *{package}{placeins}    {2005/04/18 v2.2}
+  *{package}{algorithm}   {2009/08/24 v0.1}
+  *{package}{float}       {2001/11/08 v1.3d}
+  *{package}{ifthen}      {2014/09/29 v1.1c}
+  *{package}{algpseudocode}{0000/00/00 v0.0}
+  *{package}{algorithmicx}{2005/04/27 v1.2}
+  *{package}{comment}     {0000/00/00 v0.0}
+  *{package}{natbib}      {2010/09/13 v8.31b}
+  *{package}{lmodern}     {2009/10/30 v1.6}
+  *{package}{snapshot}    {2012/08/06 v2.13}
+  *{file}   {macros.tex}  {0000/00/00 v0.0}
+  *{file}   {l3backend-xetex.def}{2020-09-11 v3}
+  *{file}   {ts1cmr.fd}   {2019/12/16 v2.5j}
+  *{package}{nameref}     {2019/09/16 v2.46}
+  *{package}{refcount}    {2019/12/15 v3.6}
+  *{package}{gettitlestring}{2019/12/15 v1.6}
+  *{file}   {main.out}    {0000/00/00 v0.0}
+  *{file}   {main.out}    {0000/00/00 v0.0}
+  *{file}   {ot1lmr.fd}   {2009/10/30 v1.6}
+  *{file}   {omllmm.fd}   {2009/10/30 v1.6}
+  *{file}   {omslmsy.fd}  {2009/10/30 v1.6}
+  *{file}   {omxlmex.fd}  {2009/10/30 v1.6}
+  *{file}   {umsa.fd}     {2013/01/14 v3.01}
+  *{file}   {umsb.fd}     {2013/01/14 v3.01}
+  *{file}   {omllmr.fd}   {2009/10/30 v1.6}
+  *{file}   {omlcmbr.fd}  {2005/04/13 v8.1}
+  *{file}   {omlcmbrm.fd} {2005/04/13 v8.1}
+  *{file}   {ot1lmss.fd}  {2009/10/30 v1.6}
+  *{-------}{Document-specific files:}{----}
+  *{file}   {se-ascii-print.def}{2019/11/29 v1.12}
+  *{file}   {./images/fem_ddd.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/2d_gaussian_quad.pdf}{0000/00/00 v0.0}
+  *{file}   {images/force_calc_linear_rectangle.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/eta_mx=60_face=1.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/eta_mx=120_face=1.pdf}{0000/00/00 v0.0}
+  *{file}   {images/test_gauss_quad.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/ftot_rotation_lin_rect_inlaid.pdf}{0000/00/00 v0.0}
+  *{file}   {images/fe_numbering.pdf}{0000/00/00 v0.0}
+  *{file}   {images/surf_node_plane.pdf}{0000/00/00 v0.0}
+  *{file}   {images/lrse_thread_map.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/head_vs_fe_tractions_setup_diagram.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/perp_e_xz=5.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/perp_e_xz=15_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/perp_e_xz=1005_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/perp_e_xz=100005_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/par_e_z.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxzperpEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syzperpEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/szzperpEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxzparEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syzparEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/szzparEdgeFiveb.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/sxxNAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyNEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/syyNAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyNEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/sxyNAEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/sxxNAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syyNEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/syyNAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxyNEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/sxyNAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxzscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxzAscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxzNscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/sxzNAscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syzscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syzAscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/syzNscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/syzNAscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_syyEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxyEperp_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_syyEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxyEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxzscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_syzscrew_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNAEpar_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEpar11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEpar11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEpar11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNAEpar11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEparTot3_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEparTot3_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEparTot3_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNAEparTot3_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxEparTot11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxAEparTot11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNEparTot11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/sxxNAEparTot11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEpar3.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEpar11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEparTot3_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {images/line_sxxEparTot11_leg.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/analytic_0.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/analytic_50.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/analytic_66.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/numeric_0.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/numeric_78.pdf}{0000/00/00 v0.0}
+  *{file}   {./images/numeric_156.pdf}{0000/00/00 v0.0}
+  *{file}   {main.bbl}    {0000/00/00 v0.0}
+}

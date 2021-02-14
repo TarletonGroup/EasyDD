@@ -1,5 +1,5 @@
 function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag)
+        uhat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag)
     %compute nodal driving force of dislocation network by stress formula
     %(vectorized version)
     %rn: nodal position
@@ -37,7 +37,7 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
     if linkid == 0%calculate forces on all segments
         %PK force due to applied stress
 
-        fpk = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments);
+        fpk = pkforcevec(uhat, nc, xnodes, D, mx, my, mz, w, h, d, segments);
 
         %self force due to self stress
         [fs0, fs1] = selfforcevec(MU, NU, a, Ec, segments);
@@ -73,7 +73,7 @@ function [fseg_tot] = segforcevec(MU, NU, a, Ec, rn, links, linkid, ~, ...
         end
 
         %PK force due to applied stress
-        fpk = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments(linkid, :));
+        fpk = pkforcevec(uhat, nc, xnodes, D, mx, my, mz, w, h, d, segments(linkid, :));
 
         %self force due to self stress
         [fs0, fs1] = selfforcevec(MU, NU, a, Ec, segments(linkid, :));
@@ -97,7 +97,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function f = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments)
+function f = pkforcevec(uhat, nc, xnodes, D, mx, my, mz, w, h, d, segments)
     %nodal force on dislocation segments due to applied stress sigext
     %(vectorized version)
     %format of segments array:
@@ -119,7 +119,7 @@ function f = pkforcevec(uhat, nc, xnodes, D, mx, mz, w, h, d, segments)
             pause;
         end
 
-        sigext = hatStress(uhat, nc, xnodes, D, mx, mz, w, h, d, xi); %must not pass virtsegs!
+        sigext = hatStress(uhat, nc, xnodes, D, mx, my, mz, w, h, d, xi); %must not pass virtsegs!
 
         sigb = sigext * b(i, 1:3)';
         l = r01(i, :);

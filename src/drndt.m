@@ -1,5 +1,5 @@
 function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivity, ...
-        mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, mz, w, h, d, Bcoeff, CUDA_flag)
+        mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, my, mz, w, h, d, Bcoeff, CUDA_flag)
 
     % This needs to be an input/obtained from the surface nodes. This is a temporary fix for cuboid.
     normals = [1 0 0;
@@ -14,7 +14,7 @@ function [vnvec, fn, fseg] = drndt(rnvec, flag, MU, NU, a, Ec, links, connectivi
 
     %nodal driving force
     fseg = segforcevec(MU, NU, a, Ec, rn, links, 0, vertices, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
+        uhat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag);
 
     %mobility function
     [vn, fn] = mobility(fseg, rn, links, connectivity, [], [], Bcoeff, rotMatrix);

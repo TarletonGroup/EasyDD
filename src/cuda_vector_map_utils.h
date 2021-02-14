@@ -62,7 +62,7 @@ double *element_host_device_map(double *i_node_arr[], int i_n_elem_scope, int i_
         // Advance the input index to point at the j'th coordinate of the (k+1)'th element of the i'th node.
         idxi += 3;
       }
-      // Advance the output index to point at the i'th node of the j'th coordinate of the first element.
+      // Advance the output index to point at the i'th node of the (j+1)'th coordinate of the first element.
       idxf += n_elem_n_nodes;
     }
     // Advance the temporary index to point at the (i+1)'th node of the first coordinate of the first element.

@@ -1,6 +1,6 @@
 function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = collision(...
         rn, links, connectivity, linksinconnect, fseg, mindist, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
-        uhat, nc, xnodes, D, mx, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, ~, lmin, CUDA_flag, Bcoeff)
+        uhat, nc, xnodes, D, mx, my, mz, w, h, d, floop, n1s1, n2s1, n1s2, n2s2, s1, s2, ~, lmin, CUDA_flag, Bcoeff)
     %floop to know wich loop has to be run
 
     colliding_segments = 1;
@@ -111,7 +111,7 @@ function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = c
 
                     for k = 1:connectivity(mergednodeid, 1)
                         linkid = connectivity(mergednodeid, 2 * k);
-                        fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
+                        fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag);
                         othernode = links(linkid, 3 - connectivity(mergednodeid, 2 * k + 1)); % 3-connectivity(mergednodeid,2*k+1) = 1 or 2, it corresponds to the position of the other node of the link ( the one which is not mergenode ) M
                         clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
                         [rn(othernode, 4:6), ~] = mobility(fseg, rn, links, connectivity, othernode, clist, Bcoeff, rotMatrix);
@@ -222,7 +222,7 @@ function [rn, links, connectivity, linksinconnect, fseg, colliding_segments] = c
 
                 for k = 1:connectivity(mergednodeid, 1)
                     linkid = connectivity(mergednodeid, 2 * k);
-                    fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, mz, w, h, d, CUDA_flag);
+                    fseg(linkid, :) = segforcevec(MU, NU, a, Ec, rn(:, [1 2 3 lrn2]), links, linkid, vertices, uhat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag);
                     othernode = links(linkid, 3 - connectivity(mergednodeid, 2 * k + 1));
                     clist = [connectivity(othernode, 1) linspace(1, connectivity(othernode, 1), connectivity(othernode, 1))];
                     [rn(othernode, 4:6), ~] = mobility(fseg, rn, links, connectivity, othernode, clist, Bcoeff, rotMatrix);

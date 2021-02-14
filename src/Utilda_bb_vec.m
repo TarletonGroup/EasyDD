@@ -187,8 +187,8 @@ function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gnl, NU, xnodes, dx, ...
                 disp_dislo_tri_ABC_plas(Bprime', Aprime', Ctemp', nodepoints', b');
         end
 
-        if any(isnan(Utilda))
-            fprintf('Error in line 130 of Utilda_bb3_vec: Some output values are NaN')
+        if any(any(isnan(Utilda))) || any(any(isinf(Utilda)))
+            fprintf('Error in line 130 of Utilda_bb3_vec: Some output values are NaN or Inf')
             pause
         end
 

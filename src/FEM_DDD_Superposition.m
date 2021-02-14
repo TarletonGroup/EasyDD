@@ -35,7 +35,7 @@ function [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superpo
     f(fixedDofs) = bcwt * u_hat(fixedDofs);
 
     if isempty(U)
-        u_hat = K(freeDofs) \ f(freeDofs);
+        u_hat(freeDofs) = K \ f(freeDofs);
     else
         u_hat(freeDofs) = P_l \ (U \ (L \ (P_u \ f(freeDofs)))); % using LU decomposition for sparse matrices
     end

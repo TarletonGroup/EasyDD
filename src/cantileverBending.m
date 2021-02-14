@@ -1,6 +1,6 @@
 function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, gammat, gammau,...
     gammaMixed, fixedDofs, freeDofs, processForceDisp, plotForceDisp] = cantileverBending(...
-    kg, w, h, d, mno, mx, my, mz)
+    kg, w, h, d, mno, mx, my, mz,~)
 
     fprintf('Cantilever bending boundary conditions: reformatting K\n');
 

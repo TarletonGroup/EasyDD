@@ -1,4 +1,4 @@
-function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep, plotFlags)
+function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewangle, plotForceDisp, amag, mumag, curstep, plotFlags, args)
 
     figNum = 0;
     
@@ -14,7 +14,7 @@ function plotSimulation(Usim, Fsim, rn, links, plim, vertices, plotFreq, viewang
         if plotFlags.secondary
             figNum = figNum + 1;
             figure(figNum)
-            plotForceDisp(Usim, Fsim, amag, mumag, curstep);
+            plotForceDisp(Usim, Fsim, amag, mumag, curstep, args);
         end
     end
 

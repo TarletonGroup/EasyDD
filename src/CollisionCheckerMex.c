@@ -39,7 +39,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double vx0[3], vx1[3], vy0[3], vy1[3];
     double dist2[1] = {0}, ddist2dt[1] = {0}, L1[1] = {0}, L2[1] = {0};
     int logic, flag1, flag2, remesh_flag;
-    int i, j, k;
+    int i, j, k, s;
     int link_col, link_row, nodenoti, linkid, tmp;
     const double eps = 1E-12;
     int connectivity_M, connectivity_N;
@@ -53,6 +53,10 @@ void mexFunction(int nlhs, mxArray *plhs[],
     double bi[3], ni[3], bj[3], nj[3];
     double xmid[3], ymid[3];
     double Lcr_temp2 = 0.0;
+    double *s1Skip;
+    double *s2Skip;
+    int numLinksSkipped;
+    bool skipSegs = false;
     /********* MEX memory management *********/
     rn_x = (double *)mxGetPr(prhs[0]);
     rn_y = (double *)mxGetPr(prhs[1]);
@@ -71,6 +75,9 @@ void mexFunction(int nlhs, mxArray *plhs[],
     plane_x = (double *)mxGetPr(prhs[14]);
     plane_y = (double *)mxGetPr(prhs[15]);
     plane_z = (double *)mxGetPr(prhs[16]);
+    s1Skip = (double *)mxGetPr(prhs[17]);
+    s2Skip = (double *)mxGetPr(prhs[18]);
+    numLinksSkipped = mxGetNumberOfElements(prhs[17]);
     rn_length = mxGetNumberOfElements(prhs[0]);
     links_length = mxGetNumberOfElements(prhs[7]);
 
@@ -153,6 +160,23 @@ void mexFunction(int nlhs, mxArray *plhs[],
             while (k <= (int)round(connectivity[0][i]) - 1 /*correct for matlab indexing*/)
             {
                 linkid = (int)round(connectivity[2 * k + 1][i]) - 1; /*correct for matlab indexing*/
+                
+                // Skip segments that collided and got separated immediately after.
+                for (s = 0; s < numLinksSkipped; s++){
+                    if (linkid + 1 == (int)round(s1Skip[s]) && link_row + 1 == (int)round(s2Skip[s]) || linkid + 1 == (int)round(s2Skip[s]) && link_row + 1 == (int)round(s1Skip[s])){
+                        skipSegs = true;
+                        break;
+                    }
+                    else {
+                        skipSegs = false;
+                    }
+                }
+                
+                if (skipSegs){
+                    k++;
+                    continue;
+                }
+                
                 if (j != k)
                 {
                     n1s1_int = (int)round(links_c1[linkid]) - 1; /*correct for matlab indexing*/
@@ -245,22 +269,22 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     }
 
                     logic = (dist2[0] < mindist2) && (ddist2dt[0] < -eps) && newseglen > mindist2;
-
                     if (logic == 1)
                     {
-                        colliding_segments[0] = 1;
-                        n1s1[0] = (double)(n1s1_int + 1); // correct for matlab indexing
-                        n1s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
-                        n2s1[0] = (double)(n2s1_int + 1); // correct for matlab indexing
-                        n2s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
-                        s1[0] = (double)linkid + 1;
-                        s2[0] = (double)link_row + 1;
+                        smallestMinDistTmp = 1 / dist2[0];
+                        if (smallestMinDistTmp > smallestMinDist)
+                        {
+                            smallestMinDist = smallestMinDistTmp;
+                            colliding_segments[0] = 1;
+                            n1s1[0] = (double)(n1s1_int + 1); // correct for matlab indexing
+                            n1s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
+                            n2s1[0] = (double)(n2s1_int + 1); // correct for matlab indexing
+                            n2s2[0] = (double)(nodenoti + 1); // correct for matlab indexing
+                            s1[0] = (double)linkid + 1;
+                            s2[0] = (double)link_row + 1;
 
-                        floop[0] = 2;
-
-                        // remember to de-allocate 2D connectivity array
-                        mxFree(connectivity);
-                        return;
+                            floop[0] = 2;
+                        }
                     }
                 }
                 k = k + 1;
@@ -269,9 +293,17 @@ void mexFunction(int nlhs, mxArray *plhs[],
         }
         i = i + 1;
     }
+    // If the smallest minimum distance is not zero, we caught a hinge collision, so return.
+    if (smallestMinDist != 0.0)
+    {
+        // remember to de-allocate 2D connectivity array
+        mxFree(connectivity);
+        return;
+    }
 
     /*look for unconnected links*/
     i = 0;
+    skipSegs = false;
     while (i < (links_length - 1))
     {
         flag1 = (int)round(flag[(int)round(links_c1[i]) - 1]);
@@ -430,6 +462,22 @@ void mexFunction(int nlhs, mxArray *plhs[],
                     }
                 }
                 /* Stop interfereing with remesh. 20/07/2020. */
+                
+                // Skip segments that collided and got separated immediately after.
+                for (s = 0; s < numLinksSkipped; s++){
+                    if (i + 1 == (int)round(s1Skip[s]) && j + 1 == (int)round(s2Skip[s]) || i + 1 == (int)round(s2Skip[s]) && j + 1 == (int)round(s1Skip[s])){
+                        skipSegs = true;
+                        break;
+                    }
+                    else {
+                        skipSegs = false;
+                    }
+                }
+                
+                if (skipSegs){
+                    j++;
+                    continue;
+                }
 
                 MinDistCalc(x0, x1, y0, y1, vx0, vx1, vy0, vy1, dist2, ddist2dt, L1, L2);
 

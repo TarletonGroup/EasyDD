@@ -43,6 +43,8 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
 
     f = zeros(3 * mno, 1);
     f_hat = zeros(3 * mno, 1);
+%     f = sparse(3*mno, 1);
+%     f_hat = sparse(3 * mno, 1);
     if isempty(gammaMixed)
         gamma_disp = gammau(:, 1);
         gamma_dln = gammat;
@@ -52,8 +54,13 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     end
     u = zeros(3 * mno, 1);
     u_hat = zeros(3 * mno, 1);
+%     u = sparse(3 * mno, 1);
+%     u_hat = sparse(3 * mno, 1);
+    
     u_tilda_0 = zeros(3 * mno, 1);
     u_tilda = zeros(3 * mno, 1);
+%     u_tilda_0 = sparse(3 * mno, 1);
+%     u_tilda = sparse(3 * mno, 1);
     
 
     if (~exist('CUDA_flag', 'var'))

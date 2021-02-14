@@ -12,9 +12,9 @@ function [output] = plotnodes(rn, links, plim, vertices)
         n0 = links(i, 1);
         n1 = links(i, 2);
         %to skip external nodes...
-        %     if rn(n0,end)==67||rn(n1,end)==67
-        %        continue;
-        %     end
+%             if rn(n0,end)==67||rn(n1,end)==67
+%                continue;
+%             end
         lvec = amag * (rn(n1, 1:3) - rn(n0, 1:3));
         plane_n = links(i, 6:8);
         bvec = links(i, 3:5);
