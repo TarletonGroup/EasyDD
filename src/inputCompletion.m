@@ -273,7 +273,7 @@ end
 
 if ~exist('CUDA_segseg_flag', 'var')
     CUDA_segseg_flag = false;
-    fprintf('Providing default value for para_scheme = %d, parallelise segseg forces.\n', CUDA_segseg_flag)
+    fprintf('Providing default value for CUDA_segseg_flag = %d, parallelise segseg forces.\n', CUDA_segseg_flag)
 end
 
 
