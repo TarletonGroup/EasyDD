@@ -58,7 +58,7 @@
 run inputCompletion.m
 
 % Compile mex files.
-% CUDA_flag = compileCode(CUDA_flag);
+CUDA_flag = compileCode(CUDA_flag);
 
 % Cleanup input structures.
 [rn, links] = cleanupnodes(rn, links);
@@ -95,7 +95,7 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 %Remesh considering surfaces in case input file incorrect.
 [rn, links, connectivity, linksinconnect] = remesh_surf(rn, links, ...
     connectivity, linksinconnect, vertices, TriangleCentroids, ...
-    TriangleNormals);
+    TriangleNormals, noExitNorm, noExitPoint);
 
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
@@ -112,7 +112,7 @@ while simTime < totalSimTime
     
     if mod(curstep, saveFreq) == 0
         close all
-        save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
+%         save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
     end
 
     % Loading function.
@@ -148,7 +148,7 @@ while simTime < totalSimTime
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remeshPreCollision(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
         mobility, rotMatrix, doremesh, dovirtmesh, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, ...
-        TriangleCentroids, TriangleNormals, CUDA_segseg_flag, Bcoeff);
+        TriangleCentroids, TriangleNormals, CUDA_segseg_flag, Bcoeff, noExitNorm, noExitPoint);
 
    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideAndSeparateNodesAndSegments(docollision, doseparation, ...
         rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
@@ -156,14 +156,14 @@ while simTime < totalSimTime
 
     rnnew = fixBlockadingNodes(rnnew, connectivitynew);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = separation(doseparation, rnnew, ...
+    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ~] = separation(doseparation, rnnew, ...
         linksnew, connectivitynew, linksinconnectnew, fsegnew, mobility, rotMatrix, MU, NU, a, Ec, ...
         2 * rann, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_segseg_flag, Bcoeff);
 
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
         mobility, rotMatrix, doremesh, 0, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, TriangleCentroids, ...
-        TriangleNormals, CUDA_segseg_flag, Bcoeff);
+        TriangleNormals, CUDA_segseg_flag, Bcoeff, noExitNorm, noExitPoint);
 
     [rn, vn, links, connectivity, linksinconnect, fseg] = updateMatricesBackward(rnnew, ...
         linksnew, connectivitynew, linksinconnectnew, fsegnew);

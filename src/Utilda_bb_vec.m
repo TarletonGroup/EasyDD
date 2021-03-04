@@ -179,12 +179,42 @@ function [Ux, Uy, Uz] = Utilda_bb_vec(rn, links, gnl, NU, xnodes, dx, ...
             % and calculate displacement for external loop with temporary closure
             % point
         else
-            Utilda = Utilda + ...
-                disp_dislo_tri_ABC_plas(Aprime', Bprime', C', nodepoints', b') + ...
-                disp_dislo_tri_ABC_plas(Aprime', A', Ctemp', nodepoints', b') + ...
-                disp_dislo_tri_ABC_plas(A', B', Ctemp', nodepoints', b') + ...
-                disp_dislo_tri_ABC_plas(B', Bprime', Ctemp', nodepoints', b') + ...
-                disp_dislo_tri_ABC_plas(Bprime', Aprime', Ctemp', nodepoints', b');
+            try
+                tmp1 = disp_dislo_tri_ABC_plas(Aprime', Bprime', C', nodepoints', b');
+            catch
+                tmp1 = [0;0;0];
+            end
+            
+            try
+                tmp2 = disp_dislo_tri_ABC_plas(Aprime', A', Ctemp', nodepoints', b');
+            catch
+                tmp2 = [0;0;0];
+            end
+            
+            try
+                tmp3 = disp_dislo_tri_ABC_plas(A', B', Ctemp', nodepoints', b');
+            catch
+                tmp3 = [0;0;0];
+            end
+            
+            try
+                tmp4 = disp_dislo_tri_ABC_plas(B', Bprime', Ctemp', nodepoints', b');
+            catch
+                tmp4 = [0;0;0];
+            end
+            
+            try
+                tmp5 = disp_dislo_tri_ABC_plas(Bprime', Aprime', Ctemp', nodepoints', b');
+            catch
+                tmp5 = [0;0;0];
+            end
+            Utilda = Utilda + tmp1 + tmp2 + tmp3 + tmp4 + tmp5;
+%             ...
+%                 disp_dislo_tri_ABC_plas(Aprime', Bprime', C', nodepoints', b') + ...
+%                 disp_dislo_tri_ABC_plas(Aprime', A', Ctemp', nodepoints', b') + ...
+%                 disp_dislo_tri_ABC_plas(A', B', Ctemp', nodepoints', b') + ...
+%                 disp_dislo_tri_ABC_plas(B', Bprime', Ctemp', nodepoints', b') + ...
+%                 disp_dislo_tri_ABC_plas(Bprime', Aprime', Ctemp', nodepoints', b');
         end
 
         if any(any(isnan(Utilda))) || any(any(isinf(Utilda)))

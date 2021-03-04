@@ -156,14 +156,17 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(...
         end %if
         
         % Provide a dynamic default number of threads in case none is given.
-        if ~exist('n_threads', 'var') || n_threads == 0
-            if para_scheme == 1
-                numInstances = n_dln;
-            else
-                numInstances = n_se;
-            end
-            n_threads = ceil(mod(numInstances, gpuDevice().MaxThreadsPerBlock) / 32) * 32;
-        end %if
+        if para_scheme == 1
+            numInstances = n_dln;
+        else
+            numInstances = n_se;
+        end
+        bytesPerUnit = 144; % 6 nodes, 3 entries per node, doubles are 8 bytes;
+        maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
+        n_threads = ceil(mod(numInstances, maxThreadsBlock) / 32) * 32;
+        if n_threads == 0
+            n_threads = maxThreadsBlock;
+        end
 
         [f_dln_node(:, 1), f_dln_node(:, 2), f_dln_node(:, 3), f_dln_node(:, 4), ...
                 f_dln_se] = NodalSurfaceForceLinearRectangleMexCUDA(...

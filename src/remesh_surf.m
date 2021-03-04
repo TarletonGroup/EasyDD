@@ -20,7 +20,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
-        remesh_surf(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, vertices, P, fn)
+        remesh_surf(rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, vertices, P, fn, noExitNorm, noExitPoint)
 
     % Beginning of surface remeshing for surface nodes. %%%%%%%%%%%%%%%%%%%%
     % Flag all nodes outside of medium.
@@ -49,31 +49,46 @@ function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = ...
         end
 
     end
-
-    %% This needs to be changed to make it general.
-    %     %Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
-    %     for n = 1:L1
-    %
-    %         if rnnew(n, end) == 65 && rnnew(n, 1) <= 0
-    %             vec = [0, 0, 0];
-    %             connumb = connectivitynew(n, 1);
-    %
-    %             for m = 1:connumb
-    %                 vec = vec + rnnew(linksnew(connectivitynew(n, 2 * m), 3 - connectivitynew(n, 2 * m + 1)), 1:3) - rnnew(n, 1:3);
-    %             end
-    %
-    %             vec = rnnew(n, 1) .* (vec / vec(1, 1));
-    %             rnnew(n, 1:3) = rnnew(n, 1:3) - vec;
-    %             rnnew(n, end) = 7;
-    %
-    %             if any(isnan(rnnew(n, 1:3)))
-    %                 fprintf('Error fixing node to back end. See remesh_surf line 62')
-    %                 pause;
-    %             end
-    %
-    %         end
-    %
-    %     end
+    %%
+    % This needs to be changed to make it general.
+    %Halt dislocations attempting to exit the fixed end (assuming fixed end is the y/z plane at x=0)
+    lenNoExit = size(noExitNorm, 1);
+    for n = 1:L1
+        % noExitNorm = [-1 0 0]
+        % noExitPoint = [0 0 0]
+        %
+        for i = 1:lenNoExit
+            if rnnew(n, end) == 65
+                t = rnnew(n, 1:3) - noExitPoint(i, :);
+                D = dot(noExitNorm(i, :), t);
+                % If the distance is positive, then the point is on the
+                % outside.
+                if D > 0
+                    rnnew(n, 1:3) = rnnew(n, 1:3) - D * noExitNorm(i, :);
+                    rnnew(n, end) = 7;%61;
+                end
+            end
+        end
+        
+%         if rnnew(n, end) == 65 && rnnew(n, 1) <= 0
+%             vec = [0, 0, 0];
+%             connumb = connectivitynew(n, 1);
+% 
+%             for m = 1:connumb
+%                 vec = vec + rnnew(linksnew(connectivitynew(n, 2 * m), 3 - connectivitynew(n, 2 * m + 1)), 1:3) - rnnew(n, 1:3);
+%             end
+% 
+%             vec = rnnew(n, 1) .* (vec / vec(1, 1));
+%             rnnew(n, 1:3) = rnnew(n, 1:3) - vec;
+%             rnnew(n, end) = 7;
+% 
+%             if any(isnan(rnnew(n, 1:3)))
+%                 fprintf('Error fixing node to back end. See remesh_surf line 62')
+%                 pause;
+%             end
+% 
+%         end
+    end
     %%
     %Create surface nodes for newly exited nodes
     for n = 1:L1
@@ -337,8 +352,9 @@ function [rnnew] = movetosurf(rnnew, ~, i, vertices)
     vec = rnnew(i, 4:6);
 
     if norm(vec) < eps
-        fprintf('Error moving exited node back to surface. See movetosurf in remesh_surf')
-        pause
+        vec = [eps, eps, eps];
+%         fprintf('Error moving exited node back to surface. See movetosurf in remesh_surf')
+%         pause
     end
 
     vec = vec / norm(vec);

@@ -6,27 +6,23 @@ function sigma = hatStress(uhat, nc, x, D, mx, my, mz, w, h, d, x0)
 
     i = ceil(x0(1) / w);
     i = max(i, 1);
+    i = min(i, mx);
+    
     j = ceil(x0(2) / h);
     j = max(j, 1);
+    j = min(j, my);
+    
     k = ceil(x0(3) / d);
     k = max(k, 1);
-    p = i + (k - 1) * mx + (j - 1) * mx * mz;
-
-    if any(x0 < 0) || p > mx * my * mz || isnan(p)
-        % Sort of have to do this when using int_trapezium.m because real
-        % segment will move out of domain during trial before it can be
-        % remeshed?
-        % fprintf('Node outside domain! See hatStress.m\n')
-        sigma = zeros(3); % do something better like remeshing later...
-        return
-    end
+    k = min(k, mz);
+    
+    p = i + (k - 1) * mx + (j - 1) * mx * mz; 
 
     xc = zeros(3, 1);
-
     for i = 1:3
         xc(i) = 0.5 * (x(nc(p, 1), i) + x(nc(p, 7), i)); %xc is center of element p
     end
-
+    
     a = w / 2; % element dx
     b = h / 2; % element dy
     c = d / 2; % element dz

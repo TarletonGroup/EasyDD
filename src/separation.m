@@ -1,7 +1,7 @@
-function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparation, rn, ...
+function [rn, links, connectivity, linksinconnect, fseg, separated] = separation(doseparation, rn, ...
         links, connectivity, linksinconnect, fseg, mobility, rotMatrix, MU, NU, a, Ec, mindist, ...
         vertices, uhat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag, Bcoeff)
-
+    separated = false;
     if ~doseparation
         return
     end
@@ -185,7 +185,7 @@ function [rn, links, connectivity, linksinconnect, fseg] = separation(doseparati
                     end
 
                 end
-
+                separated = true;
                 fprintf('separation: node %d has %d arms\n', i, c);
                 % get the positions and velocities of the nodes after the split
                 vel1 = splittingvel(1, :);

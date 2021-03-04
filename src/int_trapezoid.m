@@ -33,10 +33,11 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, dtMin, MU, NU, a, E
         [vnvec1, fn, fseg] = drndt(rnvec1, flag, MU, NU, a, Ec, links, connectivity, ...
             mobility, vertices, rotMatrix, uhat, nc, xnodes, D, mx, my, mz, w, h, d, Bcoeff, CUDA_flag);
         distvec = rnvec1 - rnvec0;
-        distmag = max(abs(distvec)); %Largest distance any node moves
+        
+        distmag = max(sum(reshape(distvec, [], 3) .* reshape(distvec, [], 3), 2));%max(abs(distvec)); %Largest distance any node moves
 %         distmag = quantile(abs(distvec), 0.99);
         err = distvec - (vnvec1 + vnvec0) / 2 * dt; %Euler-trapezoid method
-        errmag = max(abs(err)); %Largest difference (error) calculated by the Euler-trapezoid method
+        errmag = max(sum(reshape(err, [], 3) .* reshape(err, [], 3), 2));%max(abs(err)); %Largest difference (error) calculated by the Euler-trapezoid method
 %         errmag = quantile(abs(err), 0.99);
         if isempty(errmag)%If the Euler-trapzoid method yields no results use maximum time step and end loop
             dt = dt0;

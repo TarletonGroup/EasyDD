@@ -7,9 +7,9 @@ for i = 1:size(Sleft,1)
     Sleft(i, 3:5) = [-1 0 0];
 end
 
-Sright = [S.right; S.topright; S.botright; S.frontright; S.backright];
-for i = 1:size(Sright,1)
-    Sright(i, 3:5) = [1 0 0];
+Smixed = [S.right; S.topright; S.botright; S.frontright; S.backright; S.corners([2,4,6,8],:)];
+for i = 1:size(Smixed,1)
+    Smixed(i, 3:5) = [1 0 0];
 end
 
 for i = [2,4,6,8]
@@ -28,15 +28,14 @@ end
 
 Sfront = [S.front];
 Sback = [S.back];
+Sright = [];
 
-srfSet = cat(1, Sleft, Sright, S.corners([2,4,6,8],:), Stop, Sbot, Sfront, Sback);
+srfSet = cat(1, Sleft, Smixed, Sright, Stop, Sbot, Sfront, Sback);
 
 gammau = Sleft;
-gammaMixed = S.corners([2,4,6,8], :);
+gammaMixed = Smixed;
 [~, gammatIdx] = setdiff(srfSet(:,1),[gammau(:,1); gammaMixed(:,1)]);
 gammat = srfSet(gammatIdx, :);
-
-Smixed = gammaMixed;
 
 % Sleft = [S.left(:,1);
 % S.botleft(:,1);
@@ -67,13 +66,12 @@ fixedDofs = [
     3*S.botleft(:,1);
     3*S.corners([1,3], 1);
     %
-    3*S.corners([2,4,6,8], 1) - 2;
-    
     3*S.right(:,1) - 2;
     3*S.botright(:,1) - 2;
     3*S.topright(:,1) - 2;
     3*S.frontright(:,1) - 2;
     3*S.backright(:,1) - 2;
+    3*S.corners([2,4,6,8], 1) - 2;
 ];
 
 

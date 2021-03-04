@@ -44,12 +44,15 @@ MU = 1.0;
 NU = 0.31;
 
 % x = <100>, y = <010>, z = <001>
+xScale = 3;
+
 dz = 8.711 / amag; % 8.711 microns
-dx = 3 * dz;
+dx = xScale * dz;
 dy = dz;
-mx = 30;
-my = 10;
+
 mz = 10;
+mx = xScale * mz;
+my = mz;
 
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
@@ -63,8 +66,17 @@ vertices = [0, 0, 0; ...
 % mumag*1e6 converts the meters to micrometers in the units.
 % The experimental displacement rate is 5 nm = 5e-3 micrometers.
 % The cantilever is dx micrometers long.
-timeUnit = 5e-3*(mumag*1e6);%/dx;
-u_dot = 10*dx/timeUnit; 
+
+simDisp = 5e-3/amag; % 5 nanometers
+timeSim = 1 * (mumag*1e6)/1e-4; % timeSim = timeReal * ||mu|| / B
+u_dotSimFromReal = simDisp/timeSim;
+tmpScale = 1e9;% 5*1e8
+
+u_dot = u_dotSimFromReal*tmpScale;
+timeUnit = timeSim/tmpScale*1000;
+
+% timeUnit = 5e-3*(mumag*1e6);
+% u_dot = dx/timeUnit; 
 % u_dot = 5e-3;
 % u_dot = dx/mumag;
 
@@ -72,8 +84,8 @@ u_dot = 10*dx/timeUnit;
 % plot(Usim(1:curstep-1)/mumag/1e6,Fsim(1:curstep-1)*amag^2*mumag/1e6/1e6)
 % This is the simulation time in seconds
 % simTime/timeUnit
-% plotArgs = struct("factDisp", 1/mumag/1e6, "factForce", 1/1e12);
-plotArgs = struct("factDisp", amag, "factForce", amag^2*mumag);
+% displacement in microns, force in grams
+plotArgs = struct("factDisp", amag, "factForce", (amag*1e-6)^2*(mumag*1e6)*101.97162129779);
 % dt_real = dt_ddlab/(mumag*1e6);
 
 % u_dot = 5e-3;
@@ -85,38 +97,59 @@ simType = @micropillarTensile;
 run fccLoops
 prismbVec(:, :) = prismbVec(:, :) / max(abs(prismbVec(1, :)));
 prismbVec(:, :) = prismbVec(:, :) * norm(prismbVec(1, :));
-segLen = 0.1 / amag;
-lmin = 0.1 / amag;
-lmax = 0.4 / amag;
+segLen = 0.5 / amag;
+lmin = segLen/10;
+lmax = segLen/5;
 
 a = lmin/20;
-rann = 2*a;%lmin/2;
-rntol = 3*lmin^2;
-rmax = 3*lmin^2;%lmin/2;
+rann = lmin;
+rntol = 3*(lmin/2)^2;
+rmax = 0.95*3*(lmin/2)^2;
 
-
-
-xmin = 0.1*dx;
-xmax = 0.9*dx;
-ymin = 0.1*dy;
-ymax = 0.9*dy;
-zmin = 0.1*dz;
-zmax = 0.9*dz;
-
+% xmin = 0.1*dx;
+% xmax = 0.9*dx;
+% ymin = 0.1*dy;
+% ymax = 0.9*dy;
+% zmin = 0.1*dz;
+% zmax = 0.9*dz;
+% 
+% idxs = 1 + [0; 3; 6; 1; 4; 8; 9; 11];%; 0; 3; 6];
+% lenIdxs = size(idxs,1);
+% 
+% activeRatio = lenIdxs/12;
+% totalDlnDensity = dz*dy*10*amag^2; % Dln per micron
+% activeDlnDensity = totalDlnDensity * activeRatio;
+% intersectPerSource = 4;
+% numSources = activeDlnDensity / intersectPerSource;
+% volumePerSource = (2*segLen)^3;
+% volumeSources = numSources * volumePerSource;
+% 
+% n = ceil(numSources/8);
+% 
 % distRange = [xmin ymin zmin; xmax ymax zmax];
-% displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(12, 3);
+% displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(n*lenIdxs, 3);
 % links = [];
 % rn = [];
-% for i = 1:12
-%     idx = (i-1)*8;
-%     links = [links; (prismLinks((1:8)+idx, :) + idx) prismbVec((1:8)+idx, :) prismSlipPlane((1:8)+idx, :)];
-%     displacedCoord = prismCoord((1:8)+idx, :)*segLen + displacement(i, :);
-%     rn = [rn; displacedCoord [0;7;7;7;0;7;7;7]];
+% 
+% for j = 1:n
+%     for i = 1:lenIdxs
+%         idx = (i-1)*8 + (j-1)*8*lenIdxs;
+%         idx2 = (idxs(i)-1)*8;
+%         links = [links; (prismLinks((1:8)+idx2, :) + idx) prismbVec((1:8)+idx2, :) prismSlipPlane((1:8)+idx2, :)];
+%         displacedCoord = prismCoord((1:8)+idx2, :)*segLen + displacement(i + (j-1)*lenIdxs, :);
+%         rn = [rn; displacedCoord [0;7;7;7;0;7;7;7]];
+%     end
 % end
 
+xmin = 0.03*dx;
+xmax = 0.03*dx;
+ymin = 0.5*dy;
+ymax = 0.5*dy;
+zmin = 0.5*dz;
+zmax = 0.5*dz;
 
-
-idxs = 1 + [0; 3; 6; 1; 4; 8; 9; 11];%; 0; 3; 6];
+%1, 2, 4, 5, 7, 9, 10, 12
+idxs = 1;%[1; 2; 4; 5; 7; 9; 10; 12];
 lenIdxs = size(idxs,1);
 
 activeRatio = lenIdxs/12;
@@ -127,7 +160,8 @@ numSources = activeDlnDensity / intersectPerSource;
 volumePerSource = (2*segLen)^3;
 volumeSources = numSources * volumePerSource;
 
-n = ceil(numSources/8);
+% n = ceil(numSources/8);
+n=1;
 
 distRange = [xmin ymin zmin; xmax ymax zmax];
 displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(n*lenIdxs, 3);
@@ -137,6 +171,42 @@ rn = [];
 for j = 1:n
     for i = 1:lenIdxs
         idx = (i-1)*8 + (j-1)*8*lenIdxs;
+        idx2 = (idxs(i)-1)*8;
+        links = [links; (prismLinks((1:8)+idx2, :) + idx) prismbVec((1:8)+idx2, :) prismSlipPlane((1:8)+idx2, :)];
+        displacedCoord = prismCoord((1:8)+idx2, :)*segLen + displacement(i + (j-1)*lenIdxs, :);
+        rn = [rn; displacedCoord [0;7;7;7;0;7;7;7]];
+    end
+end
+
+
+xmin = 0.97*dx;
+xmax = 0.97*dx;
+ymin = 0.5*dy;
+ymax = 0.5*dy;
+zmin = 0.5*dz;
+zmax = 0.5*dz;
+
+%1, 2, 4, 5, 7, 9, 10, 12
+idxs = 1;%[1; 2; 4; 5; 7; 9; 10; 12];
+lenIdxs = size(idxs,1);
+
+activeRatio = lenIdxs/12;
+totalDlnDensity = dz*dy*10*amag^2; % Dln per micron
+activeDlnDensity = totalDlnDensity * activeRatio;
+intersectPerSource = 4;
+numSources = activeDlnDensity / intersectPerSource;
+volumePerSource = (2*segLen)^3;
+volumeSources = numSources * volumePerSource;
+
+% n = ceil(numSources/8);
+n=1;
+
+distRange = [xmin ymin zmin; xmax ymax zmax];
+displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(n*lenIdxs, 3);
+
+for j = 1:n
+    for i = 1:lenIdxs
+        idx = (i-1)*8 + (j-1)*8*lenIdxs + 8;
         idx2 = (idxs(i)-1)*8;
         links = [links; (prismLinks((1:8)+idx2, :) + idx) prismbVec((1:8)+idx2, :) prismSlipPlane((1:8)+idx2, :)];
         displacedCoord = prismCoord((1:8)+idx2, :)*segLen + displacement(i + (j-1)*lenIdxs, :);
@@ -183,10 +253,11 @@ end
 
 plotnodes(rn,links,dx,vertices);
 dt0 = timeUnit;
+dtMin = eps;
 totalSimTime = timeUnit*1e4;
 mobility = @mobfcc0;
-saveFreq = 100;
-plotFreq = 100;
+saveFreq = 1e9;
+plotFreq = 5;
 
 plotFlags = struct('nodes', true, 'secondary', true);
 
@@ -254,4 +325,9 @@ calculateTractions = @calculateAnalyticTractions;
 % % % % savefreq=20;
 
 simName = date;
-simName = strcat(simName, '_dense_tensile_ni_100'); 
+simName = strcat(simName, '_Ni_100_long'); 
+
+noExitNorm = [-1 0 0;
+               1 0 0];
+noExitPoint = [0 0 0;
+               dx dy dz];

@@ -47,8 +47,8 @@ NU = 0.31;
 % FE domain dimensions: x/amag := x microns.
 % The size effect is given by the size disparity between dislocations and
 % volume. We can either change the size of the volume or the size of the
-% dislocations. 10x10x10 micron domain.
-dx = 10 / amag;
+% dislocations. 2^3, 4^3, 8^3, 16^3, 32^3 micron domain.
+dx = 32 / amag; % This gives microns.
 dy = dx;
 dz = dx;
 mx = 20;
@@ -56,14 +56,13 @@ my = 20;
 mz = 20;
 
 % Dislocation segment lengths and integration tolerances.
-% Try segLen = dx / 100, dx / 50, dx / 25, dx / 10, dx / 5, dx / 2
-segLen = dx / 10; % Source segment length.
+segLen = 0.5 / amag; % Source segment length.
 lmin = segLen / 10; % Minimum allowed segment length.
 lmax = segLen / 5; % Maximum allowed segment length.
 a = lmin / 20; % Dislocation core radius (for non-singular stresses).
-rann = lmin / 2; % Collision distance between two dislocations.
-rntol = lmin / 2; % Error tolerance between one step to the next.
-rmax = lmin / 2; % Maximum change in position between one step to the next.
+rann = lmin;%lmin/2; % Collision distance between two dislocations.
+rntol = lmin/2; % Error tolerance between one step to the next.
+rmax = lmin/2; % Maximum change in position between one step to the next.
 
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
@@ -79,9 +78,9 @@ vertices = [0, 0, 0; ...
 % If we were to use the same loading rate we'd be loading at
 % 5e-3/mumag/1e6 \approx 6.3291e-14. This is untractable. Instead we scale
 % with a heuristic and using beam theory.
-timeUnit = 5e-3 * mumag * 1e6;
-u_dot = 100 * dx / timeUnit;
-
+% timeUnit = 5e-3 * mumag * 1e6;
+timeUnit = 5e-3*mumag * 1e6;
+u_dot = dx / timeUnit;
 % 1 := tensile, -1 := compressive
 sign_u_dot = 1;
 
@@ -134,10 +133,10 @@ dtMin = 10 * eps; % Minimum allowed timestep.
 totalSimTime = timeUnit * 1e4; % Total simulated time.
 mobility = @mobfcc0; % Mobility law.
 saveFreq = 200; % Saving frequency (steps between saves).
-plotFreq = 20; % Plotting frequency (steps between plotting).
+plotFreq = 10; % Plotting frequency (steps between plotting).
 
 % Set scaling factors for plotting the displacements and force.
-plotArgs = struct("factDisp", 1, "factForce", 1);
+plotArgs = struct("factDisp", amag, "factForce", amag^2*mumag);
 % What plots to show.
 plotFlags = struct('nodes', true, 'secondary', true);
 

@@ -46,7 +46,10 @@ NU = 0.31;
 % x = <110>, y = <1-10>, z = <001>
 dz = 8.711 / amag; % 8.711 microns
 dx = 3 * dz;
-dy = 2 * dz;
+dy = dz;
+mx = 30;
+my = 10;
+mz = 10;
 
 vertices = [0, 0, 0; ...
             dx, 0, 0; ...
@@ -69,8 +72,9 @@ u_dot = dx/timeUnit;
 % plot(Usim(1:curstep-1)/mumag/1e6,Fsim(1:curstep-1)*amag^2*mumag/1e6/1e6)
 % This is the simulation time in seconds
 % simTime/timeUnit
-% plotArgs = struct("factDisp", 1/mumag/1e6, "factForce", 1/1e12);
-plotArgs = struct("factDisp", 1, "factForce", 1);
+
+% displacement in microns, load in micronewtons
+plotArgs = struct("factDisp", amag, "factForce", amag^2*mumag);
 % dt_real = dt_ddlab/(mumag*1e6);
 
 % u_dot = 5e-3;
@@ -82,13 +86,14 @@ simType = @micropillarTensile;
 run fccLoops
 prismbVec(:, :) = prismbVec(:, :) / max(abs(prismbVec(1, :)));
 prismbVec(:, :) = prismbVec(:, :) * norm(prismbVec(1, :));
-segLen = 0.5 / amag;
+segLen = 0.1 / amag;
 lmin = 0.1 / amag;
 lmax = 0.4 / amag;
+
 a = lmin/20;
-rann = lmin;
-rntol = lmin;
-rmax = 2*lmin;
+rann = 2*a;%lmin/2;
+rntol = 3*lmin^2;
+rmax = 3*lmin^2;%lmin/2;
 
 
 xmin = 0.1*dx;
@@ -99,26 +104,62 @@ zmin = 0.1*dz;
 zmax = 0.9*dz;
 
 
-n1 = [1 0 0]; e1 = [1; 1; 0]; e1 = e1 / norm(e1);
-n2 = [0 1 0]; e2 = [1; -1; 0]; e2 = e2 / norm(e2);
-n3 = cross(n1, n2); e3 = cross(e1, e2); e3 = e3 / norm(e3);
-rotMatrix = [e1 e2 e3]';
+% n1 = [1 0 0]; e1 = [1; 1; 0]; e1 = e1 / norm(e1);
+% n2 = [0 1 0]; e2 = [1; -1; 0]; e2 = e2 / norm(e2);
+% n3 = cross(n1, n2); e3 = cross(e1, e2); e3 = e3 / norm(e3);
+% rotMatrix = [e1 e2 e3]';
+rotMatrix = [cosd(45) -sind(45) 0; sind(45) cosd(45) 0; 0 0 1];
 
 % rn(:, 1:3) = rn(:, 1:3) * rotMatrix';
 % links(:, 3:5) = links(:, 3:5) * rotMatrix';
 % links(:, 6:8) = links(:, 6:8) * rotMatrix';
+% 
+% distRange = [xmin ymin zmin; xmax ymax zmax];
+% displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(12, 3);
+% links = [];
+% rn = [];
+% 
+% for i = 2:2
+%     idx = (i-1)*8;
+%     links = [links; (prismLinks((1:8)+idx, :) + idx) (rotMatrix*prismbVec((1:8)+idx, :)')' (rotMatrix*prismSlipPlane((1:8)+idx, :)')'];
+%     displacedCoord = (rotMatrix*prismCoord((1:8)+idx, :)'*segLen)' + displacement(i, :);
+%     rn = [rn; displacedCoord [0;7;7;7;0;7;7;7]];
+% end
+
+
+idxs = [5; 6; 8; 9];
+% 5, 6, 8, 9 activates at 1.4
+% 10, 11 activates at 6
+% 12 activates at 10
+% the rest activate much later
+
+lenIdxs = size(idxs,1);
+
+activeRatio = lenIdxs/12;
+totalDlnDensity = dz*dy*10*amag^2; % Dln per micron
+activeDlnDensity = totalDlnDensity * activeRatio;
+intersectPerSource = 4;
+numSources = activeDlnDensity / intersectPerSource;
+volumePerSource = (2*segLen)^3;
+volumeSources = numSources * volumePerSource;
+
+n = ceil(numSources/8);
 
 distRange = [xmin ymin zmin; xmax ymax zmax];
-displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(12, 3);
+displacement = distRange(1, :) + (distRange(2, :) - distRange(1, :)) .* rand(n*lenIdxs, 3);
 links = [];
 rn = [];
 
-for i = 1:1
-    idx = (i-1)*8;
-    links = [links; (prismLinks((1:8)+idx, :) + idx) prismbVec((1:8)+idx, :)* rotMatrix' prismSlipPlane((1:8)+idx, :)* rotMatrix'];
-    displacedCoord = prismCoord((1:8)+idx, :)*segLen* rotMatrix' + displacement(i, :);
-    rn = [rn; displacedCoord [0;7;0;7;0;7;0;7]];
+for j = 1:n
+    for i = 1:lenIdxs
+        idx = (i-1)*8 + (j-1)*8*lenIdxs;
+        idx2 = (idxs(i)-1)*8;
+        links = [links; (prismLinks((1:8)+idx2, :) + idx) prismbVec((1:8)+idx2, :)*rotMatrix' prismSlipPlane((1:8)+idx2, :)*rotMatrix'];
+        displacedCoord = prismCoord((1:8)+idx2, :)*segLen*rotMatrix' + displacement(i + (j-1)*lenIdxs, :);
+        rn = [rn; displacedCoord [0;7;7;7;0;7;7;7]];
+    end
 end
+
 
 % for i = 1:12
 %     idx = (i-1)*8;
@@ -133,9 +174,11 @@ end
 plotnodes(rn,links,dx,vertices);
 dt0 = timeUnit;
 totalSimTime = timeUnit*1e4;
-mobility = @mobfcc0;
-saveFreq = 200;
-plotFreq = 1e9;
+mobility = @mobfcc0_110;
+% rotMatrix = rotMatrix';
+% mobility = @mobfcc0;
+saveFreq = 5;
+plotFreq = 5;
 
 plotFlags = struct('nodes', true, 'secondary', true);
 
@@ -203,6 +246,6 @@ calculateTractions = @calculateAnalyticTractions;
 % % savefreq=20;
 
 simName = date;
-simName = strcat(simName, '_1_tensile_Ni_110');
+simName = strcat(simName, '_dense_tensile_Ni_110');
 
 

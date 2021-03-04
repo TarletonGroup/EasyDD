@@ -1,12 +1,16 @@
-function [vn, fn] = mobfcc0_110(fseg, rn, links, connectivity, nodelist, conlist)
+function [vn, fn] = mobfcc0_110(fseg, rn, links, connectivity, nodelist, conlist, Bcoeff, ~)
     %mobility law function (model: FCC0)
 
     %Drag (Mobility) parameters (should be specified by Input file)
-    global Beclimb Bedge Bscrew Bline;
-    Bclimb = Beclimb;
+    Bscrew = Bcoeff.screw(1);
+    Bedge = Bcoeff.edge(1);
+    Bclimb = Bcoeff.climb(1);
+    Bline = Bcoeff.line(1);
+%     global Beclimb Bedge Bscrew Bline;
+%     Bclimb = Beclimb;
 
     %numerical tolerance
-    eps = 1e-12;
+    eps = 1e-10;
 
     %combinations of 111;
     combinations111 = [1 1 1; -1 1 1; 1 -1 1; 1 1 -1; -1 -1 1; -1 1 -1; 1 -1 -1; -1 -1 -1];
@@ -81,26 +85,38 @@ function [vn, fn] = mobfcc0_110(fseg, rn, links, connectivity, nodelist, conlist
 
         end
 
-        if rcond(Btotal) < eps
+%         if rcond(Btotal) < eps
+% 
+%             [evec, eval] = eig(Btotal); % find eigenvalues and eigen vectors of drag matrix
+%             evalmax = eval(1, 1);
+%             eval = eval ./ evalmax;
+%             fvec = fn(n, :)' ./ evalmax;
+% 
+%             for i = 2:3% invert drag matrix and keep zero eigen values as zero
+% 
+%                 if eval(i, i) > eps
+%                     eval(i, i) = 1 / eval(i, i);
+%                 else
+%                     eval(i, i) = 0.0d0;
+%                 end
+% 
+%             end
+% 
+%             vn(n, :) = (evec * eval * evec' * fvec)'; % calculate the velocity
+%         else
+%             vn(n, :) = (Btotal \ fn(n, :)')'; % Btotal was wellconditioned so just take the inverse
+%         end
 
-            [evec, eval] = eig(Btotal); % find eigenvalues and eigen vectors of drag matrix
-            evalmax = eval(1, 1);
-            eval = eval ./ evalmax;
-            fvec = fn(n, :)' ./ evalmax;
-
-            for i = 2:3% invert drag matrix and keep zero eigen values as zero
-
-                if eval(i, i) > eps
-                    eval(i, i) = 1 / eval(i, i);
-                else
-                    eval(i, i) = 0.0d0;
-                end
-
-            end
-
-            vn(n, :) = (evec * eval * evec' * fvec)'; % calculate the velocity
+        if norm(Btotal) < eps%if there is no drag on the node, make its velocity zero
+            vn(n, :) = [0 0 0];
+        elseif rcond(Btotal) < 1e-15%if the drag tensor is poorly conditioned use special inversion protocol
+            Btotal_temp = Btotal + 1e-6 * max(max(abs(Btotal))) * eye(3); % perturb drag tensor
+            Btotal_temp2 = Btotal - 1e-6 * max(max(abs(Btotal))) * eye(3);
+            vn_temp = (Btotal_temp \ fn(n, :)')'; % estimate velocity using perturbations
+            vn_temp2 = (Btotal_temp2 \ fn(n, :)')';
+            vn(n, :) = 0.5 * (vn_temp + vn_temp2); % use mean of estimated velocities
         else
-            vn(n, :) = (Btotal \ fn(n, :)')'; % Btotal was wellconditioned so just take the inverse
+            vn(n, :) = (Btotal \ fn(n, :)')'; % Btotal was well conditioned so just take the inverse
         end
 
         %    if numNbrs==2

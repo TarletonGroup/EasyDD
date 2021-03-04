@@ -12,12 +12,12 @@
 
 function [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rn, links, ...
         connectivity, linksinconnect, fseg, lmin, lmax, areamin, areamax, MU, NU, a, Ec, mobility, rotMatrix, ...
-        doremesh, dovirtmesh, vertices, uhat, nc, xnodes, D, mx, my, mz, w, h, d, P, fn, CUDA_flag, Bcoeff)
+        doremesh, dovirtmesh, vertices, uhat, nc, xnodes, D, mx, my, mz, w, h, d, P, fn, CUDA_flag, Bcoeff, noExitNorm, noExitPoint)
 
     if dovirtmesh
         % Beginning of surface remeshing for surface node.
         [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_surf(rn, links, ...
-            connectivity, linksinconnect, fseg, vertices, P, fn);
+            connectivity, linksinconnect, fseg, vertices, P, fn, noExitNorm, noExitPoint);
     else
         rnnew = rn;
         linksnew = links;
