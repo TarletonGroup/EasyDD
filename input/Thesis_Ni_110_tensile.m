@@ -180,8 +180,8 @@ totalSimTime = timeUnit*1e4;
 mobility = @mobfcc0_110;
 % rotMatrix = rotMatrix';
 % mobility = @mobfcc0;
-saveFreq = 1e9;
-plotFreq = 5;
+saveFreq = 5;
+plotFreq = 1e9;
 
 plotFlags = struct('nodes', true, 'secondary', true);
 
@@ -251,42 +251,3 @@ CUDA_flag = true;
 simName = date;
 simName = strcat(simName, sprintf('_%d_tensile_ni_110', n*lenIdxs));
 
-
-
-% %%
-% [segments, index] = constructsegmentlist(rn, links, true);
-% linkid = 0;
-% S = size(segments, 1);
-% 
-%     %prepare inputs for MEX code.
-%     bx = segments(:, 3);
-%     by = segments(:, 4);
-%     bz = segments(:, 5);
-% 
-%     p1x = segments(:, 6);
-%     p1y = segments(:, 7);
-%     p1z = segments(:, 8);
-% 
-%     p2x = segments(:, 9);
-%     p2y = segments(:, 10);
-%     p2z = segments(:, 11);
-% 
-% [f0x, f0y, f0z, f1x, f1y, f1z] = SegSegForcesMex(p1x, p1y, p1z, ...
-%             p2x, p2y, p2z, ...
-%             bx, by, bz, ...
-%             a, MU, NU, ...
-%             linkid, S);
-%         
-%         
-%         
-% SoA = reshape((segments(:, 3:11))', [], 1);
-% 
-% bytesPerUnit = 144; % 4 nodes 2 burgers vecs, 3 entries per node, 3 entries per burgers vec, doubles are 8 bytes;
-% maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
-% n_threads = ceil(mod(S, maxThreadsBlock) / 32) * 32;
-% if n_threads == 0
-%     n_threads = maxThreadsBlock;
-% end
-% [f0xp, f0yp, f0zp, f1xp, f1yp, f1zp] = SegForceNBodyCUDADoublePrecision(SoA, ...
-%             a, MU, NU, ...
-%             S,n_threads);

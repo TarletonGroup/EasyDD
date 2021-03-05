@@ -204,7 +204,7 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
             linkid, S);
     elseif CUDA_flag
         SoA = reshape((segments(:, 3:11))', [], 1);
-        bytesPerUnit = 144; % 4 nodes 2 burgers vecs, 3 entries per node, 3 entries per burgers vec, doubles are 8 bytes;
+        bytesPerUnit = 152; % 4 nodes 2 burgers vec, 3 entries each, doubles are 8 bytes + 1 byte for pointer;
         maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
         n_threads = ceil(mod(S, maxThreadsBlock) / 32) * 32;
         if n_threads == 0
@@ -213,6 +213,10 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
         [f0x, f0y, f0z, f1x, f1y, f1z] = SegForceNBodyCUDADoublePrecision(SoA, ...
                     a, MU, NU, ...
                     S, n_threads);
+        if ~all([f0x, f0y, f0z, f1x, f1y, f1z])
+            fprintf('segforcevec.m line 217: parallel segseg forces not being executed on gpu.')
+            pause
+        end
     end
 
     if linkid == 0
