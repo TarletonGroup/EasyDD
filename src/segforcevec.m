@@ -193,7 +193,7 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
     p2y = segments(:, 10);
     p2z = segments(:, 11);
 
-    if ~CUDA_flag
+    if ~CUDA_flag || linkid ~= 0
         %MEX implementation if GPU option is OFF or if number of segments below 300.
         %In this case, it's usually faster to run on a CPU...
         %     tic;
@@ -202,9 +202,9 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
             bx, by, bz, ...
             a, MU, NU, ...
             linkid, S);
-    elseif CUDA_flag
+    elseif CUDA_flag && linkid == 0
         SoA = reshape((segments(:, 3:11))', [], 1);
-        bytesPerUnit = 152; % 4 nodes 2 burgers vec, 3 entries each, doubles are 8 bytes + 1 byte for pointer;
+        bytesPerUnit = 192; % 6 vectors (nodes 2 burgers vec), 3 entries each, 8 bytes + 6 pointers of 8 bytes;
         maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
         n_threads = ceil(mod(S, maxThreadsBlock) / 32) * 32;
         if n_threads == 0

@@ -161,7 +161,7 @@ function [f_dln, f_dln_se, f_dln_node] = analytic_traction(...
         else
             numInstances = n_se;
         end
-        bytesPerUnit = 152; % 6 nodes, 3 entries per node, doubles are 8 bytes + 1 byte for pointer;
+        bytesPerUnit = 192; % 6 nodes, 3 entries each, 8 bytes each entry, 6 pointers of 8 bytes each;
         maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
         n_threads = ceil(mod(numInstances, maxThreadsBlock) / 32) * 32;
         if n_threads == 0
