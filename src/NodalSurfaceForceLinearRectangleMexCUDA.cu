@@ -44,8 +44,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
   double *d_x_b_arr, *d_x_se_arr, *d_x_dln_arr, *d_fx_arr, *d_ftot_arr;
   double eps;
   int threads_per_block, blocks_per_grid, n_se, n_dln, para_scheme;
-  //int debug = 1;
-  //while(debug == 1){}
+ 
   cudaSetDevice(0);
   // Stagger cuda function calls to take advantage of asynchronous calls.
   // If memory becomes an issue, make copying x_dln_arr, x_se_arr and x_b_arr to the device a synchronous operation and free the pointers straight after.

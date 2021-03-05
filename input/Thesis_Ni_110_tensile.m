@@ -44,10 +44,10 @@ MU = 1.0;
 NU = 0.31;
 
 % x = <110>, y = <1-10>, z = <001>
-dz = 8.711 / amag; % 8.711 microns
-dx = 3 * dz;
+dz = 12 / amag; % 8.711 microns
+dx = 3.5 * dz;
 dy = dz;
-mx = 30;
+mx = 35;
 my = 10;
 mz = 10;
 
@@ -63,10 +63,13 @@ vertices = [0, 0, 0; ...
 % mumag*1e6 converts the meters to micrometers in the units.
 % The experimental displacement rate is 5 nm = 5e-3 micrometers.
 % The cantilever is dx micrometers long.
-timeUnit = 5e-3*(mumag*1e6);%/dx;
-u_dot = dx/timeUnit;
-% u_dot = 5e-3;
-% u_dot = dx/mumag;
+simDisp = 5e-3/amag; % 5 nanometers
+timeSim = 1 * (mumag*1e6)/1e-4; % timeSim = timeReal * ||mu|| / B
+u_dotSimFromReal = simDisp/timeSim;
+tmpScale = 1e9;% 5*1e8
+
+u_dot = u_dotSimFromReal*tmpScale;
+timeUnit = timeSim/tmpScale*1000;
 
 % This is the proper plotting function.
 % plot(Usim(1:curstep-1)/mumag/1e6,Fsim(1:curstep-1)*amag^2*mumag/1e6/1e6)
@@ -86,12 +89,12 @@ simType = @micropillarTensile;
 run fccLoops
 prismbVec(:, :) = prismbVec(:, :) / max(abs(prismbVec(1, :)));
 prismbVec(:, :) = prismbVec(:, :) * norm(prismbVec(1, :));
-segLen = 0.1 / amag;
+segLen = 0.2 / amag;
 lmin = 0.1 / amag;
 lmax = 0.4 / amag;
 
 a = lmin/20;
-rann = 2*a;%lmin/2;
+rann = lmin;%lmin/2;
 rntol = 3*lmin^2;
 rmax = 3*lmin^2;%lmin/2;
 
@@ -177,7 +180,7 @@ totalSimTime = timeUnit*1e4;
 mobility = @mobfcc0_110;
 % rotMatrix = rotMatrix';
 % mobility = @mobfcc0;
-saveFreq = 5;
+saveFreq = 1e9;
 plotFreq = 5;
 
 plotFlags = struct('nodes', true, 'secondary', true);
@@ -193,7 +196,7 @@ calculateTractions = @calculateAnalyticTractions;
 % calculateTractions = @calculateNumericTractions;
 
 
-% CUDA_flag = true;
+CUDA_flag = true;
 % para_scheme = 1;
 
 
@@ -246,6 +249,44 @@ calculateTractions = @calculateAnalyticTractions;
 % % savefreq=20;
 
 simName = date;
-simName = strcat(simName, '_dense_tensile_Ni_110');
+simName = strcat(simName, sprintf('_%d_tensile_ni_110', n*lenIdxs));
 
 
+
+% %%
+% [segments, index] = constructsegmentlist(rn, links, true);
+% linkid = 0;
+% S = size(segments, 1);
+% 
+%     %prepare inputs for MEX code.
+%     bx = segments(:, 3);
+%     by = segments(:, 4);
+%     bz = segments(:, 5);
+% 
+%     p1x = segments(:, 6);
+%     p1y = segments(:, 7);
+%     p1z = segments(:, 8);
+% 
+%     p2x = segments(:, 9);
+%     p2y = segments(:, 10);
+%     p2z = segments(:, 11);
+% 
+% [f0x, f0y, f0z, f1x, f1y, f1z] = SegSegForcesMex(p1x, p1y, p1z, ...
+%             p2x, p2y, p2z, ...
+%             bx, by, bz, ...
+%             a, MU, NU, ...
+%             linkid, S);
+%         
+%         
+%         
+% SoA = reshape((segments(:, 3:11))', [], 1);
+% 
+% bytesPerUnit = 144; % 4 nodes 2 burgers vecs, 3 entries per node, 3 entries per burgers vec, doubles are 8 bytes;
+% maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
+% n_threads = ceil(mod(S, maxThreadsBlock) / 32) * 32;
+% if n_threads == 0
+%     n_threads = maxThreadsBlock;
+% end
+% [f0xp, f0yp, f0zp, f1xp, f1yp, f1zp] = SegForceNBodyCUDADoublePrecision(SoA, ...
+%             a, MU, NU, ...
+%             S,n_threads);

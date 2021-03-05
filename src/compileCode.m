@@ -88,7 +88,7 @@ function CUDA_flag = compileCode(CUDA_flag)
             file = dir(name);
 
             if ~isfile(name) || isfile(file.name) && days(file.date - datetime('now')) > 30
-                system('nvcc -v -ptx -O3 -use_fast_math -DNDEBUG SegForceNBodyCUDADoublePrecision.cu');
+                mexcuda -v COPTIMFLAGS="-Xptxas -o3 -oy -use_fast_math -DNDEBUG" SegForceNBodyCUDADoublePrecision.cu
             end
 
         catch

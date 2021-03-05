@@ -44,8 +44,8 @@ MU = 1.0;
 NU = 0.31;
 
 % x = <100>, y = <010>, z = <001>
-dz = 8.711 / amag; % 8.711 microns
-dx = 3 * dz;
+dz = 12 / amag; % 8.711 microns
+dx = 3.5 * dz;
 dy = dz;
 mx = 30;
 my = 10;
@@ -63,10 +63,13 @@ vertices = [0, 0, 0; ...
 % mumag*1e6 converts the meters to micrometers in the units.
 % The experimental displacement rate is 5 nm = 5e-3 micrometers.
 % The cantilever is dx micrometers long.
-timeUnit = 5e-3*(mumag*1e6);%/dx;
-u_dot = 10*dx/timeUnit; 
-% u_dot = 5e-3;
-% u_dot = dx/mumag;
+simDisp = 5e-3/amag; % 5 nanometers
+timeSim = 1 * (mumag*1e6)/1e-4; % timeSim = timeReal * ||mu|| / B
+u_dotSimFromReal = simDisp/timeSim;
+tmpScale = 1e9;% 5*1e8
+
+u_dot = u_dotSimFromReal*tmpScale;
+timeUnit = timeSim/tmpScale*1000;
 
 % This is the proper plotting function.
 % plot(Usim(1:curstep-1)/mumag/1e6,Fsim(1:curstep-1)*amag^2*mumag/1e6/1e6)
@@ -85,12 +88,12 @@ simType = @micropillarTensile;
 run fccLoops
 prismbVec(:, :) = prismbVec(:, :) / max(abs(prismbVec(1, :)));
 prismbVec(:, :) = prismbVec(:, :) * norm(prismbVec(1, :));
-segLen = 0.1 / amag;
+segLen = 0.2 / amag;
 lmin = 0.1 / amag;
 lmax = 0.4 / amag;
 
 a = lmin/20;
-rann = 2*a;%lmin/2;
+rann = lmin;%lmin/2;
 rntol = 3*lmin^2;
 rmax = 3*lmin^2;%lmin/2;
 
@@ -185,8 +188,8 @@ plotnodes(rn,links,dx,vertices);
 dt0 = timeUnit;
 totalSimTime = timeUnit*1e4;
 mobility = @mobfcc0;
-saveFreq = 100;
-plotFreq = 100;
+saveFreq = 5;
+plotFreq = 1e9;
 
 plotFlags = struct('nodes', true, 'secondary', true);
 
@@ -254,4 +257,4 @@ calculateTractions = @calculateAnalyticTractions;
 % % % % savefreq=20;
 
 simName = date;
-simName = strcat(simName, '_dense_tensile_ni_100'); 
+simName = strcat(simName, sprintf('_%d_tensile_ni_100', n*lenIdxs));

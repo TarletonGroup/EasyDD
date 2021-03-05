@@ -100,17 +100,16 @@ plotFEMDomain(Stop, Sbot, Sright, Sleft, Sfront, Sback, Smixed, xnodes)
 u_tilda_0 = calculateUtilda(rn, links, gamma_disp, NU, xnodes, dx, ...
     dy, dz, mx, my, mz, u_tilda_0);
 close all
-save(sprintf('../output/initial_%s_%d', simName, curstep), 'K', 'kg', 'L', 'U', 'P_l', 'P_u');
+save(sprintf('../output/initial_%s_%d', simName, curstep), 'K','kg','L','U','P_l','P_u');
 
 fprintf('Initialisation complete.\n');
 %%
 while simTime < totalSimTime
-
     if ~any(rn(:, 4) == 0)
         fprintf('No more real segments, ending simulation.\n')
         return;
     end
-
+    
     if mod(curstep, saveFreq) == 0
         close all
         save(sprintf('../output/%s_%d', simName, curstep), '-regexp', '^(?!(K|kg|L|U|P_l|P_u)$).');
@@ -134,7 +133,7 @@ while simTime < totalSimTime
 
     %integrating equation of motion
     [rnnew, vn, dt, fn, fseg] = integrator(rn, dt, dt0, dtMin, MU, NU, a, Ec, links, connectivity, ...
-        rmax, rntol, mobility, vertices, rotMatrix, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, Bcoeff, CUDA_segseg_flag);
+        rmax, rntol, mobility, vertices, rotMatrix, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, Bcoeff, CUDA_flag);
 
     % plastic strain and plastic spin calculations
     [ep_inc, wp_inc] = calcPlasticStrainIncrement(rnnew, rn, links, (2 * plim)^3);
@@ -149,22 +148,22 @@ while simTime < totalSimTime
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remeshPreCollision(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
         mobility, rotMatrix, doremesh, dovirtmesh, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, ...
-        TriangleCentroids, TriangleNormals, CUDA_segseg_flag, Bcoeff, noExitNorm, noExitPoint);
+        TriangleCentroids, TriangleNormals, CUDA_flag, Bcoeff, noExitNorm, noExitPoint);
 
-    [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideAndSeparateNodesAndSegments(docollision, doseparation, ...
+   [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = collideAndSeparateNodesAndSegments(docollision, doseparation, ...
         rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, rann, MU, NU, a, Ec, mobility, vertices, rotMatrix, ...
-        u_hat, nc, xnodes, D, mx, my, mz, w, h, d, lmin, CUDA_segseg_flag, Bcoeff, curstep);
+        u_hat, nc, xnodes, D, mx, my, mz, w, h, d, lmin, CUDA_flag, Bcoeff, curstep);
 
     rnnew = fixBlockadingNodes(rnnew, connectivitynew);
 
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew, ~] = separation(doseparation, rnnew, ...
         linksnew, connectivitynew, linksinconnectnew, fsegnew, mobility, rotMatrix, MU, NU, a, Ec, ...
-        2 * rann, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_segseg_flag, Bcoeff);
+        2 * rann, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, CUDA_flag, Bcoeff);
 
     [rnnew, linksnew, connectivitynew, linksinconnectnew, fsegnew] = remesh_all(rnnew, linksnew, ...
         connectivitynew, linksinconnectnew, fsegnew, lmin, lmax, areamin, areamax, MU, NU, a, Ec, ...
         mobility, rotMatrix, doremesh, 0, vertices, u_hat, nc, xnodes, D, mx, my, mz, w, h, d, TriangleCentroids, ...
-        TriangleNormals, CUDA_segseg_flag, Bcoeff, noExitNorm, noExitPoint);
+        TriangleNormals, CUDA_flag, Bcoeff, noExitNorm, noExitPoint);
 
     [rn, vn, links, connectivity, linksinconnect, fseg] = updateMatricesBackward(rnnew, ...
         linksnew, connectivitynew, linksinconnectnew, fsegnew);

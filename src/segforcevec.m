@@ -193,7 +193,7 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
     p2y = segments(:, 10);
     p2z = segments(:, 11);
 
-    if (S < 300 && CUDA_flag == true) || (CUDA_flag == false)
+    if ~CUDA_flag
         %MEX implementation if GPU option is OFF or if number of segments below 300.
         %In this case, it's usually faster to run on a CPU...
         %     tic;
@@ -202,35 +202,17 @@ function [f0, f1] = remoteforcevec(MU, NU, a, segments, linkid, CUDA_flag)
             bx, by, bz, ...
             a, MU, NU, ...
             linkid, S);
-    else
-        % Structure of Arrays; faster access data structure;
+    elseif CUDA_flag
         SoA = reshape((segments(:, 3:11))', [], 1);
-        f0x = zeros(S, 1);
-        f0y = zeros(S, 1);
-        f0z = zeros(S, 1);
-        f1x = zeros(S, 1);
-        f1y = zeros(S, 1);
-        f1z = zeros(S, 1);
-
-        % Initialize GPU kernel
-        kern = parallel.gpu.CUDAKernel('SegForceNBodyCUDADoublePrecision.ptx', 'SegForceNBodyCUDADoublePrecision.cu');
-        kern.ThreadBlockSize = 256;
-        kern.GridSize = ceil(S / 256);
-
-        % Evaluate kernel on GPU device
-        [f0x, f0y, f0z, f1x, f1y, f1z] = feval(kern, SoA, ...
-            a, MU, NU, ...
-            S, ...
-            f0x, f0y, f0z, ...
-            f1x, f1y, f1z);
-
-        % Transfer results from device memory to host
-        f0x = gather(f0x);
-        f0y = gather(f0y);
-        f0z = gather(f0z);
-        f1x = gather(f1x);
-        f1y = gather(f1y);
-        f1z = gather(f1z);
+        bytesPerUnit = 144; % 4 nodes 2 burgers vecs, 3 entries per node, 3 entries per burgers vec, doubles are 8 bytes;
+        maxThreadsBlock = min(gpuDevice().MaxThreadsPerBlock, floor(gpuDevice().MaxShmemPerBlock/bytesPerUnit));
+        n_threads = ceil(mod(S, maxThreadsBlock) / 32) * 32;
+        if n_threads == 0
+            n_threads = maxThreadsBlock;
+        end
+        [f0x, f0y, f0z, f1x, f1y, f1z] = SegForceNBodyCUDADoublePrecision(SoA, ...
+                    a, MU, NU, ...
+                    S, n_threads);
     end
 
     if linkid == 0

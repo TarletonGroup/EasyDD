@@ -13,8 +13,9 @@
  *               ComputeForces()
  *
  *************************************************************************/
-//#include <mex.h>
-//#include <cuda.h>
+#include <mex.h>
+#include <cuda.h>
+#include "helper_cuda.h"
 //#include <cuda_runtime.h>
 
 #include <math.h>
@@ -50,10 +51,9 @@
  *                      with "t" "x" component
  *
  *************************************************************************/
-
+__constant__ double a, NU, MU;
+__constant__ int S;
 __global__ void SegForceNBodyCUDA(double const *SoA,
-                    double const a, double const MU, double const NU,
-                    int const S,
                     double *f0x, double *f0y, double *f0z,
                     double *f1x, double *f1y, double *f1z);
 
@@ -84,8 +84,6 @@ __device__ void SpecialSegSegForce(double p1x, double p1y, double p1z,
                                double *fp4x, double *fp4y, double *fp4z);
 
 __global__ void SegForceNBodyCUDA(double const *SoA,
-                    double const a, double const MU, double const NU,
-                    int const S,
                     double *f0x, double *f0y, double *f0z,
                     double *f1x, double *f1y, double *f1z)
 {
@@ -1280,115 +1278,85 @@ __device__ void SegSegForce(double p1x, double p1y, double p1z,
 /* ------------ the MEX driver runs on the CPU ------------------*/
 /* --------------------------------------------------------------*/
 
-/*
 void mexFunction (int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[]) 
 {
-    //Get the total memory needed for the various arrays on the GPU (bytes)
-    mwSize m = mxGetM(prhs[0]);
-    mwSize n = mxGetN(prhs[0]);
-    mwSize arraySize = m * n;
-    mem_size = sizeof(double) * arraySize;
-    //all the other arrays are the same size (except a,MU,NU,linkid,S)
-    
+        
     // Define variables
-    double *P1x_vec, *P1y_vec, *P1z_vec;
-    double *P2x_vec, *P2y_vec, *P2z_vec;
-    double *Bx_vec, *By_vec, *Bz_vec;
-    double a,MU,NU;
-    int linkid,S;
+    double *SoA;
     double *f0x, *f0y, *f0z, *f1x, *f1y, *f1z;
+    double h_a, h_MU, h_NU;
+    int h_S;
+    int mem_size;
+    int threads_per_block, blocks_per_grid;
+
+    cudaSetDevice(0);
+
+    h_a = (double) mxGetScalar(prhs[1]);
+    h_MU = (double) mxGetScalar(prhs[2]);
+    h_NU = (double) mxGetScalar(prhs[3]);
+    h_S = (int) mxGetScalar(prhs[4]);
+    mem_size = sizeof(double) * h_S;
+    
+    // Copy constants.
+    checkCudaErrors ( cudaMemcpyToSymbolAsync( a, &h_a, sizeof(h_a) ) );
+    checkCudaErrors ( cudaMemcpyToSymbolAsync( MU, &h_MU, sizeof(h_MU) ) );
+    checkCudaErrors ( cudaMemcpyToSymbolAsync( NU, &h_NU, sizeof(h_NU) ) );
+    checkCudaErrors ( cudaMemcpyToSymbolAsync( S, &h_S, sizeof(h_S) ) );
 
     // allocate the memory on the GPU
     // memory for input vectors
-    HANDLE_ERROR ( cudaMalloc( &P1x_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &P1y_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &P1z_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &P2x_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &P2y_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &P2z_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &Bx_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &By_vec, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &Bz_vec, mem_size ) );
-    // memory for constants
-    HANDLE_ERROR ( cudaMalloc( &a, sizeof(double) ) );
-    HANDLE_ERROR ( cudaMalloc( &MU, sizeof(double) ) );
-    HANDLE_ERROR ( cudaMalloc( &NU, sizeof(double) ) );
-    HANDLE_ERROR ( cudaMalloc( &linkid, sizeof(int) ) );
-    HANDLE_ERROR ( cudaMalloc( &S, sizeof(int) ) );
+    checkCudaErrors ( cudaMalloc( &SoA, mem_size * 9 ) );
     // memory for output vectors
-    HANDLE_ERROR ( cudaMalloc( &f0x, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &f0y, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &f0z, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &f1x, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &f1y, mem_size ) );
-    HANDLE_ERROR ( cudaMalloc( &f1z, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f0x, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f0y, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f0z, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f1x, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f1y, mem_size ) );
+    checkCudaErrors ( cudaMalloc( &f1z, mem_size ) );
     
     // Copy input data across to the GPU
     // memory for input vectors
-    HANDLE_ERROR ( cudaMemcpy( P1x_vec, (double*) mexGetData(prhs[0]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( P1y_vec, (double*) mexGetData(prhs[1]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( P1z_vec, (double*) mexGetData(prhs[2]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( P2x_vec, (double*) mexGetData(prhs[3]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( P2y_vec, (double*) mexGetData(prhs[4]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( P2z_vec, (double*) mexGetData(prhs[5]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( Bx_vec, (double*) mexGetData(prhs[6]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( By_vec, (double*) mexGetData(prhs[7]), mem_size, cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( Bz_vec, (double*) mexGetData(prhs[8]), mem_size, cudaMemcpyHostToDevice ) );
-    // memory for constants
-    HANDLE_ERROR ( cudaMemcpy( a, (double) mexGetData(prhs[9]), sizeof(double), cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( MU, (double) mexGetData(prhs[10]), sizeof(double), cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( NU, (double) mexGetData(prhs[11]), sizeof(double), cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( linkid, (int) mexGetData(prhs[12]), sizeof(int), cudaMemcpyHostToDevice ) );
-    HANDLE_ERROR ( cudaMemcpy( S, (int) mexGetData(prhs[13]), sizeof(int), cudaMemcpyHostToDevice ) );
+    checkCudaErrors ( cudaMemcpyAsync( SoA, (double*) mxGetData(prhs[0]), mem_size * 9, cudaMemcpyHostToDevice ) );
     
-    // Define the block and grid size - make this dynamic at later stage !!!!
-    int blockSize = 1024;
-    dim3 block(blockSize);
-    dim 3 grid(ceil(arraySize/(double)blockSize));
+
+    checkCudaErrors ( cudaMemsetAsync( f0x, 0.0, mem_size ) );
+    checkCudaErrors ( cudaMemsetAsync( f0y, 0.0, mem_size ) );
+    checkCudaErrors ( cudaMemsetAsync( f0z, 0.0, mem_size ) );
+    checkCudaErrors ( cudaMemsetAsync( f1x, 0.0, mem_size ) );
+    checkCudaErrors ( cudaMemsetAsync( f1y, 0.0, mem_size ) );
+    checkCudaErrors ( cudaMemsetAsync( f1z, 0.0, mem_size ) );
+
+    threads_per_block = (int) mxGetScalar(prhs[5]);
+    blocks_per_grid = ceil((h_S + threads_per_block - 1) / threads_per_block);
     
     // Use the CUDA runtime to run the kernel
-    SegForceNBodyCUDA <<< grid, block >>> (P1x_vec, P1y_vec, P1z_vec,
-                                           P2x_vec, P2y_vec, P2z_vec,
-                                           Bx_vec, By_vec, Bz_vec,
-                                           a, MU, NU,
-                                           linkid, S,
-                                           f0x, f0y, f0z,
-                                           f1x, f1y, f1z);
+    SegForceNBodyCUDA <<< blocks_per_grid, threads_per_block >>> (
+                                            SoA,
+                                            f0x, f0y, f0z,
+                                            f1x, f1y, f1z
+                                        );
                                            
     // Create the output arrays for MATLAB
-    plhs[0]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
-    plhs[1]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
-    plhs[2]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
-    plhs[3]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
-    plhs[4]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
-    plhs[5]=mxCreateNumericMatrix(m,n,mxSINGLE_CLASS,mxREAL);
+    plhs[0]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
+    plhs[1]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
+    plhs[2]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
+    plhs[3]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
+    plhs[4]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
+    plhs[5]=mxCreateDoubleMatrix(h_S, 1, mxREAL);
 
     //Copy the data from the card into the MATLAB array
-    cudaMemcpy( (double*)mxGetData(plhs[0]), f0x, mem_size, cudaMemcpyDeviceToHost );
-    cudaMemcpy( (double*)mxGetData(plhs[1]), f0y, mem_size, cudaMemcpyDeviceToHost );
-    cudaMemcpy( (double*)mxGetData(plhs[2]), f0z, mem_size, cudaMemcpyDeviceToHost );
-    cudaMemcpy( (double*)mxGetData(plhs[3]), f1x, mem_size, cudaMemcpyDeviceToHost );
-    cudaMemcpy( (double*)mxGetData(plhs[4]), f1y, mem_size, cudaMemcpyDeviceToHost );
-    cudaMemcpy( (double*)mxGetData(plhs[5]), f1z, mem_size, cudaMemcpyDeviceToHost );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[0]), f0x, mem_size, cudaMemcpyDeviceToHost ) );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[1]), f0y, mem_size, cudaMemcpyDeviceToHost ) );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[2]), f0z, mem_size, cudaMemcpyDeviceToHost ) );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[3]), f1x, mem_size, cudaMemcpyDeviceToHost ) );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[4]), f1y, mem_size, cudaMemcpyDeviceToHost ) );
+    checkCudaErrors( cudaMemcpyAsync( (double*) mxGetData(plhs[5]), f1z, mem_size, cudaMemcpyDeviceToHost ) );
 
     //Free the data on the card
-    cudaFree( P1x_vec );
-    cudaFree( P1y_vec );
-    cudaFree( P1z_vec );
-    cudaFree( P2x_vec );
-    cudaFree( P2y_vec );
-    cudaFree( P2z_vec );
-    cudaFree( Bx_vec );
-    cudaFree( By_vec );
-    cudaFree( Bz_vec );
-    cudaFree( a );
-    cudaFree( MU );
-    cudaFree( NU );
-    cudaFree( linkid );
-    cudaFree( S );
+    cudaDeviceReset();
 }
-*/
+
 
     
     

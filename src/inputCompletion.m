@@ -281,12 +281,6 @@ if ~exist('para_scheme', 'var')
     fprintf('Providing default value for para_scheme = %d, parallelise over dislocation segments.\n', para_scheme)
 end
 
-if ~exist('CUDA_segseg_flag', 'var')
-    CUDA_segseg_flag = false;
-    fprintf('Providing default value for para_scheme = %d, parallelise segseg forces.\n', CUDA_segseg_flag)
-end
-
-
 if ~exist('sign_u_dot', 'var')
     sign_u_dot = -1;
     fprintf('Providing default value for sign_u_dot= %d.\n', sign_u_dot)
