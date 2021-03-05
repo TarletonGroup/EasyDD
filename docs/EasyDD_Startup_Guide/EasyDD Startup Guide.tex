@@ -1,0 +1,361 @@
+%%%%%%%%%%
+
+%%% Document type
+
+\documentclass[a4paper,12pt]{article}
+
+
+
+%%% Packages and formatting
+
+%% Symbolic maths
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{amssymb}
+\usepackage{tabu}
+
+
+%% Algorithms
+\usepackage[ruled,vlined]{algorithm2e}
+\SetKw{KwBy}{by} % for loop
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}} % comment colours?
+\SetCommentSty{mycommfont} % algorithm comments
+
+%% Theorems and definitions
+\newtheorem{definition}{Definition}[section]
+
+%% Figure graphics
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+
+
+%% Comments
+\usepackage{comment}
+
+
+%% Margins and spacing
+\usepackage[left=3.5cm, right=3cm, top=3cm, bottom=3cm]{geometry}
+\usepackage{setspace}
+%\intextsep the space between text and floats in the running text
+%\textfloatsep the space between a float at the top of the page and the text, also the space below text and a float at the bottom of the page
+%\floatsep the space between to consecutive floats
+\setlength{\intextsep}{1cm}
+\setlength{\textfloatsep}{1cm}
+\setlength{\parskip}{0.2cm}
+
+
+%% Highlighting
+\usepackage{soul}
+\usepackage{color}
+\usepackage{xcolor}
+
+
+%% Language and quotes
+\usepackage [english]{babel}
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+
+%% Fonts
+%\usepackage{helvet}
+%\renewcommand{\familydefault}{\sfdefault} % Use after title page
+
+
+%% Paths
+\graphicspath{ {./figures/} }
+
+
+%% Bibliography
+\usepackage{natbib}
+\usepackage[
+backend=biber,
+style=nature,
+citestyle=numeric,
+sorting=ynt,
+natbib=true
+]{biblatex}
+\addbibresource{bibliography.bib}
+
+
+%% Hyperlinks
+\usepackage{hyperref} % WARNING: import this last!
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,
+    urlcolor=violet,
+    citecolor=magenta,
+    menucolor=blue,
+%    allcolors=blue, % Sets all colours equal
+%    pdftitle={Sharelatex Example},
+%    bookmarks=true,
+%    pdfpagemode=FullScreen
+}
+\urlstyle{same}
+%\href{http://www.sharelatex.com}{Something Linky}
+%\url{http://www.sharelatex.com}
+%\href{run:./file.txt}{File.txt}
+
+%% Referencing
+\usepackage{cleveref}
+\newcommand{\crefrangeconjunction}{--} % Get an en-dash instead of the word "to"
+
+
+%%%
+
+
+
+%%%%%%%%%%
+
+\begin{document}
+
+
+
+%%% Document spacing
+
+% In mathematics DPhil thesis template:
+%\baselineskip=18pt plus1pt
+% Instead you can try double spacing:
+\doublespacing
+
+%%%
+
+
+\begin{titlepage}
+    \begin{center}
+        \vspace*{3cm}
+ 
+ 
+ 
+ 
+        \Huge
+        EasyDD Startup Guide
+        
+ 
+ 	\vfill
+	
+	
+        \vspace{3cm}
+        
+        \includegraphics[width=0.35\textwidth]{ox_brand_cmyk_pos_crop1.pdf}
+        
+ 	\vspace{1cm}
+ 	
+ 	\LARGE
+    Oxford Materials \\
+    \Large
+    March 5, 2021
+    
+    \end{center}
+\end{titlepage}
+
+
+\renewcommand{\familydefault}{\sfdefault} % Font!
+
+
+\pagenumbering{roman}
+
+\tableofcontents
+\newpage
+
+\pagenumbering{arabic}
+
+
+
+
+
+
+\section{Getting EasyDD}
+
+
+EasyDD is a MATLAB-based discrete dislocation plasticity code developed in Oxford based on DDLab. The official build is publicly available to be downloaded from \href{https://github.com/TarletonGroup/EasyDD}{GitHub}. To begin working on this code without affecting the original repository, you may \href{https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo}{fork} it to your own repository. As you make modifications in your repository, the original repository may change; to update these changes in your own repository, you must \href{https://docs.github.com/en/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/syncing-a-fork}{sync the fork}.
+
+
+
+
+\section{Input file}
+
+To run a simulation, you must first specify and run an input file. This generates all of the material-specific parameters and specifies subprocesses which EasyDD will use to run the simulation. Subprocesses are defined as function handles and may be custom-made by the user. If a mandatory parameter is failed to be defined in the input file, a default value will be used so that the simulation can run anyways.
+
+\subsection{Input variables}
+
+\subsubsection*{Material parameters}
+
+\begin{itemize}
+  \item \texttt{rn}: $N \times 4$ matrix designating the positions and \texttt{flag}s of all $N$ nodes
+  \begin{equation*}
+  \texttt{rn} = 
+  \begin{bmatrix}
+  x_1 & y_1 & z_1 & \texttt{flag}_1 \\
+  x_2 & y_2 & z_2 & \texttt{flag}_2 \\
+  \vdots & \vdots & \vdots & \vdots \\
+  x_N & y_N & z_N & \texttt{flag}_N
+  \end{bmatrix}
+  \end{equation*}
+  \texttt{flag} = 0: mobile node; \texttt{flag} = 7: immobile node; \texttt{flag} = 6: node only allowed to move on its surface; \texttt{flag} = 67: virtual node at pseudo-infinity
+  \item \texttt{links}: $M \times 8$ matrix designating the start and end node \texttt{id}'s, the normalised burgers vector $(b_{xi},b_{yi},b_{zi})$, and slip plane normal $(n_{xi},n_{yi},n_{zi})$ for each of the $M$ segments
+  \begin{equation*}
+  \texttt{links} = 
+  \begin{bmatrix}
+  \alpha & \beta & b_{x1} & b_{y1} & b_{z1} & n_{x1} & n_{y1} & n_{z1}\\
+  \beta & \gamma & b_{x2} & b_{y2} & b_{z2} & n_{x2} & n_{y2} & n_{z2}\\
+  \vdots&\vdots&\vdots&\vdots&\vdots&\vdots&\vdots&\vdots\\
+  \delta & \epsilon & b_{xM} & b_{yM} & b_{zM} & n_{xM} & n_{yM} & n_{zM}\\
+  \end{bmatrix}
+  \end{equation*}
+  \item \texttt{MU}: material's shear modulus
+  \item \texttt{NU}: material's Poisson's ratio
+  \item \texttt{a}: dislocation core isotropic spreading radius
+  \item \texttt{Ec}: energy per unit length of the elastic contribution of the core of a screw dislocation
+  \item \texttt{Bcoeff}: drag coefficients corresponding to different dislocation orientations; definition depends on mobility law
+  \item \texttt{rotMatrix}: rotation matrix which rotates crystal slip system axes in mobility law
+  \item \texttt{amag}: lattice parameter in units of $\mu$m
+  \item \texttt{mumag}: material's shear modulus in units of MPa
+\end{itemize}
+
+\subsubsection*{Nodal network hyper-parameters}
+
+\begin{itemize}
+  \item \texttt{maxconnections}: total number of segments permitted to be connected to one node
+  \item \texttt{lmax}: maximum length permitted for any segment
+  \item \texttt{lmin}: minimum length permitted for any segment
+  \item \texttt{areamax}: maximum area preferred between three consecutive nodes in a dislocation
+  \item \texttt{areamin}: minimum area preferred between three consecutive nodes in a dislocation
+  \item \texttt{rmax}: maximum distance any node may move during a given time increment
+  \item \texttt{rann}: maximum distance two non-consecutive segments or nodes can be from each other in order to interact
+  \item \texttt{rntol}: error tolerance for the integrator in order to adjust the time increment
+  \item \texttt{dt0}: maximum permitted absolute time increment
+  \item \texttt{dt}: current absolute time increment
+  \item \texttt{totalSimTime}: absolute maximum time duration of simulation
+  \item \texttt{holdingTime}: absolute time duration before any loading is applied
+\end{itemize}
+
+
+\subsubsection*{Geometry \& boundary condition variables}
+
+\begin{itemize}
+  \item \texttt{dx}, \texttt{dy}, \texttt{dz}: cantilever (cuboid) beam size in $x$,$y$,$z$ directions
+  \item \texttt{mx}, \texttt{my}, \texttt{mz}: number of finite elements along $x$,$y$,$z$ directions
+  \item \texttt{u\_dot}, \texttt{sign\_u\_dot}, \texttt{u\_bar}, \texttt{u\_tilde}, \ldots: boundary condition for nodal displacement
+  \item \texttt{f\_dot}, \texttt{sign\_f\_dot}, \texttt{f\_bar}, \texttt{f\_tilde}, \ldots: boundary condition for nodal force
+  \item \texttt{r\_hat}: boundary condition for nodal reaction force
+  \item \texttt{calculateLoadingFunctionArgs}: struct containing variables for loading conditions
+\end{itemize}
+
+
+\subsubsection*{Post-processing parameters}
+
+\begin{itemize}
+  \item \texttt{printfreq}: frequency per time-step that nodal information is printed
+  \item \texttt{saveFreq}: frequency per time-step that workspace variables are saved
+  \item \texttt{plotFreq}: frequency per time-step that the nodal positions are plotted
+  \item \texttt{plim}: maximum permitted value for any of the $x$, $y$ and $z$ values plotted
+  \item \texttt{viewangle}: angle orientation of plot display [\texttt{azimuth},\texttt{elevation}]
+  \item \texttt{plotArgs}: struct containing variables for plotting
+  \item \texttt{plotFlags}: struct containing flags to enable plotting
+\end{itemize}
+
+
+
+
+\subsubsection*{Parallelisation \& flags}
+
+\begin{itemize}
+  \item \texttt{n\_threads}: number of threads per GPU block
+  \item \texttt{para\_scheme}: parallelisation scheme for traction calculations (\texttt{para\_scheme} = 0: none; \texttt{para\_scheme} = 1: over dislocations; \texttt{para\_scheme} = 2: over surface elements)
+  \item \texttt{CUDA\_flag}: enables compiling of CUDA code
+  \item \texttt{CUDA\_segseg\_flag}: enables seg-seg force computation parallelisation
+  \item \texttt{doremesh}: enables remesh phase for each time-step
+  \item \texttt{docollision}: enables collision phase for each time-step
+  \item \texttt{doseparation}: enables separation phase for each time-step
+  \item \texttt{dovirtmesh}: enables virtual remeshing phase for each time-step
+\end{itemize}
+
+
+\subsubsection*{Subprocesses}
+
+\begin{itemize}
+  \item \texttt{mobility}: specifies mobility law function subprocess (e.g. \texttt{@mobfcc0})
+  \item \texttt{integrator}: specifies integrator function subprocess (e.g. \texttt{@int\_trapezoid})
+  \item \texttt{simType}: specifies simulation geometry and assigns types of boundary conditions to degrees of freedom (e.g. \texttt{@cantileverBending})
+  \item \texttt{calculateLoading}: specifies general loading conditions (e.g. \texttt{@constantLoading})
+  \item \texttt{loading}: calculates time-dependent boundary conditions at degrees of freedom (e.g. \texttt{@displacementControl})
+  \item \texttt{calculateTractions}: specifies how the tractions on surface nodes are calculated (e.g. \texttt{@calculateAnalyticTractions})
+\end{itemize}
+    
+\subsection{Parameter constraints}
+    
+It is important that the input parameters fulfill a set of logical constraints which are imposed by the simulation geometry and nodal network. Poorly defined parameters may result in the simulation generating numerical instabilities and nonphysical results. In the following, some recommended constraints for higher accuracy simulations are listed.
+\begin{gather}
+2*\texttt{lmin} < \texttt{lmax} \\
+0 \leq 4*\texttt{areamin} < 4*\frac{1}{2}*\texttt{lmin}^2 < \texttt{areamax} \leq \frac{\sqrt{3}}{2}*\frac{1}{2}*\texttt{lmax}^2 \\
+2*\texttt{a} \leq \texttt{rann} < \texttt{lmin} \\
+\texttt{rntol} \sim \texttt{rmax} < \texttt{rann} \\
+\texttt{areamin} = 2*\texttt{rntol}*\texttt{lmax}
+\end{gather}
+
+
+\subsection{Parameter units}
+
+Material parameters must be defined with consistent units to avoid a large disparity in scales. In the following table, simulation units in SI are listed for different physical dimensions. Let $\alpha$ and $\mu$ respectively be the lattice parameter and the shear modulus of the material in SI units. Let $B = 1 \left[\text{Pa} \cdot \text{s}\right]$ represent the scaling of drag units.
+\begin{center}
+\begin{tabular}{ m{4cm}  m{4cm} }
+ \hline
+ \textbf{Dimension} & \textbf{Simulation units} \\
+ \hline\hline
+ \text{Length} $\left[\text{m}\right]$ & $\alpha$ \\ 
+ \hline
+ \text{Pressure} $\left[\text{Pa}\right]$ & $\mu$ \\
+ \hline
+ \text{Drag} $\left[\text{Pa} \cdot \text{s}\right]$ & $B$ \\
+ \hline
+ \text{Time} $\left[\text{s}\right]$ & $B / \mu$ \\
+ \hline
+ \text{Velocity} $\left[\text{m} \cdot \text{s}^{-1}\right]$ & $\alpha \cdot \mu / B$ \\
+ \hline
+ \text{Force} $\left[\text{Pa} \cdot \text{m}^2\right]$ & $\mu \cdot \alpha^2$ \\
+ \hline
+ \text{Nodal force} $\left[\text{Pa} \cdot \text{m}\right]$ & $\mu \cdot \alpha$ \\
+ \hline
+\end{tabular}
+\end{center}
+Note that $\texttt{amag}$ and $\texttt{mumag}$ are respectively the lattice parameter in units of $\mu \text{m}$ and the shear modulus in units of $\text{MPa}$. As an example, consider Zirconium; its lattice parameter and shear modulus are respectively $\alpha = 3.233 \times 10^{-10} \left[\text{m}\right]$ and $\mu = 3.71 \times 10^{10} \left[\text{Pa}\right]$. In the following table, assignment values are converted to the corresponding physical values in SI units.
+\begin{center}
+\begin{tabular}{ m{5cm}  m{8cm} }
+ \multicolumn{2}{c}{\textbf{Example: Zirconium}} \\
+ \hline
+ \textbf{Assignment value} & \textbf{Physical value}\\
+ \hline\hline
+ $\texttt{MU} = 1$ & $\texttt{MU} \cdot \mu = 3.71 \times 10^{10} \left[\text{Pa}\right]$ \\
+ \hline
+ $\texttt{Bcoeff} = 180\text{E}{-6}$ & $\texttt{Bcoeff} \cdot B = 180 \times 10^{-6} \left[\text{Pa} \cdot \text{s}\right]$ \\
+ \hline
+ $\texttt{dt} = 37.1$ & $\texttt{dt} \cdot B / \mu = 1 \times 10^{-9} \left[\text{s}\right]$ \\
+ \hline
+ $\texttt{a} = 90$ & $90 \cdot \alpha = 2.91 \times 10^{-8} \left[\text{m}\right]$ \\
+ \hline
+ $\texttt{f\_dot} = 0.1$ & $\texttt{f\_dot} \cdot \mu^2 \cdot \alpha^2 / B  = 14.387 \left[\text{Pa} \cdot \text{m}^2 \cdot \text{s}^{-1}\right]$ \\
+ \hline
+ $\texttt{amag} = 3.233 \text{E}{-4}$ & $3.233 \times 10^{-4} \left[\mu \text{m}\right]$ \\
+ \hline
+ $\texttt{mumag} = 3.71 \text{E}{4}$ & $3.71 \times 10^{4} \left[\text{MPa}\right]$ \\
+ \hline
+\end{tabular}
+\end{center}
+Suppose that we wish to set the length of dimension $x$ of the cuboid geometry to $10 \left[\mu \text{m} \right]$. This can be done by performing the assignment $\texttt{dx} = 10 / \texttt{amag}$. Expressing the physical units of \texttt{dx} explicitly yields
+\begin{equation*}
+\texttt{dx} = \frac{10}{\texttt{amag}} \cdot \alpha = \frac{10}{3.233 \times 10^{-4}} \cdot 3.233 \times 10^{-10} \left[\text{m}\right] = 10 \cdot 10^{-6} \left[\text{m}\right] = 10 \left[\mu \text{m}\right]
+\end{equation*}
+
+
+
+
+
+
+
+\newpage
+%\printbibliography
+
+\end{document}
