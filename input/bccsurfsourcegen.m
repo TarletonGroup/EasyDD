@@ -126,7 +126,7 @@ for i=1:size(slipsys,1)
     edge=edgevecs(i,1:3);
     edge=edge/norm(edge);
     b_vec=slipsys(i,4:6);
-    b_vec=b_vec/norm(b_vec);
+    b_vec=b_vec/2;%norm(b_vec);
     mobvec=DIST_SOURCE*edge;
     fixvec=DIST_SOURCE*normal;
     %Generate midpoints of sources
