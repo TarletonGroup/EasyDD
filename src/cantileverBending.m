@@ -44,7 +44,7 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
             end
 
             Sleft(m, 2) = L2 * L3;
-            Sleft(m, 3:5) = [-1, 0, 0];
+            Sleft(m, 3:5) = -[-1, 0, 0];
             m = m + 1;
         end
 
@@ -72,7 +72,7 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
             end
 
             Sright(m, 2) = L2 * L3;
-            Sright(m, 3:5) = [1, 0, 0];
+            Sright(m, 3:5) = -[1, 0, 0];
             m = m + 1;
         end
 
@@ -93,7 +93,7 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
 
         L3 = 0.5 * d;
         Smixed(m, 2) = L2 * L3;
-        Smixed(m, 3:5) = [1, 0, 0];
+        Smixed(m, 3:5) = -[1, 0, 0];
         m = m + 1;
     end
 
@@ -118,9 +118,9 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
             end
 
             Sbot(m, 2) = L1 * L2;
-            Sbot(m, 3:5) = [0, 0, -1];
+            Sbot(m, 3:5) = -[0, 0, -1];
             Stop(m, 2) = L1 * L2;
-            Stop(m, 3:5) = [0, 0, 1];
+            Stop(m, 3:5) = -[0, 0, 1];
             m = m + 1;
         end
 
@@ -141,9 +141,9 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
             L1 = w;
             L3 = d;
             Sfront(m, 2) = L1 * L3;
-            Sfront(m, 3:5) = [0, -1, 0];
+            Sfront(m, 3:5) = -[0, -1, 0];
             Sback(m, 2) = L1 * L3;
-            Sback(m, 3:5) = [0, 1, 0];
+            Sback(m, 3:5) = -[0, 1, 0];
 
             m = m + 1;
         end
@@ -155,9 +155,13 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
     gammaMixed = Smixed; % t1=t2=0, u3= U
 
     fixedDofs = [3 * gammau(:, 1) - 2; 3 * gammau(:, 1) - 1; 3 * gammau(:, 1); 3 * gammaMixed(:, 1)];
-    freeDofs = setdiff([1:3*mno], fixedDofs);
+    freeDofs = setdiff(1:3*mno, fixedDofs)';
 %     freeDofs = [3 * gammat(:, 1) - 2; 3 * gammat(:, 1) - 1; 3 * gammat(:, 1); 3 * gammaMixed(:, 1) - 2; ...
 %                 3 * gammaMixed(:, 1) - 1];
+    if length([fixedDofs;freeDofs])>length(unique([fixedDofs;freeDofs]))
+        disp('error')
+        pause    
+    end
 
 %     K(:, fixedDofs) = 0;
 %     K(fixedDofs, :) = 0;
@@ -191,6 +195,10 @@ function [K, L, U, P_l, P_u, Sleft, Sright, Stop, Sbot, Sfront, Sback, Smixed, g
         P_u = [];
         P_l = [];
     end
+%     U=chol(K);
+%     L=U';
+%     P_l=[];
+%     P_u=[];
     
     processForceDisp = @cantileverBendingForceDisp;
     plotForceDisp = @cantileverBendingPlot;

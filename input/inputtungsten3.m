@@ -29,8 +29,8 @@ amag = 3.18e-4;
 mumag = 135E3; % MPa only used for plotting
 
 CRYSTAL_STRUCTURE = 'bcc';
-NUM_SOURCES = 16;
-DIST_SOURCE = 0.1 / amag;
+NUM_SOURCES = 2;
+DIST_SOURCE = 1 / amag;
 
 %% FEM PARAMETERS
 %Cantilever
@@ -42,33 +42,33 @@ dz = 5.3 / amag; %2micron
 mx = 40; % number of elements along beam length
 my = 8;
 mz = 8;
-loading = @displacementControl;
-simType = @cantileverBending;
-calculateTractions = @calculateAnalyticTractions;
-calculateLoading = @constantLoading;
-sign_u_dot = -1;
-sign_f_dot = -1;
-u_dot = dx / 160E8;
-u_bar = 0;
-f_dot = 0;
-f_bar = 0;
-f_hat = 0;
-f_tilda = 0;
-u_hat = 0;
-u_tilda = 0;
-r_hat = 0;
-Fsim = zeros(1e6, 1);
-Usim = zeros(1e6, 1);
-t = zeros(1e6, 1);
-calculateLoadingFunctionArgs = 0;
-vertices = [0, 0, 0; ...
-            dx, 0, 0; ...
-            0, dy, 0; ...
-            dx, dy, 0; ...
-            0, 0, dz; ...
-            dx, 0, dz; ...
-            0, dy, dz; ...
-            dx, dy, dz];
+% loading = @displacementControl;
+% simType = @cantileverBending;
+% calculateTractions = @calculateAnalyticTractions;
+% calculateLoading = @constantLoading;
+% sign_u_dot = -1;
+% sign_f_dot = -1;
+% u_dot = dx / 160E8;
+% u_bar = 0;
+% f_dot = 0;
+% f_bar = 0;
+% f_hat = 0;
+% f_tilda = 0;
+% u_hat = 0;
+% u_tilda = 0;
+% r_hat = 0;
+% Fsim = zeros(1e6, 1);
+% Usim = zeros(1e6, 1);
+% t = zeros(1e6, 1);
+% calculateLoadingFunctionArgs = 0;
+% vertices = [0, 0, 0; ...
+%             dx, 0, 0; ...
+%             0, dy, 0; ...
+%             dx, dy, 0; ...
+%             0, 0, dz; ...
+%             dx, 0, dz; ...
+%             0, dy, dz; ...
+%             dx, dy, dz];
 
 %% MATERIAL CONSTANTS
 
@@ -125,59 +125,59 @@ rotMatrix = [];
 %%
 %Edge and screw glide and climb mobility parameters
 mobility = @mobbcc_bb1b;
-%Bedge=1e-4; %Pa s
-%Bscrew=1e-5; %Pa s
-%Beclimb=1e5; %Pa s - really big
-%Bline=1e-4*min(Bscrew,Bedge);
-Bedge = 1;
-Bscrew = 10;
-Beclimb = 1e10;
-Bline = 1e-4 * min(Bscrew, Bedge);
-Bcoeff = struct('screw', Bscrew, 'edge', Bedge, 'climb', Beclimb);
-
-%Meshing
-maxconnections = 4;
-lmax = 0.25 / amag;
-lmin = 0.05 / amag;
-areamin = lmin * lmin * sin(60/180 * pi) * 0.5;
-areamax = 20 * areamin;
-doremesh = 1; %flat set to 0 or 1 that turns the remesh functions off or on
-docollision = 1; %flat set to 0 or 1 that turns collision detection off or on
-doseparation = 1; %flat set to 0 or 1 that turns splitting algorithm for highly connected node off or on
-dovirtmesh = 1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
-
-%Simulation time
-dt0 = 1E11;
-dt=dt0;
-
-intSimTime = 0;
-sinTime = 0;
-%dtplot=2E-9; %2ns
-dtplot = 5E4;
-doplot = 1; % frame recording: 1 == on, 0 == off
-totalSimTime = (2 / amag) / (100 * 1E3 * dx * (1E-4/160E9))*1E5;
-curstep = 0;
-simTime = 0;
-
-%Integrator
-integrator = @int_trapezoid;
-%integrator='int_trapezoid_stoc'; %in development
-a = (lmin / sqrt(3) * 0.5)/40;
-Ec = MU / (4 * pi) * log(a / 0.1);
-rann = 0.5 * lmin*0.95;
-rntol = 50 * rann; % need to do convergence studies on all these parameters
-rmax = 0.5*rann;
-
-%Plotting
-plotFreq = 10E7;
-saveFreq = 100;
-plim = 12 / amag; %12microns
-viewangle = [-35, 15];
-printfreq = 500;
-printnode = 2;
-
-%GPU Setup
-
-n_threads = 512;
-CUDA_flag=true;
-para_scheme = 1;
+% %Bedge=1e-4; %Pa s
+% %Bscrew=1e-5; %Pa s
+% %Beclimb=1e5; %Pa s - really big
+% %Bline=1e-4*min(Bscrew,Bedge);
+% Bedge = 1;
+% Bscrew = 10;
+% Beclimb = 1e10;
+% Bline = 1e-4 * min(Bscrew, Bedge);
+% Bcoeff = struct('screw', Bscrew, 'edge', Bedge, 'climb', Beclimb);
+% 
+% %Meshing
+% maxconnections = 4;
+% lmax = 0.25 / amag;
+% lmin = 0.05 / amag;
+% areamin = lmin * lmin * sin(60/180 * pi) * 0.5;
+% areamax = 20 * areamin;
+% doremesh = 1; %flat set to 0 or 1 that turns the remesh functions off or on
+% docollision = 1; %flat set to 0 or 1 that turns collision detection off or on
+% doseparation = 1; %flat set to 0 or 1 that turns splitting algorithm for highly connected node off or on
+% dovirtmesh = 1; %flat set to 0 or 1 that turns remeshing of virtual nodes off or on
+% 
+% %Simulation time
+% dt0 = 1E11;
+% dt=dt0;
+% 
+% intSimTime = 0;
+% sinTime = 0;
+% %dtplot=2E-9; %2ns
+% dtplot = 5E4;
+% doplot = 1; % frame recording: 1 == on, 0 == off
+% totalSimTime = (2 / amag) / (100 * 1E3 * dx * (1E-4/160E9))*1E5;
+% curstep = 0;
+% simTime = 0;
+% 
+% %Integrator
+% integrator = @int_trapezoid;
+% %integrator='int_trapezoid_stoc'; %in development
+% a = (lmin / sqrt(3) * 0.5)/40;
+% Ec = MU / (4 * pi) * log(a / 0.1);
+% rann = 0.5 * lmin*0.95;
+% rntol = 50 * rann; % need to do convergence studies on all these parameters
+% rmax = 0.5*rann;
+% 
+% %Plotting
+% plotFreq = 10E7;
+% saveFreq = 100;
+% plim = 12 / amag; %12microns
+% viewangle = [-35, 15];
+% printfreq = 500;
+% printnode = 2;
+% 
+% %GPU Setup
+% 
+% n_threads = 512;
+% CUDA_flag=true;
+% para_scheme = 1;

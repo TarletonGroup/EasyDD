@@ -1,7 +1,7 @@
 function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,...
         f_tilda, idxi, n_nodes_t, n_threads, para_scheme, gamma_disp, u_tilda_0,...
          u, u_hat, u_tilda] = AuxFEMCoupler(mno, dx, dy, dz, mx, my, mz, xnodes,...
-          nc, gammat, gammau, gammaMixed, calculateTractions, CUDA_flag, n_threads, para_scheme)
+          nc, gammat, gammau, gammaMixed, calculateTractions, CUDA_flag, n_threads, para_scheme, simType)
     %=========================================================================%
     % Sets up auxiliary data structures for analytic traction calculations.
     %
@@ -101,8 +101,32 @@ function [f, f_hat, para_tol, x3x6, n_se, gamma_dln, f_tilda_node, f_tilda_se,..
     para_tol = dimension / 1e7;
 
     planes = (1:1:6)';
+    
+    yz = my*mz;
+    xz = mx*mz;
+    xy = mx*my;
+    if isequal(func2str(simType), 'cantileverBending')
+        surf_node_util = zeros(6, 6);
+        % For rectangular surface elements.
+        surf_node_util(1:6, 1) = [5, 1, 8, 4, yz, 1]; % min(x), yz-plane, face 1 ~Sleft
+        surf_node_util(1:6, 2) = [2, 6, 3, 7, yz, 1]; % max(x), yz-plane, face 2 ~Sright
+        surf_node_util(1:6, 3) = [6, 5, 7, 8, xz, 2]; % min(y), xz-plane, face 3 ~Sfront
+        surf_node_util(1:6, 4) = [1, 2, 4, 3, xz, 2]; % max(y), xz-plane, face 4 ~Sback
+        surf_node_util(1:6, 5) = [5, 6, 1, 2, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
+        surf_node_util(1:6, 6) = [4, 3, 8, 7, xy, 3]; % max(z), xy-plane, face 6 ~Stop
+    else
+        surf_node_util = zeros(n_nodes + 2, 6);
+        % For rectangular surface elements.
+        surf_node_util(1:6, 1) = [1, 5, 4, 8, yz, 1]; % min(x), yz-plane, face 1 ~Sleft
+        surf_node_util(1:6, 2) = [6, 2, 7, 3, yz, 1]; % max(x), yz-plane, face 2 ~Sright
+        surf_node_util(1:6, 3) = [5, 6, 8, 7, xz, 2]; % min(y), xz-plane, face 3 ~Sfront
+        surf_node_util(1:6, 4) = [2, 1, 3, 4, xz, 2]; % max(y), xz-plane, face 4 ~Sback
+        surf_node_util(1:6, 5) = [6, 5, 2, 1, xy, 3]; % min(z), xy-plane, face 5 ~Sbot
+        surf_node_util(1:6, 6) = [3, 4, 7, 8, xy, 3]; % max(z), xy-plane, face 6 ~Stop
+    end
+       
     [x3x6_lbl, x3x6, n_se] = extract_surface_nodes(xnodes, nc, [mx; my; mz], ...
-        planes, 4);
+        planes, 4, surf_node_util);
     
     [f_tilda_node, f_tilda_se, ...
             f_tilda, idxi, n_nodes_t] = nodal_force_map(x3x6_lbl, gamma_dln, 4, n_se, mno);

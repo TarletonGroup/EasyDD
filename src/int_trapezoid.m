@@ -9,6 +9,7 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, dtMin, MU, NU, a, E
 
     %Convert rn into a single column of coordinates and store the node flags
     rnvec0 = [rn(:, 1); rn(:, 2); rn(:, 3)]; flag = rn(:, 4);
+    rmax2=rmax*rmax;
 
     %Calculate the current nodal velocities
     [vnvec0, fn, fseg] = drndt(rnvec0, flag, MU, NU, a, Ec, links, connectivity, ...
@@ -44,7 +45,7 @@ function [rn, vn, dt, fn, fseg] = int_trapezoid(rn, dt, dt0, dtMin, MU, NU, a, E
             break
         end
 
-        if (errmag < rntol) && (distmag < rmax)%If error and max distance move are in acceptable limits
+        if (errmag < rntol) && (distmag < rmax2)%If error and max distance move are in acceptable limits
             dt_old = dt; %Store current timestep as maximum acceptable timestep
             factor = maxchange * (1 / (1 + (maxchange^exponent - 1) * (errmag / rntol)))^(1 / exponent);
             dt = min(dt * factor, dt0); %Increase timestep depending on the magnitude of the error

@@ -169,7 +169,7 @@ if ~exist('dovirtmesh', 'var')
 end
 
 if ~exist('dt0', 'var')
-    dt0 = 1e6;
+    dt0 = 1e8;
     fprintf('Providing default value for dt0 = %f.\n', dt0)
 end
 
@@ -184,7 +184,7 @@ if ~exist('holdingTime', 'var')
 end
 
 if ~exist('totalSimTime', 'var')
-    totalSimTime = 1e9 + holdingTime;
+    totalSimTime = 1e11 + holdingTime;
     fprintf('Providing default value for totalSimTime = %f.\n', totalSimTime)
 end
 
@@ -292,7 +292,7 @@ if ~exist('sign_f_dot', 'var')
 end
 
 if ~exist('u_dot', 'var')
-    u_dot = dx / 160E6;
+    u_dot = dx / 160E8;
     fprintf('Providing default value for u_dot = %f.\n', u_dot)
 end
 
@@ -307,7 +307,7 @@ if ~exist('u_bar_0', 'var')
 end
 
 if ~exist('f_dot', 'var')
-    f_dot = dx / 160E6;
+    f_dot = 0;
     fprintf('Providing default value for f_dot = %d.\n', f_dot)
 end
 
@@ -378,7 +378,7 @@ if ~exist('dt', 'var')
 end
 
 if ~exist('dtMin', 'var')
-    dtMin = dt0*1e-6;
+    dtMin = 1e-15;
     fprintf('Providing default value for dtMin = %f.\n', dtMin)
 end
 

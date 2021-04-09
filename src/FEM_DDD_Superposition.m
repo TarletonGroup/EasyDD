@@ -39,6 +39,7 @@ function [f_bar, f_hat, f_tilda, u_bar, u_hat, u_tilda, r_hat] = FEM_DDD_Superpo
     else
         u_hat(freeDofs) = P_l \ (U \ (L \ (P_u \ f(freeDofs)))); % using LU decomposition for sparse matrices
     end
+%     u_hat=U\(L\f);
 
     % If not using force control, calculate reaction force.
     if calculateR_hat
