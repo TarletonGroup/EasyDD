@@ -423,7 +423,7 @@ function [screwSegLen, screwSegLenUnitVec, edgeSegLens, edgeSegLensUnitVec, ...
 	%		glissilenormals: glissile plane normal vectors for the current segment -- size (P,3) for P glissile planes
 	% 		burgVec: Burgers vector of the segment -- size (1,3)
 	% 		segLenVec: length vector of the segment -- size (1,3)
-    % 		pIndex: segment index in glissileNormals  -- size (1,3)
+    % 		pIndex: segment index in glissileNormals  -- size (1)
 	% OUTPUT:
 	%		screwSegLen: screw component length -- size (1)
     %		screwSegLenUnitVec: screw component unit vector -- size (1,3)
@@ -506,8 +506,8 @@ function [edgeProjIdxMax, edgeProjMax, glissileEdgeUnitVecMax] = GetLargestEdgeS
 	for p = glissileIdxs
         
 		normal = glissileNormals(p,:);
-		edgeGlissileVec = cross(unitBurgVec,normal);
-		glissileEdgeUnitVec = edgeGlissileVec/norm(edgeGlissileVec);
+		glissileEdgeVec = cross(unitBurgVec,normal);
+		glissileEdgeUnitVec = glissileEdgeVec/norm(glissileEdgeVec);
         
         edgeProj = dot(glissileEdgeUnitVec, edgeSegVec);
         
@@ -524,7 +524,7 @@ function [outVec, outDualVec] = DecomposeVectorInBasis(...
     inVec, varargin)
     % INPUT:
 	%		inVec: vector expressed in standard basis -- size (1,3)
-	%       a1,a2,a3: three linearly independent HCP lattice basis vectors -- each size (1,3)
+	%       a1,a2,a3: three linearly independent basis vectors -- each size (1,3)
 	% OUTPUT:
 	%		outVec: inVec expressed in (a1,a2,a3) basis -- size (1,3)
     %		outDualVec: inVec expressed in (a1,a2,a3) dual basis -- size (1,3)
